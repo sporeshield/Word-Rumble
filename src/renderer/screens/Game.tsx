@@ -1,12 +1,18 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
-import { Board, DragLayer, Rack, useTileDrag } from '../components'
+import { Board, DragLayer, GhostTiles, Rack, useTileDrag } from '../components'
+import { ComicBurst } from '../fx'
+import type { BurstTier } from '../fx/bursts'
+import { getFinder, teachFinder } from '../ai/shared'
 import { sfx } from '../audio/sfx'
 import {
-  isBlank, moveInList, orderRack, PLACEMENT_HINTS, previewPlay, reduce, shuffleIds, spinPenalty, wordsToCheck,
+  isBlank, moveInList, orderRack, penaltySlices, PLACEMENT_HINTS, previewPlay, reduce, rollHintCost, shuffleIds, spinPenalty, wordsToCheck,
   type GameAction, type GameError, type GameState, type PenaltyOutcome, type Placement, type Tile
 } from '../engine'
 import { Handoff } from './Handoff'
 import { BlankPicker, DefeatDialog, ExchangeDialog, PauseMenu, WordCheckDialog } from './game/Dialogs'
+import { HintOfferDialog, NoHintDialog } from './game/HintDialog'
+import { PenaltyWheel } from './game/PenaltyWheel'
+import { VoteDialog } from './game/VoteDialog'
 import './game/game.css'
 
 export interface GameProps {
@@ -26,6 +32,12 @@ type Dialog =
   | { kind: 'exchange' }
   | { kind: 'defeat' }
   | { kind: 'words'; missing: string[] }
+  | { kind: 'wheel'; action: PlayAction; index: number; outcome: PenaltyOutcome; word: string }
+  | { kind: 'vote'; action: PlayAction; word: string }
+  | { kind: 'hint'; cost: number | null; rolling: boolean }
+  | { kind: 'nohint' }
+
+type PlayAction = Extract<GameAction, { type: 'play' }>
 
 const SETTLE_MS = 1500
 
@@ -34,7 +46,6 @@ const ERRORS: Partial<Record<GameError, string>> = {
   'bad-exchange': 'Pick at least one tile to swap.'
 }
 
-// Phase 11 replaces this with the spinning Penalty Wheel; until then the wheel is spun silently.
 const PENALTY_TEXT: Record<PenaltyOutcome, string> = {
   half: 'Half points!', zero: 'Zero points!', minus10: '−10 from your total!', minus20: '−20 from your total!',
   gift: 'Points gifted away!', skip: 'You skip your next turn!', rackwipe: 'Rack wipe!', convince: 'They let it stand.', lucky: 'Lucky escape!'
@@ -61,7 +72,9 @@ function TurnTimer({ seconds, total }: { seconds: number; total: number }) {
   )
 }
 
-export function Game({ game, colors, muted, onToggleSound, onTurnDone, onSaveQuit }: GameProps) {
+export function Game({ game: initialGame, colors, muted, onToggleSound, onTurnDone, onSaveQuit }: GameProps) {
+  // Local copy: hint quotes and costs change the game state mid-turn, before the turn ends.
+  const [game, setGame] = useState(initialGame)
   const solo = game.players.length === 1
   const me = game.players[game.current]
   const myColor = colors[game.current]
@@ -73,9 +86,12 @@ export function Game({ game, colors, muted, onToggleSound, onTurnDone, onSaveQui
   const [selectedId, setSelectedId] = useState<number>()
   const [dialog, setDialog] = useState<Dialog>(null)
   const [overlay, setOverlay] = useState<null | 'pause' | 'handoff'>(null)
-  const [settle, setSettle] = useState<{ next: GameState; text: string; burst: string | null } | null>(null)
+  const [settle, setSettle] = useState<{ next: GameState; text: string; burst: { text: string; tier: BurstTier } | null } | null>(null)
   const [toast, setToast] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const [ghost, setGhost] = useState<Placement[]>([])
+  const [fxBurst, setFxBurst] = useState<{ text: string; tier: BurstTier } | null>(null)
+  const hintCount = useRef(0)
   const [remaining, setRemaining] = useState<number | null>(computerTurn ? null : timerTotal)
 
   const flash = useCallback((text: string) => {
@@ -91,7 +107,7 @@ export function Game({ game, colors, muted, onToggleSound, onTurnDone, onSaveQui
   )
   const preview = useMemo(() => previewPlay(game.board, pending), [game.board, pending])
   // Letters are visible only to the player whose turn it is, and only while nothing covers the screen.
-  const hidden = overlay !== null || settle !== null || computerTurn
+  const hidden = overlay !== null || settle !== null || computerTurn || dialog?.kind === 'wheel' || dialog?.kind === 'vote'
   const idle = dialog === null && overlay === null && settle === null && !busy
 
   // ------------------------------------------------------------------ actions
@@ -110,9 +126,10 @@ export function Game({ game, colors, muted, onToggleSound, onTurnDone, onSaveQui
       line = `${record.rumble ? 'RUMBLE bonus! ' : ''}${gained >= 0 ? '+' : ''}${gained} points${record.penalty ? ` — ${PENALTY_TEXT[record.penalty]}` : ''}`
     }
     if (next.lastBurst) sfx.play('burst')
+    setGhost([])
     if (record?.rumble) sfx.play('rumble-fanfare')
     sfx.play('flip-hide')
-    setSettle({ next, text: line, burst: next.lastBurst?.text ?? null })
+    setSettle({ next, text: line, burst: next.lastBurst ? { text: next.lastBurst.text, tier: next.lastBurst.tier } : null })
     return true
   }, [game, flash, onTurnDone])
 
@@ -180,6 +197,7 @@ export function Game({ game, colors, muted, onToggleSound, onTurnDone, onSaveQui
     const occupant = pending.find((p) => p.row === row && p.col === col)
     if (occupant && occupant.tile.id !== tile.id) return
     const existing = pending.find((p) => p.tile.id === tile.id)
+    setGhost([])
     if (isBlank(tile) && !existing) { setDialog({ kind: 'blank', tile, row, col }); return }
     sfx.play('tile-place')
     setPending((current) => [...current.filter((p) => p.tile.id !== tile.id), { row, col, tile, letter: existing?.letter ?? tile.letter }])
@@ -218,15 +236,20 @@ export function Game({ game, colors, muted, onToggleSound, onTurnDone, onSaveQui
   }
 
   // ------------------------------------------------------------------ turn buttons
-  const commitPlay = (extra: { madeUp?: boolean } = {}) => {
-    const action: Extract<GameAction, { type: 'play' }> = { type: 'play', placements: pending, ...extra }
+  const finishPlay = (action: PlayAction) => {
+    setDialog(null)
+    if (applyAction(action, 'Played!')) sfx.play('word-valid')
+  }
+
+  const commitPlay = (extra: { madeUp?: boolean; missing?: string[] } = {}) => {
+    const action: PlayAction = { type: 'play', placements: pending, ...(extra.madeUp ? { madeUp: true } : {}) }
     if (extra.madeUp && game.options.madeUp === 'penalty') {
       const spun = spinPenalty(solo)
       action.penalty = spun.outcome
-      if (spun.outcome === 'convince') action.vote = 'keep'
+      setDialog({ kind: 'wheel', action, index: spun.index, outcome: spun.outcome, word: extra.missing?.[0] ?? '' })
+      return
     }
-    setDialog(null)
-    if (applyAction(action, 'Played!')) sfx.play('word-valid')
+    finishPlay(action)
   }
 
   const submit = async () => {
@@ -250,6 +273,7 @@ export function Game({ game, colors, muted, onToggleSound, onTurnDone, onSaveQui
     const results = await Promise.all(dialog.missing.map((w) => window.wordRumble.words.add(w)))
     if (results.some((ok) => !ok)) { flash('Words can only use the letters A to Z.'); return }
     sfx.play('word-valid')
+    teachFinder(dialog.missing)
     commitPlay()
   }
 
@@ -264,6 +288,42 @@ export function Game({ game, colors, muted, onToggleSound, onTurnDone, onSaveQui
     sfx.play('pass')
     recall(true)
     applyAction({ type: 'pass' }, 'Passed.')
+  }
+
+  const askHint = () => {
+    if (!idle) return
+    sfx.play('ui-click')
+    recall(true)
+    const free = game.options.hints === 'free'
+    const quoted = reduce(game, { type: 'hint-offer', cost: game.hint?.cost ?? rollHintCost() })
+    if (!quoted.ok) { flash('Hints are not available.'); return }
+    setGame(quoted.state)
+    setDialog({ kind: 'hint', cost: free ? null : quoted.state.hint?.cost ?? null, rolling: !game.hint })
+  }
+
+  const declineHint = () => {
+    const declined = reduce(game, { type: 'hint-decline' })
+    if (declined.ok) setGame(declined.state)
+    setDialog(null)
+  }
+
+  const acceptHint = async () => {
+    setDialog(null)
+    setBusy(true)
+    try {
+      const moves = await (await getFinder()).find(game.board, me.rack)
+      if (moves.length === 0) { setDialog({ kind: 'nohint' }); return }
+      const taken = reduce(game, { type: 'hint-accept' })
+      if (!taken.ok) { flash('That hint was not available.'); return }
+      setGame(taken.state)
+      const move = moves[hintCount.current++ % moves.length]
+      setGhost(move.placements)
+      if (taken.state.lastBurst) setFxBurst({ text: taken.state.lastBurst.text, tier: taken.state.lastBurst.tier })
+    } catch {
+      flash('The hint helper could not start.')
+    } finally {
+      setBusy(false)
+    }
   }
 
   const doConcede = () => {
@@ -296,7 +356,9 @@ export function Game({ game, colors, muted, onToggleSound, onTurnDone, onSaveQui
             const owner = game.owners[`${row},${col}`]
             return owner === undefined ? undefined : colors[owner]
           }}
-        />
+        >
+          {ghost.length ? <GhostTiles placements={ghost} /> : null}
+        </Board>
       </div>
 
       <aside className="wr-play__side">
@@ -356,6 +418,9 @@ export function Game({ game, colors, muted, onToggleSound, onTurnDone, onSaveQui
             Swap
           </button>
           <button type="button" className="btn btn--aqua" disabled={!idle} onClick={doPass}>Pass</button>
+          {game.options.hints !== 'off' ? (
+            <button type="button" className="btn btn--aqua" disabled={!idle} onClick={askHint}>Hint</button>
+          ) : null}
           <button type="button" className="btn" disabled={!idle} onClick={pause}>Pause</button>
           <button type="button" className="btn wr-play__defeat" disabled={!idle} onClick={() => { sfx.play('ui-click'); setDialog({ kind: 'defeat' }) }}>
             {solo ? 'End run' : 'Admit defeat'}
@@ -369,9 +434,34 @@ export function Game({ game, colors, muted, onToggleSound, onTurnDone, onSaveQui
 
       {settle ? (
         <div className="wr-play__settle" role="status">
-          {settle.burst ? <p className="wr-play__burst">{settle.burst}</p> : null}
           <p className="wr-play__settle-text">{settle.text}</p>
         </div>
+      ) : null}
+
+      {settle?.burst ? <ComicBurst text={settle.burst.text} tier={settle.burst.tier} /> : null}
+      {fxBurst ? <ComicBurst text={fxBurst.text} tier={fxBurst.tier} onDone={() => setFxBurst(null)} /> : null}
+
+      {dialog?.kind === 'hint' ? (
+        <HintOfferDialog cost={dialog.cost} rolling={dialog.rolling} onAccept={() => void acceptHint()} onDecline={declineHint} />
+      ) : null}
+      {dialog?.kind === 'nohint' ? <NoHintDialog onClose={() => setDialog(null)} /> : null}
+      {dialog?.kind === 'wheel' ? (
+        <PenaltyWheel
+          slices={[...penaltySlices(solo)]}
+          landingIndex={dialog.index}
+          solo={solo}
+          onLanded={() => {
+            if (dialog.outcome === 'convince') setDialog({ kind: 'vote', action: dialog.action, word: dialog.word })
+            else finishPlay(dialog.action)
+          }}
+        />
+      ) : null}
+      {dialog?.kind === 'vote' ? (
+        <VoteDialog
+          playerName={game.players[(game.current + 1) % game.players.length].name}
+          word={dialog.word}
+          onVote={(vote) => finishPlay({ ...dialog.action, vote })}
+        />
       ) : null}
 
       {dialog?.kind === 'blank' ? (
@@ -395,7 +485,7 @@ export function Game({ game, colors, muted, onToggleSound, onTurnDone, onSaveQui
           onTakeBack={() => setDialog(null)}
           onLookUp={(word) => void window.wordRumble.openLookup(word)}
           onAdd={() => void addWordsAndPlay()}
-          onMadeUp={() => commitPlay({ madeUp: true })}
+          onMadeUp={() => commitPlay({ madeUp: true, missing: dialog.missing })}
         />
       ) : null}
 
