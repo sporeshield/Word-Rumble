@@ -7,6 +7,12 @@ export default defineConfig({
   preload: {},
   renderer: {
     root: resolve(__dirname, 'src/renderer'),
+    resolve: {
+      alias: {
+        '@art': resolve(__dirname, 'resources/art'),
+        '@fonts': resolve(__dirname, 'resources/fonts')
+      }
+    },
     build: {
       rollupOptions: { input: resolve(__dirname, 'src/renderer/index.html') }
     },

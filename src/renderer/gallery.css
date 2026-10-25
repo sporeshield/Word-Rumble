@@ -1,0 +1,18 @@
+.wr-gallery { min-height: 100vh; padding: clamp(18px, 3vw, 38px); overflow: auto; }
+.wr-gallery__header { display: flex; justify-content: space-between; align-items: center; gap: 20px; max-width: 1450px; margin: 0 auto 12px; }
+.wr-gallery__eyebrow { margin: 0; font-family: 'Bangers', sans-serif; font-size: 1.2rem; letter-spacing: .1em; color: #fff; text-shadow: 2px 3px 0 var(--ink); }
+.wr-gallery h1 { margin: 0; font-family: 'Bangers', sans-serif; font-size: clamp(3rem, 5vw, 5.5rem); letter-spacing: .045em; color: var(--gold); -webkit-text-stroke: 2px var(--ink); text-shadow: 5px 7px 0 var(--ink); }
+.wr-gallery__header p:last-child { margin: .4rem 0; font-weight: 700; }
+.wr-gallery__buttons { display: flex; flex-wrap: wrap; gap: 16px; justify-content: flex-end; }
+.wr-gallery__stage { display: flex; align-items: center; justify-content: center; gap: clamp(16px, 3vw, 48px); max-width: 1450px; margin: auto; }
+.wr-gallery .wr-board { --board-size: min(76vh, 58vw, 760px); }
+.wr-gallery__racks { display: grid; gap: 24px; min-width: 0; }
+.wr-gallery__card { padding: 14px 18px 2px; border: 4px solid var(--ink); border-radius: 20px; box-shadow: 7px 9px 0 var(--ink); }
+.wr-gallery__card h2 { margin: 0 0 8px; font-family: 'Bangers', sans-serif; font-size: 2rem; letter-spacing: .05em; color: #fff; -webkit-text-stroke: 1px var(--ink); text-shadow: 2px 3px 0 var(--ink); }
+.wr-gallery .wr-rack { --rack-width: min(35vw, 490px); }
+@media (max-width: 1000px) {
+  .wr-gallery__header, .wr-gallery__stage { flex-direction: column; }
+  .wr-gallery__buttons { justify-content: center; }
+  .wr-gallery .wr-board { --board-size: min(76vh, 92vw, 760px); }
+  .wr-gallery .wr-rack { --rack-width: min(86vw, 600px); }
+}
