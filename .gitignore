@@ -4,6 +4,7 @@ dist/
 release/
 dev-data/
 .vite/
+.cache/
 *.log
 
 # Portable game build — keep scores and custom sounds out of git
