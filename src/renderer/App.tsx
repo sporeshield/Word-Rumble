@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Board, Rack } from './components'
 import { createGame, type GameState } from './engine/game'
 import { sfx } from './audio/sfx'
 import { Deal } from './screens/Deal'
+import { Game } from './screens/Game'
 import { FirstDraw } from './screens/FirstDraw'
 import { Handoff } from './screens/Handoff'
 import { Settings } from './screens/Settings'
@@ -12,7 +12,7 @@ import { Title } from './screens/Title'
 import { DEFAULT_SETUP, loadSetup, playerNames, type SetupConfig } from './screens/types'
 import './screens/app.css'
 
-type Screen = 'title' | 'setup' | 'shuffle' | 'draw' | 'deal' | 'handoff' | 'game'
+type Screen = 'title' | 'setup' | 'shuffle' | 'draw' | 'deal' | 'handoff' | 'game' | 'over'
 
 /** Shape the Phase 12 autosave will use; Continue accepts it as-is. */
 interface SavedGame {
@@ -77,6 +77,21 @@ export function App() {
     setScreen('handoff')
   }
 
+  /** A turn finished: game over, the next player's "take the laptop" screen (two players), or straight on. */
+  const turnDone = useCallback((next: GameState) => {
+    setGame(next)
+    if (next.phase === 'over') { setScreen('over'); return }
+    setScreen(next.options.mode === 'two' ? 'handoff' : 'game')
+  }, [])
+
+  // Save & quit from the pause menu (Phase 12 adds the save after every turn).
+  const saveQuit = (current: GameState) => {
+    const payload: SavedGame = { game: current, setup }
+    const json = JSON.stringify(payload)
+    void window.wordRumble.savedGame.save(json).then(() => setSaved(parseSaved(json)))
+    setScreen('title')
+  }
+
   const changeVolume = (v: number) => { setVolume(v); sfx.setVolume(v); void window.wordRumble.settings.set('volume', v) }
   const changeMuted = (m: boolean) => { setMuted(m); sfx.setMuted(m); void window.wordRumble.settings.set('muted', m) }
 
@@ -133,15 +148,30 @@ export function App() {
       break
     case 'game':
       if (game) {
-        // Placeholder until Phase 10 builds the real play loop.
-        const me = game.players[game.current]
-        const humanTurn = !(game.options.mode === 'computer' && game.current === 1)
         body = (
-          <div className="wr-app-game halftone-2">
-            <Board board={game.board} pending={[]} />
-            <Rack owner={me.name} color={colors[game.current]} tiles={me.rack} count={me.rack.length} faceDown={!humanTurn} />
-            <button className="btn btn--pink" onClick={() => { sfx.play('ui-click'); setScreen('title') }}>Back to title</button>
-          </div>
+          <Game
+            key={`${game.turn}-${game.current}`}
+            game={game}
+            colors={colors}
+            muted={muted}
+            onToggleSound={() => changeMuted(!muted)}
+            onTurnDone={turnDone}
+            onSaveQuit={saveQuit}
+          />
+        )
+      }
+      break
+    case 'over':
+      // PLACEHOLDER until Phase 12 builds the real Game over screen and notebook.
+      if (game?.result) {
+        body = (
+          <main className="wr-screen halftone-3 wr-app-over">
+            <div className="wr-app-confirm__box">
+              <h1>Game over</h1>
+              {game.players.map((p, i) => <p key={i}>{p.name}: {game.result!.finalScores[i]}</p>)}
+              <button className="btn btn--pink" onClick={() => { sfx.play('ui-click'); setScreen('title') }}>Back to title</button>
+            </div>
+          </main>
         )
       }
       break

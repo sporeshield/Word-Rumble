@@ -336,3 +336,11 @@ describe('review regressions', () => {
     }
   })
 })
+
+describe('tile owners', () => {
+  it('records who laid each tile', () => {
+    const s0 = setup(twoPlayer)
+    const s1 = must(s0, { type: 'play', placements: placeWord(s0, 'CAT') })
+    expect(s1.owners).toEqual({ '7,7': 0, '7,8': 0, '7,9': 0 })
+  })
+})

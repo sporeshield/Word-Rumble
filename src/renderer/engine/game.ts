@@ -82,6 +82,8 @@ export interface GameResult {
 export interface GameState {
   options: GameOptions
   board: Board
+  /** Who laid each tile on the board, keyed `row,col` → player index (for the coloured underline). */
+  owners: Record<string, number>
   bag: Tile[]
   players: PlayerState[]
   current: number
@@ -172,7 +174,7 @@ export function createGame(options: GameOptions): GameState {
     }
   })
   return {
-    options, board: createBoard(), bag, players, current: starter, turn: 1, phase: 'playing',
+    options, board: createBoard(), owners: {}, bag, players, current: starter, turn: 1, phase: 'playing',
     consecutiveScoreless: 0, hint: null, bursts: createBurstDecks(), lastBurst: null,
     firstDraw: rounds, history: [], result: null
   }
@@ -333,7 +335,9 @@ function doPlay(state: GameState, action: Extract<GameAction, { type: 'play' }>)
     }
   })
 
-  let next: GameState = { ...state, board, bag, players }
+  const owners = { ...state.owners }
+  for (const p of placements) owners[`${p.row},${p.col}`] = state.current
+  let next: GameState = { ...state, board, owners, bag, players }
   next = record(next, {
     kind: 'play', words: score.words, rawScore: score.total, awarded, rumble: score.rumble,
     madeUp, penalty, penaltyDelta, gifted

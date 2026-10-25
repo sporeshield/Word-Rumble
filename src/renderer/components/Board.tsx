@@ -11,6 +11,7 @@ export interface BoardProps {
   onSquarePointerUp?: (row: number, col: number) => void
   onSquareClick?: (row: number, col: number) => void
   onPendingPointerDown?: (placement: Placement, event: PointerEvent<HTMLDivElement>) => void
+  onPendingClick?: (placement: Placement) => void
   playedBy?: (row: number, col: number) => string | undefined
   children?: ReactNode
 }
@@ -22,6 +23,7 @@ export function Board({
   onSquarePointerUp,
   onSquareClick,
   onPendingPointerDown,
+  onPendingClick,
   playedBy,
   children
 }: BoardProps) {
@@ -52,6 +54,7 @@ export function Board({
                   letter={placement.letter}
                   state="pending"
                   onPointerDown={onPendingPointerDown ? (event) => onPendingPointerDown(placement, event) : undefined}
+                  onClick={onPendingClick ? () => onPendingClick(placement) : undefined}
                 />
               ) : cell ? (
                 <Tile tile={cell.tile} letter={cell.letter} state="board" ownerColor={playedBy?.(row, col)} />
