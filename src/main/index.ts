@@ -1,5 +1,6 @@
 import { app, BrowserWindow } from 'electron'
 import { join } from 'node:path'
+import { registerIpc } from './ipc'
 import { setupPortablePaths } from './paths'
 
 setupPortablePaths()
@@ -31,5 +32,8 @@ function createWindow(): void {
   }
 }
 
-app.whenReady().then(createWindow)
+app.whenReady().then(async () => {
+  await registerIpc()
+  createWindow()
+})
 app.on('window-all-closed', () => app.quit())

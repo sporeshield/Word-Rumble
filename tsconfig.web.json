@@ -10,5 +10,5 @@
     "noEmit": true,
     "types": []
   },
-  "include": ["src/renderer/**/*", "tests/**/*"]
+  "include": ["src/renderer/**/*", "src/shared/**/*", "tests/**/*"]
 }
