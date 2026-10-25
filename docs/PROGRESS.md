@@ -20,7 +20,11 @@ After each phase: `/clear`, then `/next-phase`.
   - `resources/art/MANIFEST.md` lists every file with size and usage (title-bg, bag/bag-shake, rack-holder + rack-holder-tint for CSS colouring, tile-face/back, board-frame, halftone-1..3, burst-1..4, penalty-wheel + pointer, hint-bulb, take-laptop, trophy, notebook paper/spiral, `notebook-doodles/` crown/star/stick-trophy). No text baked in.
   - Tile face is a blank cream/gold tile; board-frame has an open centre; the wheel has 8 unlabeled slices (labels drawn in CSS/SVG in Phase 11).
   - Plan updated: **hidden scores** rule (only the current player sees their own score until Game over) added to PLAN.md feature 5 and CLAUDE.md — Phases 8–12 must honour it.
-- [ ] **Phase 4 — Engine core**: types, board layout (Appendix A), tile set, bag (crypto shuffle), placement rules, scoring + vitest. *Codex review.*
+- [x] **Phase 4 — Engine core** ✅ 2026-10-25: types, board layout, tile set, bag, placement rules, scoring + 25 vitest tests; Codex review done and its 4 findings fixed.
+  - Files in `src/renderer/engine/`: `types.ts`, `tiles.ts` (108 tiles, `createTileSet`), `board.ts` (`PREMIUM_LAYOUT`, `createBoard`), `bag.ts` (`shuffle`/`randomInt` crypto, `createBag`, `drawTiles`, `returnTiles`), `rules.ts` (`validatePlacement` → words or error code), `scoring.ts` (`scorePlay`, `applyPlacements`), `index.ts` barrel, `engine.test.ts`.
+  - Model: `Tile{id,letter,points}` with letter `'?'` for blanks; a `Placement` carries the effective A–Z `letter` (blank letter chosen). Validation also rejects tile/letter mismatch, reused tile ids, fractional squares. Dictionary check is NOT here (Phase 7 word service / Phase 10).
+  - `PlayScore.premiumsHit` lists each newly covered premium square once (START/DW/TW/DL/TL) — Phase 11 bursts use it.
+  - Not yet built (Phase 5): end-game adjustments, turn state, exchange rules (`EXCHANGE_MIN_BAG` const exists).
 - [ ] **Phase 5 — Game reducer**: turns, first-turn draw, exchange/pass, end conditions, admit defeat, timeout, penalty-wheel outcomes, hint cost lock, burst decks + vitest. *Codex review.*
 - [ ] **Phase 6 — Move generator**: trie + anchor search for hints/computer, Web Worker + vitest. *Codex review.*
 - [ ] **Phase 7 — Main process**: sql.js DB + migrations, word service + custom words, settings, preload API, desktop shortcut create/repair.
