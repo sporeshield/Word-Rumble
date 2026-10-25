@@ -25,7 +25,10 @@ After each phase: `/clear`, then `/next-phase`.
   - Model: `Tile{id,letter,points}` with letter `'?'` for blanks; a `Placement` carries the effective A–Z `letter` (blank letter chosen). Validation also rejects tile/letter mismatch, reused tile ids, fractional squares. Dictionary check is NOT here (Phase 7 word service / Phase 10).
   - `PlayScore.premiumsHit` lists each newly covered premium square once (START/DW/TW/DL/TL) — Phase 11 bursts use it.
   - Not yet built (Phase 5): end-game adjustments, turn state, exchange rules (`EXCHANGE_MIN_BAG` const exists).
-- [ ] **Phase 5 — Game reducer**: turns, first-turn draw, exchange/pass, end conditions, admit defeat, timeout, penalty-wheel outcomes, hint cost lock, burst decks + vitest. *Codex review.*
+- [x] **Phase 5 — Game reducer** ✅ 2026-10-25: pure reducer + burst decks, 53 tests total; Codex review done and its 6 findings fixed.
+  - Files: `engine/game.ts` (`createGame`, `reduce(state, action) → {ok,state}|{ok:false,error}`, `drawForFirstTurn`, `scorelessLimit`), `engine/penalties.ts` (`spinPenalty`, `penaltySlices(solo)`, `rollHintCost`), `fx/bursts.ts` (pools ~150 words, `createBurstDecks`/`drawBurst`, no repeats, borrows from lower tier), `engine/game.test.ts`.
+  - Actions: play (with `madeUp`, `penalty`, `vote`), exchange, pass, timeout, concede, finish (solo), hint-offer/accept/decline. UI rolls the random bits (wheel, hint cost) and passes them in. State is JSON-safe (autosave); `state.lastBurst` = burst of the latest action; `state.firstDraw` = rounds for the reveal; `state.result` has adjustments/winner at game over.
+  - Decisions: scoreless limit 6 (two players, skipped turns count) / solo 3 consecutive pass+timeout only; solo `skip` slice is a no-op; conceding solo = reason `finished` with `conceded` flag; dictionary check stays in the UI/word service; Gift gives the opponent the play's points and the mover 0.
 - [ ] **Phase 6 — Move generator**: trie + anchor search for hints/computer, Web Worker + vitest. *Codex review.*
 - [ ] **Phase 7 — Main process**: sql.js DB + migrations, word service + custom words, settings, preload API, desktop shortcut create/repair.
 - [ ] **Phase 8 — Board, tiles, racks** *(Codex builds)*: Board / Square / Tile / Rack (face-down + flip, count-only when hidden) / DragLayer / GhostTiles + cartoon theme using Phase 3 art.
