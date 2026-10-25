@@ -1,0 +1,10 @@
+node_modules/
+out/
+dist/
+release/
+dev-data/
+.vite/
+*.log
+
+# Portable game build — keep scores and custom sounds out of git
+Word Rumble/
