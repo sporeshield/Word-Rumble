@@ -16,7 +16,10 @@ After each phase: `/clear`, then `/next-phase`.
   - `resources/words/enable.txt.gz` (172,823 words) + `extras.txt` (14 newer official 2-letter words, e.g. qi, za, ok, ew); `resources/fonts/` Bangers + Fredoka (variable TTF) with OFL texts.
   - `resources/sounds/`: 37 Kenney CC0 files + 9 own synthesized .wav (word-invalid, burst-boom-1..3, rumble-fanfare, buzzer, defeat-trombone, game-over-fanfare, high-score-ding); credits in `CREDITS.md`. Phase 8+ `sfx.ts` should use the names in `scripts/sound-map.mjs`.
   - Note: Codex hit a sandbox `spawn EPERM` running vitest; it works normally here.
-- [ ] **Phase 3 — Art pack** *(Codex image generation)*: title background, cloth bag (+ shake pose), wooden rack holder, tile face/back, board frame, halftone backgrounds, burst shapes, penalty wheel, hint lightbulb, "take the laptop" art, trophy, notebook paper/spiral/doodles, app icon (PNG → ICO). No text baked into images.
+- [x] **Phase 3 — Art pack** ✅ 2026-10-25: 26 Codex-generated images (1.5 MB) in `resources/art/`, app icon in `build/icon.png` + `build/icon.ico`.
+  - `resources/art/MANIFEST.md` lists every file with size and usage (title-bg, bag/bag-shake, rack-holder + rack-holder-tint for CSS colouring, tile-face/back, board-frame, halftone-1..3, burst-1..4, penalty-wheel + pointer, hint-bulb, take-laptop, trophy, notebook paper/spiral, `notebook-doodles/` crown/star/stick-trophy). No text baked in.
+  - Tile face is a blank cream/gold tile; board-frame has an open centre; the wheel has 8 unlabeled slices (labels drawn in CSS/SVG in Phase 11).
+  - Plan updated: **hidden scores** rule (only the current player sees their own score until Game over) added to PLAN.md feature 5 and CLAUDE.md — Phases 8–12 must honour it.
 - [ ] **Phase 4 — Engine core**: types, board layout (Appendix A), tile set, bag (crypto shuffle), placement rules, scoring + vitest. *Codex review.*
 - [ ] **Phase 5 — Game reducer**: turns, first-turn draw, exchange/pass, end conditions, admit defeat, timeout, penalty-wheel outcomes, hint cost lock, burst decks + vitest. *Codex review.*
 - [ ] **Phase 6 — Move generator**: trie + anchor search for hints/computer, Web Worker + vitest. *Codex review.*

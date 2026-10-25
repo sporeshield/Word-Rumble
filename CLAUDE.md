@@ -15,6 +15,7 @@ Our own cartoon crossword-tile word game in the Scrabble style for Shane & Dawn:
 - **Portable**: the game must work after the folder is moved (e.g. to an external drive). No absolute paths in code, DB or settings; resolve folders via `src/main/paths.ts`; Electron `userData` points inside the game folder; nothing written to AppData.
 - **Offline**: all assets (word list, fonts, sounds, art) live in the folder. Only "Look it up" opens the internet.
 - **Hidden racks**: a face-down rack gets only a tile count — letters never reach the DOM until its owner presses "Let's go!".
+- **Hidden scores**: during play only the current player sees their **own** score; the opponent's score (and any lead/behind hint) is never shown anywhere until Game over. Keep opponent totals out of the DOM, like hidden racks. See `docs/PLAN.md` feature 5.
 - **Sound on every action** through `src/renderer/audio/sfx.ts` (named sounds; `sounds/custom/` overrides).
 - Game logic stays pure in `src/renderer/engine/` (no React/DOM) and is unit-tested with vitest.
 - Defaults: player names **Shane** and **Dawn**; Shane teal, Dawn violet.
