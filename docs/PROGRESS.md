@@ -135,3 +135,7 @@ After each phase: `/clear`, then `/next-phase`.
 - [ ] **Phase 28 — Loudness + listening pass** (soundboard dev page, match volumes, swap bad Kenney picks)
 - [ ] **Phase 29 — Vital replacements for the 23 own-synth sounds**
 - [ ] **Phase 30 — New sounds + wrap-up** (KABLAM bursts, optional title music, size check, package)
+
+### Phase 26 follow-up — manual checks automated (2026-10-26)
+  - `tests/e2e/playthrough.spec.ts` (packaged exe, temp copy, dead proxy `--proxy-server=127.0.0.1:9`, http(s) requests logged): 4-player Wild board + 15 s timer + Hint/Shuffle/Swap quotes + BOOM + drop-outs to Game over; vs Computer easy/medium/hard (computer plays, admit defeat, notebook); offline check saw 0 requests. All pass; screenshots in `test-results/pt-*.png` looked right. Real Wi-Fi was not toggled.
+  - `realdb.test.ts` run on that temp DB (now holding 4 real games): passes. Head-to-head equality vs old winner flags is only compared when every game is 2-player (3–4 player tables rank by place). Real `Word Rumble/data` still has 0 games, and no pre-migration data with games exists, so the old-game backfill stays covered by the synthetic test only.

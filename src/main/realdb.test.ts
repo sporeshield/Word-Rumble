@@ -34,7 +34,7 @@ describe.skipIf(!source)('real database migration (on a copy)', () => {
         FROM games g
         JOIN game_players gpa ON gpa.game_id = g.id JOIN players a ON a.id = gpa.player_id
         JOIN game_players gpb ON gpb.game_id = g.id JOIN players b ON b.id = gpb.player_id AND a.name < b.name
-        WHERE g.mode = 'two' GROUP BY a.name, b.name`)
+        WHERE g.mode = 'two' AND (SELECT COUNT(*) FROM game_players x WHERE x.game_id = g.id) = 2 GROUP BY a.name, b.name`)
       old.close()
 
       GameDb.open(SQL, copy).close()
@@ -48,8 +48,11 @@ describe.skipIf(!source)('real database migration (on a copy)', () => {
       expect(Number(one(migrated, 'SELECT COUNT(*) FROM game_players WHERE winner = 1 AND rank <> 1'))).toBe(0)
       migrated.close()
 
+      const migrated2 = () => new SQL.Database(readFileSync(copy))
       const h2h = GameDb.open(SQL, copy).headToHead().map((r) => [r.a, r.b, r.games, r.aWins, r.bWins, r.draws])
-      expect(h2h).toEqual(oldH2h)
+      // Old winner flags only describe 2-player games; 3–4 player tables are ranked by place (not comparable).
+      const multi = Number(one(migrated2(), `SELECT COUNT(*) FROM (SELECT game_id FROM game_players GROUP BY game_id HAVING COUNT(*) > 2)`))
+      if (multi === 0) expect(h2h).toEqual(oldH2h)
       expect(readFileSync(source!).equals(before)).toBe(true)
     } finally {
       rmSync(tmp, { recursive: true, force: true })
