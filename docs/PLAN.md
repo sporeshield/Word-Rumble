@@ -1,7 +1,7 @@
 # Word Rumble — a cartoon crossword tile word game (desktop, full screen)
 
 ## Context
-Shane & Dawn want a word-building tile game for this laptop: solo or two players, full screen, bright cartoon look, sound on everything, comic-book "KABLOW!" bursts on bonus squares, a hidden-rack "pass the laptop" flow, speed-timer option, hints and made-up words (penalties optional), an Admit defeat button, and a persistent notebook-style high-score table for bragging rights. Built as **our own game in the Scrabble style** — real researched rules, but an original name (**Word Rumble**), board layout, tile set and look. Project folder: `C:\NextJS_Projects\Scrabble`.
+Shane & Dawn want a word-building tile game for this laptop: solo or two players, full screen, bright cartoon look, sound on everything, comic-book "KABLOW!" bursts on bonus squares, a hidden-rack "pass the laptop" flow, speed-timer option, hints and made-up words (penalties optional), an Admit defeat button, and a persistent notebook-style high-score table for bragging rights. Built as **our own game in the Scrabble style** — real researched rules, but an original name (**Word Rumble**), board layout, tile set and look. Project folder: `C:\NextJS_Projects\Word-Rumble`.
 
 Decisions made with the user: Electron desktop app; solo = high-score run **and** vs computer; local word list (ENABLE, public domain, ~0.44 MB gzipped) + Merriam-Webster Scrabble page as an online "second opinion"; Codex builds the board, tiles and racks.
 
@@ -117,7 +117,7 @@ DB tables: `players`, `games` (mode, timer, options, ended_reason incl. `concede
   - `Word-Rumble/.claude/commands/next-phase.md` — the `/next-phase` slash command that kicks off the next unchecked phase.
   - `git init` (local only, no remote) so each phase ends with a checkpoint commit.
   - Save memory notes about these working preferences.
-- **From Phase 1 on**: start Claude Code **inside `C:\NextJS_Projects\Scrabble`** (`cd C:\NextJS_Projects\Scrabble` then `claude`) so the Sonnet 5.5 medium project default applies; between phases type `/clear` then `/next-phase`.
+- **From Phase 1 on**: start Claude Code **inside `C:\NextJS_Projects\Word-Rumble`** (`cd C:\NextJS_Projects\Word-Rumble` then `claude`) so the Sonnet 5.5 medium project default applies; between phases type `/clear` then `/next-phase`.
 - **Codex does as much as possible** via the Codex plugin (`codex:rescue` → Codex CLI 0.164, `image_generation` enabled): **all image creation**, all visual components/CSS/animation, and an independent review pass on the bigger code phases. Claude writes the brief, checks the result, wires it in, runs tests.
 - Generated art lives in `resources/art/` as optimised WebP/PNG (transparent where needed); no text baked into images — titles/labels are rendered with the bundled fonts so they stay crisp.
 

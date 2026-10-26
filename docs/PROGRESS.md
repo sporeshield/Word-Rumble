@@ -1,6 +1,6 @@
 # Word Rumble — build progress
 
-**How to continue:** open a terminal, `cd C:\NextJS_Projects\Scrabble`, run `claude`, then type `/next-phase`.
+**How to continue:** open a terminal, `cd C:\NextJS_Projects\Word-Rumble`, run `claude`, then type `/next-phase`.
 After each phase: `/clear`, then `/next-phase`.
 
 - [x] **Phase 0 — Hand-off setup** ✅ 2026-10-25
