@@ -13,12 +13,14 @@ export const readWav = (file) => {
     if (id === 'data') {
       const bytes = fmt.bits / 8
       const n = Math.floor(Math.min(size, b.length - o - 8) / bytes / fmt.channels)
-      const samples = new Float64Array(n)
+      const all = Array.from({ length: fmt.channels }, () => new Float64Array(n))
       for (let i = 0; i < n; i++) {
-        const p = o + 8 + i * bytes * fmt.channels
-        samples[i] = fmt.bits === 24 ? b.readIntLE(p, 3) / 8388608 : b.readInt16LE(p) / 32768
+        for (let c = 0; c < fmt.channels; c++) {
+          const p = o + 8 + (i * fmt.channels + c) * bytes
+          all[c][i] = fmt.bits === 24 ? b.readIntLE(p, 3) / 8388608 : b.readInt16LE(p) / 32768
+        }
       }
-      return { ...fmt, samples }
+      return { ...fmt, samples: all[0], all }
     }
     o += 8 + size + (size & 1)
   }
@@ -50,22 +52,23 @@ const kWeighting = (rate) => {
 }
 
 export const analyze = (file) => {
-  const { samples, rate } = readWav(file)
+  const { samples, all, rate } = readWav(file)
   let peak = 0
-  for (const s of samples) peak = Math.max(peak, Math.abs(s))
+  for (const ch of all) for (const s of ch) peak = Math.max(peak, Math.abs(s))
   const [shelf, high] = kWeighting(rate)
-  const k = biquad(biquad(samples, shelf), high)
+  const ks = all.map((ch) => biquad(biquad(ch, shelf), high)) // channel energies add up (BS.1770)
+  const length = ks[0].length
   const block = Math.round(0.4 * rate), step = Math.round(0.1 * rate)
   const energies = []
-  for (let s = 0; s + block <= k.length; s += step) {
+  for (let s = 0; s + block <= length; s += step) {
     let sum = 0
-    for (let i = s; i < s + block; i++) sum += k[i] * k[i]
+    for (const k of ks) for (let i = s; i < s + block; i++) sum += k[i] * k[i]
     energies.push(sum / block)
   }
   if (!energies.length) { // shorter than one block: measure the whole file
     let sum = 0
-    for (const v of k) sum += v * v
-    energies.push(sum / Math.max(1, k.length))
+    for (const k of ks) for (const v of k) sum += v * v
+    energies.push(sum / Math.max(1, length))
   }
   const lufs = (e) => -0.691 + 10 * Math.log10(e)
   const kept = energies.filter((e) => lufs(e) > -70)

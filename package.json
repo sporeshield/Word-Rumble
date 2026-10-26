@@ -15,7 +15,8 @@
     "assets:fetch": "node scripts/fetch-assets.mjs",
     "assets:sounds": "node scripts/render-sounds.mjs",
     "studio:render": "node scripts/studio/render.mjs",
-    "studio:promote": "node scripts/studio/promote.mjs"
+    "studio:promote": "node scripts/studio/promote.mjs",
+    "studio:levels": "node scripts/studio/levels.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.64.1",

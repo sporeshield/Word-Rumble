@@ -2,6 +2,14 @@
 // Callers use names from scripts/sound-map.mjs, e.g. sfx.play('tile-place').
 // Group names pick a random variant: 'burst' plays any burst-* file, 'burst-zap' any burst-zap-N.
 
+import levels from './levels.json'
+
+/** Loudness-matching gain (linear) for a built-in sound; made by scripts/studio/levels.mjs. 1 when unknown. */
+export function levelGain(name: string, table: Record<string, { gainDb: number }> = levels): number {
+  const entry = table[name]
+  return entry ? 10 ** (entry.gainDb / 20) : 1
+}
+
 export interface PlayOptions {
   /** 0-1, multiplied with the master volume. */
   gain?: number
@@ -43,6 +51,8 @@ class Sfx {
   private ctx: AudioContext | null = null
   private master: GainNode | null = null
   private buffers = new Map<string, AudioBuffer>()
+  /** Sounds loaded from sounds/custom: the user's own loudness, so no matching gain. */
+  private custom = new Set<string>()
   private loading: Promise<void> | null = null
   private volume = 0.8
   private muted = false
@@ -66,12 +76,17 @@ class Sfx {
           let bytes = await window.wordRumble.sounds.read(entry.file, entry.custom)
           let buffer = bytes ? await this.decode(bytes) : null
           // A broken custom file falls back to the built-in sound of the same name.
+          let fellBack = false
           if (!buffer && entry.custom) {
+            fellBack = true
             const builtIn = list.find((e) => e.name === entry.name && !e.custom)
             bytes = builtIn ? await window.wordRumble.sounds.read(builtIn.file, false) : null
             buffer = bytes ? await this.decode(bytes) : null
           }
-          if (buffer) this.buffers.set(entry.name, buffer)
+          if (buffer) {
+            this.buffers.set(entry.name, buffer)
+            if (entry.custom && !fellBack) this.custom.add(entry.name)
+          }
         } catch { /* a missing sound must never break the game */ }
       }))
     } catch { /* no audio device: stay silent */ }
@@ -108,7 +123,7 @@ class Sfx {
     if (options.rate !== undefined) source.playbackRate.value = options.rate
     else if (options.varyPitch !== false) source.playbackRate.value = 0.94 + Math.random() * 0.12
     const gain = this.ctx.createGain()
-    gain.gain.value = options.gain ?? 1
+    gain.gain.value = (options.gain ?? 1) * (this.custom.has(chosen) ? 1 : levelGain(chosen))
     source.connect(gain).connect(this.master)
     source.start()
   }

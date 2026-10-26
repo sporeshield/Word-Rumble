@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { matchingSounds, pickSound, voicedName } from './sfx'
+import { levelGain, matchingSounds, pickSound, voicedName } from './sfx'
 
 const names = ['burst-zap-1', 'burst-zap-2', 'burst-pow-1', 'ui-click', 'burstly']
 
@@ -24,5 +24,17 @@ describe('voiced sounds', () => {
     expect(voicedName('count-3', 'off', have)).toBeNull()
     expect(voicedName('ui-click', 'off', have)).toBe('ui-click')
     expect(voicedName('voice-power-up', 'male', have)).toBe('voice-power-up')
+  })
+})
+
+describe('level matching', () => {
+  it('turns dB into a linear gain and leaves unknown names alone', () => {
+    expect(levelGain('a', { a: { gainDb: -6.02 } })).toBeCloseTo(0.5, 2)
+    expect(levelGain('a', { a: { gainDb: 0 } })).toBe(1)
+    expect(levelGain('nope', {})).toBe(1)
+  })
+  it('has a gain that never clips for every measured sound', async () => {
+    const table = (await import('./levels.json')).default as Record<string, { gainDb: number; peakDb: number }>
+    for (const [name, e] of Object.entries(table)) expect(e.peakDb + e.gainDb, name).toBeLessThanOrEqual(-0.9)
   })
 })

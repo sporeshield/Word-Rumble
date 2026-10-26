@@ -1,0 +1,71 @@
+.soundboard {
+  height: 100vh;
+  min-height: 520px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px clamp(18px, 3vw, 42px);
+  color: var(--ink);
+}
+.soundboard__header, .soundboard__footer, .soundboard__list { width: 100%; max-width: 1450px; margin-inline: auto; }
+.soundboard__header { display: flex; justify-content: space-between; align-items: end; gap: 24px; flex: none; }
+.soundboard__eyebrow { margin: 0 0 1px; color: #fff; font: 1.2rem 'Bangers', sans-serif; letter-spacing: .1em; text-shadow: 2px 3px 0 var(--ink); }
+.soundboard h1 { margin: 0; color: var(--gold); font: clamp(3rem, 4.8vw, 5rem)/.95 'Bangers', sans-serif; letter-spacing: .045em; -webkit-text-stroke: 2px var(--ink); text-shadow: 5px 6px 0 var(--ink); }
+.soundboard__header p:last-child { margin: 9px 0 0; font-weight: 700; }
+.soundboard__controls { display: flex; align-items: end; gap: 16px; padding-bottom: 2px; }
+.soundboard__volume, .soundboard__filter { display: grid; gap: 5px; font-weight: 700; white-space: nowrap; }
+.soundboard__volume { grid-template-columns: auto minmax(110px, 170px) auto; align-items: center; gap: 10px; }
+.soundboard__volume input { accent-color: var(--violet); }
+.soundboard__volume output { min-width: 3ch; text-align: right; }
+.soundboard__filter input, .soundboard__note { min-width: 0; border: 2px solid var(--ink); border-radius: 10px; background: #fffdf4; color: var(--ink); font: 600 .95rem 'Fredoka', sans-serif; }
+.soundboard__filter input { width: 225px; padding: 9px 12px; }
+.soundboard__list { min-height: 0; flex: 1; overflow-y: auto; padding: 4px 10px 10px 2px; scrollbar-color: var(--violet) var(--cream); }
+.soundboard__section { margin-bottom: 17px; border: 3px solid var(--ink); border-radius: 17px; background: var(--cream); box-shadow: 5px 6px 0 var(--ink); overflow: hidden; }
+.soundboard__section-head { display: flex; align-items: center; justify-content: space-between; gap: 15px; padding: 8px 15px; border-bottom: 3px solid var(--ink); background: var(--violet); color: #fff; }
+.soundboard__section:nth-child(2n) .soundboard__section-head { background: #168f87; }
+.soundboard h2 { margin: 0; font: 1.8rem/1 'Bangers', sans-serif; letter-spacing: .05em; text-shadow: 2px 2px 0 var(--ink); }
+.soundboard h2 span { margin-left: 6px; font: 700 .85rem 'Fredoka', sans-serif; text-shadow: none; }
+.soundboard__section-play { padding: 5px 10px; border: 2px solid var(--ink); border-radius: 9px; background: var(--gold); color: var(--ink); font: 700 .85rem 'Fredoka', sans-serif; box-shadow: 2px 3px 0 var(--ink); }
+.soundboard__section-play:hover:not(:disabled) { background: #ffe784; }
+.soundboard__section-play:disabled { opacity: .5; cursor: default; }
+.soundboard__row { display: grid; grid-template-columns: minmax(145px, 1.25fr) 105px minmax(220px, 1.8fr) 105px minmax(145px, 1.2fr); align-items: center; gap: 13px; min-height: 60px; padding: 7px 14px; border-bottom: 1px solid #d7cbaa; }
+.soundboard__row:last-child { border-bottom: 0; }
+.soundboard__row:nth-child(even) { background: #fff9e8; }
+.soundboard__row--bad { background: #ffe1e9 !important; }
+.soundboard__name { display: flex; align-items: baseline; flex-wrap: wrap; gap: 5px; min-width: 0; }
+.soundboard__name strong { overflow-wrap: anywhere; font-size: .98rem; }
+.soundboard__custom { padding: 1px 5px; border-radius: 5px; background: var(--aqua); font-size: .68rem; font-weight: 700; text-transform: uppercase; }
+.soundboard__play { padding: 6px 8px 5px; font-size: 1.25rem; white-space: nowrap; }
+.soundboard__play:disabled { opacity: .5; cursor: default; }
+.soundboard__loudness { display: grid; gap: 4px; min-width: 0; }
+.soundboard__meter { position: relative; height: 15px; overflow: hidden; border: 2px solid var(--ink); border-radius: 99px; background: #e8dfca; }
+.soundboard__meter-fill { height: 100%; min-width: 0; border-radius: 99px; }
+.soundboard__meter-fill--good { background: var(--teal); }
+.soundboard__meter-fill--hot { background: var(--tangerine); }
+.soundboard__meter-fill--quiet { background: var(--violet); }
+.soundboard__meter-target { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--ink); box-shadow: 1px 0 0 white; }
+.soundboard__level { font-size: .77rem; font-weight: 600; white-space: nowrap; }
+.soundboard__bad { display: flex; align-items: center; gap: 5px; font-size: .88rem; font-weight: 700; white-space: nowrap; cursor: pointer; }
+.soundboard__bad input { width: 17px; height: 17px; margin: 0; accent-color: var(--magenta); }
+.soundboard__note { width: 100%; padding: 7px 9px; user-select: text; }
+.soundboard__footer { display: flex; align-items: center; justify-content: space-between; gap: 18px; flex: none; padding: 3px 10px 3px 14px; border: 3px solid var(--ink); border-radius: 15px; background: var(--cream); box-shadow: 4px 5px 0 var(--ink); font-size: .88rem; font-weight: 700; }
+.soundboard__copy { flex: none; font-size: 1.35rem; }
+.soundboard__message { padding: 20px; border: 3px solid var(--ink); border-radius: 14px; background: var(--cream); font-weight: 700; }
+.soundboard__fallback { position: fixed; right: 24px; bottom: 90px; z-index: 5; display: grid; gap: 6px; width: min(450px, calc(100vw - 48px)); padding: 12px; border: 3px solid var(--ink); border-radius: 14px; background: var(--cream); box-shadow: 5px 6px 0 var(--ink); font-weight: 700; }
+.soundboard__fallback textarea { height: 130px; resize: vertical; font: .82rem monospace; user-select: text; }
+.soundboard__toast { position: fixed; left: 50%; bottom: 84px; z-index: 6; transform: translateX(-50%); padding: 10px 18px; border: 3px solid var(--ink); border-radius: 12px; background: var(--gold); box-shadow: 4px 5px 0 var(--ink); font-weight: 700; }
+.soundboard button:focus-visible, .soundboard input:focus-visible, .soundboard textarea:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+@media (max-width: 1050px) {
+  .soundboard__header { align-items: start; flex-direction: column; }
+  .soundboard__controls { width: 100%; justify-content: space-between; }
+  .soundboard__row { grid-template-columns: minmax(145px, 1fr) 95px minmax(180px, 1.5fr) 94px minmax(120px, 1fr); gap: 8px; }
+}
+@media (max-width: 760px) {
+  .soundboard { height: auto; min-height: 100vh; }
+  .soundboard__controls { align-items: stretch; flex-wrap: wrap; }
+  .soundboard__filter input { width: min(90vw, 300px); }
+  .soundboard__list { overflow: visible; }
+  .soundboard__row { grid-template-columns: minmax(0, 1fr) 100px; }
+  .soundboard__loudness { grid-column: 1 / -1; }
+  .soundboard__footer { flex-wrap: wrap; }
+}
