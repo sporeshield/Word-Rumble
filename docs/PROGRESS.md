@@ -131,7 +131,10 @@ After each phase: `/clear`, then `/next-phase`.
   - Not done (needs hands/eyes): `Word Rumble/data` DB still has 0 games, so the backfill is only covered synthetically; no live Wi-Fi-off play-through; manual checklist (4 players + Wild + timer + penalties, each computer level) is for you to try from `Word Rumble/Word Rumble.exe`. Round 3 (sound studio) is next.
 
 ## Round 3 — sound studio (planned 2026-10-26; details in `docs/SOUND-PLAN.md`, not PLAN.md)
-- [ ] **Phase 27 — Studio spike + pipeline** (REAPER command-line render, Vital state from `.vital` JSON, low-RAM render config)
+- [x] **Phase 27 — Studio spike + pipeline** ✅ 2026-10-26: REAPER command-line render + Vital presets written from `.vital` JSON work; 173 tests, typecheck pass.
+  - `scripts/studio/`: `lib.mjs` (Vital state chunk builder, byte-identical to REAPER's own), `build-rpp.mjs`, `render.mjs` (`pnpm studio:render [--wav] [name…]`; lean config in `.cache/studio/reaper/`; prints size, peak, LUFS, REAPER RAM), `analyze.mjs` (peak + BS.1770 LUFS from a WAV), `promote.mjs` (`pnpm studio:promote <name> <variant>`), `recipes.json` (only a `spike-boom` A/B/C sample: A/B = different presets, C = a `settings.volume` tweak).
+  - No Lua watcher needed: `-renderproject` runs under the eval licence and exits by itself (~12 s/sound, ~225 MB RAM, mono 44.1 kHz OGG). Details in `docs/SOUND-PLAN.md` "Phase 27 findings".
+  - `sound-map.mjs` has `STUDIO_SOUNDS` (empty; `promote` moves names from `OWN_SOUNDS` into it); `fetch-assets.mjs` credits them. Not yet wired: loudness normalising in the RPP (Phase 28), per-recipe REAPER FX, soundboard page. Nothing in `resources/sounds` changed.
 - [ ] **Phase 28 — Loudness + listening pass** (soundboard dev page, match volumes, swap bad Kenney picks)
 - [ ] **Phase 29 — Vital replacements for the 23 own-synth sounds**
 - [ ] **Phase 30 — New sounds + wrap-up** (KABLAM bursts, optional title music, size check, package)

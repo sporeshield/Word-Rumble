@@ -57,3 +57,10 @@ REAPER has no true headless mode, but it can render a project from the command l
 - `pnpm test`, `pnpm typecheck`; total `resources/sounds` size; decoded preload size (sfx decodes everything at start — keep each effect short).
 - Drop a file into `sounds/custom/` and confirm it still overrides the new built-in.
 - Never touch `Word Rumble/data/`.
+
+## Phase 27 findings (2026-10-26)
+- `reaper.exe -cfgfile <ini> -nosplash -renderproject <rpp>` renders fine under the evaluation licence (no nag blocks it, ~12 s per sound, process exits by itself) — the Lua watcher fallback is **not needed**. A `.lua` file on the command line also runs (used for probes).
+- Vital state in an `.rpp` = two base64 streams: a 44-byte header line (8-byte id `a0e38a6eee5eedfe`, LE u32s 0,2,1,0,2,0,**stateLen**,1,0xffff) then the chunk: 184-byte header + Vital JSON + 40-byte JUCE trailer, with lengths at byte 0 (LE, size−16), byte 28 (BE, size−40) and byte 180 (BE, JSON+32). `scripts/studio/lib.mjs` `vitalChunk` reproduces REAPER's own bytes exactly (round-trip tested); if any length is wrong, Vital silently stays on its init patch.
+- A `.vital` preset file is the same JSON REAPER stores, so `recipes.json` tweaks are plain dot-paths (`settings.volume`). Presets with embedded wavetables are big (THUNK 844 KB) but fine.
+- REAPER peaks at ~225 MB per render; one sound at a time keeps it flat. Output is mono 44.1 kHz OGG (q 0.4, a 1.5 s boom ≈ 4–6 KB).
+- Loudness normalisation is not wired into the RPP yet — `analyze.mjs` measures peak + BS.1770 LUFS from a `--wav` render; Phase 28 should pick the gain per group (track volume or `RENDER_NORMALIZE`) from those numbers.

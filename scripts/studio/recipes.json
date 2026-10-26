@@ -1,0 +1,13 @@
+[
+  {
+    "name": "spike-boom",
+    "preset": "Afro/Presets/Kick Drum 1.vital",
+    "length": 1.5,
+    "notes": [{ "t": 0, "len": 0.25, "pitch": 36, "vel": 120 }],
+    "variants": {
+      "A": {},
+      "B": { "preset": "Glorkglunk/Presets/THUNK.vital" },
+      "C": { "tweaks": { "settings.volume": 3000 } }
+    }
+  }
+]

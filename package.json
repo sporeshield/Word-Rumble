@@ -13,7 +13,9 @@
     "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
     "test": "vitest run",
     "assets:fetch": "node scripts/fetch-assets.mjs",
-    "assets:sounds": "node scripts/render-sounds.mjs"
+    "assets:sounds": "node scripts/render-sounds.mjs",
+    "studio:render": "node scripts/studio/render.mjs",
+    "studio:promote": "node scripts/studio/promote.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.64.1",
