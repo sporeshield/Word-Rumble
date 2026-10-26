@@ -101,15 +101,17 @@
 .wr-timer.is-low .wr-timer__ring { stroke: #ec3655; }
 .wr-timer.is-low .wr-timer__text { color: #cf173c; }
 
-.wr-play__players { flex: none; padding: 8px 11px 10px; background: #c698fa url('@art/halftone-3.webp') center / 384px repeat; }
+.wr-play__players { flex: none; min-width: 0; padding: 8px 11px 10px; background: #c698fa url('@art/halftone-3.webp') center / 384px repeat; }
 .wr-play__section-title { margin: 0 0 6px; font: clamp(19px, 2.5vh, 26px)/1 'Bangers', sans-serif; letter-spacing: .05em; }
 .wr-play__players .wr-play__section-title { text-shadow: 1px 1px 0 var(--cream); }
 .wr-play__subtitle { display: inline-block; vertical-align: middle; margin-left: 5px; padding: 3px 7px; border: 1.5px solid var(--ink); border-radius: 99px; background: var(--cream); color: var(--ink); font: 700 clamp(10px, 1.2vh, 13px)/1 'Fredoka', sans-serif; letter-spacing: 0; box-shadow: 1px 2px 0 var(--ink); }
-.wr-play__plates { display: flex; flex-wrap: wrap; gap: 6px; }
+.wr-play__plates { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)); gap: 6px; min-width: 0; }
 .wr-play__plate { display: flex; align-items: center; gap: 6px; min-width: 0; padding: 3px 7px 3px 4px; border: 2px solid var(--ink); border-radius: 11px; background: var(--plate); box-shadow: 2px 3px 0 var(--ink); color: var(--ink); font-size: clamp(12px, 1.55vh, 16px); font-weight: 700; white-space: nowrap; }
 .wr-play__plate-back { width: clamp(25px, 3.3vh, 35px); aspect-ratio: 1; flex: none; background: url('@art/tile-back.webp') center / contain no-repeat; }
-.wr-play__plate strong { font-family: 'Bangers', sans-serif; font-size: 1.3em; letter-spacing: .04em; }
-.wr-play__plate-count { padding-left: 4px; border-left: 2px solid rgb(34 20 47 / 53%); font-size: .85em; }
+.wr-play__plate strong { min-width: 0; flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; font-family: 'Bangers', sans-serif; font-size: 1.3em; letter-spacing: .04em; }
+.wr-play__plate-count { flex: none; padding-left: 4px; border-left: 2px solid rgb(34 20 47 / 53%); font-size: .85em; }
+.wr-play__plate--out { border-style: dashed; background: #d9d5dc; filter: saturate(.2); opacity: .75; }
+.wr-play__plate--out .wr-play__plate-back { opacity: .35; }
 .wr-play__key { flex: none; padding: 8px 10px 11px; background: var(--cream); }
 .wr-play__legend { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(4px, .6vh, 7px); }
 .wr-play__legend-item { display: flex; align-items: center; gap: 5px; min-width: 0; padding: 3px 5px; border: 2px solid var(--ink); border-radius: 9px; background: #fffdf4; font-size: clamp(10px, 1.22vh, 13px); font-weight: 700; line-height: 1.05; white-space: nowrap; }

@@ -40,7 +40,7 @@ export function Deal({ names, colors, counts, onDone }: DealProps) {
       <div className="wr-deal__content">
         <p className="wr-eyebrow">Fresh from the bag</p>
         <h1 className="wr-screen-title">Deal the tiles!</h1>
-        <div className={`wr-deal__racks ${names.length === 1 ? 'wr-deal__racks--solo' : ''}`}>
+        <div className={`wr-deal__racks wr-deal__racks--${names.length} ${names.length === 1 ? 'wr-deal__racks--solo' : ''}`}>
           {names.map((name, index) => <div className="wr-deal__rack" key={index}><Rack owner={name} color={colors[index] ?? '#1cc5b4'} tiles={null} faceDown count={dealt[index] ?? 0} /></div>)}
         </div>
         {done ? <button className="btn btn--pink wr-deal__next" type="button" onMouseEnter={() => sfx.play('ui-hover')} onClick={() => { sfx.play('ui-click'); onDone() }}>Continue</button> : <p className="wr-deal__caption" role="status">A fresh rack for everyone...</p>}

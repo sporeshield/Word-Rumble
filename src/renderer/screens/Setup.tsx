@@ -1,6 +1,6 @@
 import { useState, type CSSProperties } from 'react'
 import { sfx } from '../audio/sfx'
-import { COLOR_CHOICES, FACTORY_NAMES, TIMER_PRESETS, clampTimer, type SetupConfig } from './types'
+import { COLOR_CHOICES, FACTORY_NAMES, computerColor, TIMER_PRESETS, clampTimer, seatCount, swapColor, type PlayerCount, type SetupConfig } from './types'
 import './screens.css'
 
 export interface SetupProps {
@@ -11,7 +11,8 @@ export interface SetupProps {
   onBack(): void
 }
 
-const timerLabel = (seconds: number) => seconds < 60 ? `${seconds}s` : `${seconds / 60} min`
+const PLAYER_COUNTS: readonly PlayerCount[] = [2, 3, 4]
+const timerLabel =(seconds: number) => seconds < 60 ? `${seconds}s` : `${seconds / 60} min`
 const hover = () => sfx.play('ui-hover')
 const chooseSound = () => { sfx.play('ui-click'); sfx.play('ui-toggle') }
 
@@ -20,21 +21,22 @@ export function Setup({ initial, defaultNames = FACTORY_NAMES, onStart, onBack }
   const [customDraft, setCustomDraft] = useState(() => String(initial.timerSeconds && !TIMER_PRESETS.includes(initial.timerSeconds as typeof TIMER_PRESETS[number]) ? initial.timerSeconds : 90))
   const customTimer = config.timerSeconds !== null && !TIMER_PRESETS.includes(config.timerSeconds as typeof TIMER_PRESETS[number])
 
+  const seats = seatCount(config)
+
   const setMode = (mode: SetupConfig['mode']) => { chooseSound(); setConfig((old) => ({ ...old, mode })) }
-  const setName = (index: 0 | 1, name: string) => setConfig((old) => {
-    const names: [string, string] = [...old.names]
+  const setPlayers = (players: PlayerCount) => {
+    if (players > config.players) sfx.play('player-joins')
+    else chooseSound()
+    setConfig((old) => ({ ...old, players }))
+  }
+  const setName = (index: number, name: string) => setConfig((old) => {
+    const names = [...old.names]
     names[index] = name
     return { ...old, names }
   })
-  const setColor = (index: 0 | 1, color: string) => {
+  const setColor = (index: number, color: string) => {
     chooseSound()
-    setConfig((old) => {
-      const colors: [string, string] = [...old.colors]
-      const other = index === 0 ? 1 : 0
-      if (colors[other] === color) colors[other] = colors[index]
-      colors[index] = color
-      return { ...old, colors }
-    })
+    setConfig((old) => ({ ...old, colors: swapColor(old.colors, index, color) }))
   }
   const setTimer = (seconds: number | null) => { chooseSound(); setConfig((old) => ({ ...old, timerSeconds: seconds })) }
   const commitCustom = () => {
@@ -44,25 +46,28 @@ export function Setup({ initial, defaultNames = FACTORY_NAMES, onStart, onBack }
   }
   const start = () => {
     sfx.play('ui-click')
-    const names: [string, string] = [config.names[0].trim() || defaultNames[0], config.names[1].trim() || defaultNames[1]]
+    const names = config.names.map((name, i) => name.trim() || defaultNames[i] || `Player ${i + 1}`)
     onStart({ ...config, names, timerSeconds: customTimer ? (clampTimer(Number(customDraft)) ?? 90) : config.timerSeconds })
   }
 
-  const player = (index: 0 | 1) => {
+  const player = (index: number) => {
     const computer = config.mode === 'computer' && index === 1
     return (
-      <div className="wr-setup__player" key={index} style={{ '--wr-accent': config.colors[index] } as CSSProperties}>
+      <div className="wr-setup__player" key={index} style={{ '--wr-accent': computer ? computerColor(config.colors[0]) : config.colors[index] } as CSSProperties}>
         <div className="wr-setup__player-head"><span className="wr-setup__number">{index + 1}</span><strong>{computer ? 'Computer' : `Player ${index + 1}`}</strong></div>
         {computer ? <div className="wr-setup__computer">Computer opponent</div> : (
           <label className="wr-field">Name
             <input type="text" value={config.names[index]} maxLength={16} placeholder={defaultNames[index]} onMouseEnter={hover} onClick={() => sfx.play('ui-click')} onChange={(event) => setName(index, event.currentTarget.value)} />
           </label>
         )}
-        <div className="wr-setup__swatches" role="group" aria-label={`${computer ? 'Computer' : `Player ${index + 1}`} colour`}>
-          {COLOR_CHOICES.map((color) => (
-            <button key={color} className={`wr-setup__swatch ${config.colors[index] === color ? 'wr-setup__swatch--active' : ''}`} style={{ backgroundColor: color }} type="button" aria-label={`${color} colour`} aria-pressed={config.colors[index] === color} onMouseEnter={hover} onClick={() => setColor(index, color)} />
-          ))}
-        </div>
+        {/* The computer's colour is fixed (orange, or pink if the human took orange). */}
+        {computer ? null : (
+          <div className="wr-setup__swatches" role="group" aria-label={`Player ${index + 1} colour`}>
+            {COLOR_CHOICES.map((color) => (
+              <button key={color} className={`wr-setup__swatch ${config.colors[index] === color ? 'wr-setup__swatch--active' : ''}`} style={{ backgroundColor: color }} type="button" aria-label={`${color} colour`} aria-pressed={config.colors[index] === color} onMouseEnter={hover} onClick={() => setColor(index, color)} />
+            ))}
+          </div>
+        )}
       </div>
     )
   }
@@ -72,14 +77,21 @@ export function Setup({ initial, defaultNames = FACTORY_NAMES, onStart, onBack }
       <section className="wr-panel wr-setup__panel" aria-labelledby="wr-setup-title">
         <header className="wr-setup__header"><div><p className="wr-eyebrow">Ready, set, rumble</p><h1 id="wr-setup-title" className="wr-screen-title">New Game</h1></div><span className="wr-setup__star" aria-hidden="true">✦</span></header>
         <div className="wr-setup__mode" role="group" aria-label="Game mode">
-          {([['solo', 'Solo run'], ['two', 'Two players'], ['computer', 'vs Computer']] as const).map(([value, label]) => (
+          {([['solo', 'Solo run'], ['two', 'Friends'], ['computer', 'vs Computer']] as const).map(([value, label]) => (
             <button key={value} type="button" className={`wr-choice ${config.mode === value ? 'wr-choice--active' : ''}`} aria-pressed={config.mode === value} onMouseEnter={hover} onClick={() => setMode(value)}>{label}</button>
           ))}
         </div>
         <div className="wr-setup__grid">
-          <div className="wr-setup__players">
-            {player(0)}
-            {config.mode !== 'solo' ? player(1) : null}
+          <div className={`wr-setup__players wr-setup__players--${seats}`}>
+            {config.mode === 'two' ? (
+              <div className="wr-setup__count" role="group" aria-label="How many players">
+                <span className="wr-setup__label">How many players?</span>
+                <div className="wr-setup__count-buttons">
+                  {PLAYER_COUNTS.map((n) => <button key={n} type="button" className={`wr-choice wr-setup__count-button ${config.players === n ? 'wr-choice--active' : ''}`} aria-pressed={config.players === n} onMouseEnter={hover} onClick={() => setPlayers(n)}>{n}</button>)}
+                </div>
+              </div>
+            ) : null}
+            {Array.from({ length: seats }, (_, index) => player(index))}
             {config.mode === 'computer' ? <div className="wr-setup__difficulty"><span className="wr-setup__label">Computer difficulty</span><div className="wr-setup__difficulty-buttons" role="group" aria-label="Computer difficulty">{(['easy', 'medium', 'hard'] as const).map((difficulty) => <button key={difficulty} type="button" className={`wr-choice ${config.difficulty === difficulty ? 'wr-choice--active' : ''}`} aria-pressed={config.difficulty === difficulty} onMouseEnter={hover} onClick={() => { chooseSound(); setConfig((old) => ({ ...old, difficulty })) }}>{difficulty}</button>)}</div></div> : null}
           </div>
           <div className="wr-setup__rules">

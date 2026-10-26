@@ -13,7 +13,7 @@ import { Settings } from './screens/Settings'
 import { Setup } from './screens/Setup'
 import { ShuffleBag } from './screens/ShuffleBag'
 import { Title } from './screens/Title'
-import { DEFAULT_SETUP, FACTORY_NAMES, loadDefaultNames, loadSetup, playerNames, type SetupConfig } from './screens/types'
+import { DEFAULT_SETUP, FACTORY_NAMES, loadDefaultNames, loadSetup, playerNames, seatColors, type PlayerCount, type SetupConfig } from './screens/types'
 import { resetFinder } from './ai/shared'
 import './screens/app.css'
 
@@ -31,7 +31,13 @@ function parseSaved(json: string | null): SavedGame | null {
   if (!json) return null
   try {
     const data = JSON.parse(json) as Partial<SavedGame>
-    if (data.game && data.game.phase === 'playing' && data.setup) return { game: normaliseGame(data.game), setup: loadSetup(data.setup), turnSecondsLeft: typeof data.turnSecondsLeft === 'number' && data.turnSecondsLeft > 0 ? data.turnSecondsLeft : undefined }
+    if (data.game && data.game.phase === 'playing' && data.setup) {
+      const game = normaliseGame(data.game)
+      const setup = loadSetup(data.setup)
+      // The seat count follows the saved game, so every seat keeps a colour.
+      if (game.options.mode === 'two') setup.players = Math.min(4, Math.max(2, game.players.length)) as PlayerCount
+      return { game, setup, turnSecondsLeft: typeof data.turnSecondsLeft === 'number' && data.turnSecondsLeft > 0 ? data.turnSecondsLeft : undefined }
+    }
   } catch { /* corrupt autosave: treat as none */ }
   return null
 }
@@ -145,11 +151,11 @@ export function App() {
     setSetup(saved.setup)
     setGame(saved.game)
     setResumeSeconds(saved.turnSecondsLeft)
-    // Two players: back to the "take the laptop" screen so nobody sees a rack by accident.
+    // Friends: back to the "take the laptop" screen so nobody sees a rack by accident.
     setScreen('handoff')
   }
 
-  /** A turn finished: game over, the next player's "take the laptop" screen (two players), or straight on. */
+  /** A turn finished: game over, the next player's "take the laptop" screen (Friends, 2–4), or straight on. */
   const turnDone = useCallback((next: GameState) => {
     setResumeSeconds(undefined)
     setGame(next)
@@ -178,7 +184,7 @@ export function App() {
     setConfirmAfresh(false)
     setForgetWords(false)
     setDefaultNames([...FACTORY_NAMES])
-    setSetup((old) => ({ ...old, names: [FACTORY_NAMES[0], FACTORY_NAMES[1]] }))
+    setSetup((old) => ({ ...old, names: [...FACTORY_NAMES] }))
     void (async () => {
       try {
         await dropSave()
@@ -216,7 +222,7 @@ export function App() {
   const changeMuted = (m: boolean) => { setMuted(m); sfx.setMuted(m); void window.wordRumble.settings.set('muted', m) }
 
   const names = game?.players.map((p) => p.name) ?? []
-  const colors = [setup.colors[0], setup.mode === 'computer' ? '#ff8a2a' : setup.colors[1]]
+  const colors = seatColors(setup)
 
   let body = null
   switch (screen) {

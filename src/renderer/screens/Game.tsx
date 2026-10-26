@@ -244,7 +244,7 @@ export function Game({ game: initialGame, colors, muted, difficulty, rackSide = 
   const pause = useCallback(() => { sfx.play('pause'); setOverlay('pause') }, [])
   const resume = (viaKeyboard = false) => {
     sfx.play('resume')
-    // Two players: the laptop may have changed hands, so back through "Let's go!".
+    // Friends (2–4): the laptop may have changed hands, so back through "Let's go!".
     // Escape-Escape is the same person at the keyboard, so it goes straight back.
     setOverlay(game.options.mode === 'two' && !viaKeyboard ? 'handoff' : null)
   }
@@ -496,10 +496,10 @@ export function Game({ game: initialGame, colors, muted, difficulty, rackSide = 
             <div className="wr-play__plates">
               {/* Counts only: other players' letters and scores never reach the DOM. */}
               {others.map(({ p, i }) => (
-                <div className="wr-play__plate" key={i} style={{ '--plate': colors[i] } as CSSProperties}>
+                <div className={`wr-play__plate${p.out ? ' wr-play__plate--out' : ''}`} key={i} style={{ '--plate': colors[i] } as CSSProperties}>
                   <span className="wr-play__plate-back" aria-hidden="true" />
                   <strong>{p.name}</strong>
-                  <span className="wr-play__plate-count">{p.rack.length} {p.rack.length === 1 ? 'tile' : 'tiles'}</span>
+                  <span className="wr-play__plate-count">{p.out ? 'dropped out' : `${p.rack.length} ${p.rack.length === 1 ? 'tile' : 'tiles'}`}</span>
                 </div>
               ))}
             </div>

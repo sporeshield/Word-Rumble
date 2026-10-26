@@ -105,7 +105,12 @@ After each phase: `/clear`, then `/next-phase`.
   - `record.ts`: `placeNumbers(ranking)` gives competition places (1, 1, 3); records `rank`, `givenAway`, `giftTo` from the `dropped` turn; `conceded` is set for every dropper; droppers never get a high-score stamp.
   - Real DB check: `src/main/realdb.test.ts` (skipped unless `WR_REAL_DB=<path>`) copies the file to temp, migrates the copy, compares `user_version`, row counts, old head-to-head tallies; original checked byte-identical. Run on `Word Rumble/data/word-rumble.sqlite`: v1 → 3, passed — but that DB has **0 games** so far (saved_game 1, settings 2), so the backfill is covered by the synthetic v2 test in `main.test.ts`. Re-run it in Phase 26 once real games exist.
   - Left for Phase 23: Notebook Recent Games still shows players as plain "name score" (now in place order) — add places/"dropped out — gave N to X" there and on Game over.
-- [ ] **Phase 22 — 2–4 players: Setup, opening flow, handoff, Players row** (R2-8b)
+- [x] **Phase 22 — 2–4 players: Setup, opening flow, handoff, Players row** ✅ 2026-10-26 (R2-8b): 144 tests, typecheck and build pass.
+  - `screens/types.ts`: `SetupConfig.players: 2|3|4`, `names`/`colors` always 4 long (`loadSetup` upgrades old 2-long setups and keeps colours distinct), `seatCount`, `seatColors` (App's colours, N-long), `swapColor`, `computerColor` (orange, pink if the human took orange), `playerNames` N-long with case-insensitive duplicates numbered. `parseSaved` syncs `setup.players` to the saved game's seat count.
+  - Setup: mode button "Two players" → **Friends**; "How many players?" 2/3/4 (`player-joins` sound when adding); one card per seat; the computer card has no colour swatches now. FirstDraw/Deal/Handoff already looped over every player; they got `--N` class modifiers. Players row plates show "dropped out" for `out` players.
+  - Codex CSS (`screens.css`, `game.css`): count buttons, compact 3–4 player cards, 4 first-draw cards in a row, 2×2 deal racks, up to 3 plates. **Not visually checked in a running window** (also kept the earlier uncommitted Setup widening in screens.css).
+  - New `screens/Game.hidden.test.tsx`: renders the play screen for 4 players — only the current player's letters and score in the markup, others as name plates with counts.
+  - Still two-player only until Phase 23: the Gift and Convince wheel slices fail with 3+ players (engine needs `recipient` / `votes[]`), and Admit defeat drops out with "nobody" as recipient.
 - [ ] **Phase 23 — 2–4 players: dialogs, Game over, Notebook, e2e** (R2-8c)
 - [ ] **Phase 24 — Engine: Wild power squares (0–4 of each type)** (R2-9) — Codex review
 - [ ] **Phase 25 — Wild power squares UI, annoying power sounds, KABLAM bursts** (R2-9, R2-10)

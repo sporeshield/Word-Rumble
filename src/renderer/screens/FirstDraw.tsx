@@ -39,7 +39,7 @@ export function FirstDraw({ rounds, names, colors, starter, onDone }: FirstDrawP
         <p className="wr-eyebrow">Who takes the first turn?</p>
         <h1 className="wr-screen-title">First Draw!</h1>
         <p className="wr-first-draw__rule">Closest to A starts. A blank beats every letter!</p>
-        <div className="wr-first-draw__cards" key={roundIndex}>
+        <div className={`wr-first-draw__cards wr-first-draw__cards--${round.length}`} key={roundIndex}>
           {round.map(({ player, tile }, index) => (
             <div className={`wr-first-draw__card ${winnerShown && player === starter ? 'wr-first-draw__card--winner' : ''}`} key={player} style={{ '--wr-player': colors[player] ?? 'var(--teal)' } as CSSProperties}>
               <span className="wr-first-draw__name">{names[player] ?? `Player ${player + 1}`}</span>

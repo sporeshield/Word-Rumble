@@ -1,0 +1,49 @@
+import { describe, expect, it, vi } from 'vitest'
+import { renderToStaticMarkup } from 'react-dom/server'
+import { createGame, type GameState, type Tile } from '../engine'
+import { Game } from './Game'
+
+vi.mock('../audio/sfx', () => ({ sfx: { play: () => undefined } }))
+
+const COLORS = ['#1cc5b4', '#9361e9', '#ff8a2a', '#ff81ba']
+const SECRET_SCORES = [111, 4321, 8765, 9753]
+
+/** A fresh four-player game where every rack and score is known, with player 1 on turn. */
+function fourPlayers(current: number): GameState {
+  const game = createGame({ mode: 'two', names: ['Shane', 'Dawn', 'Mo', 'Jo'], timerSeconds: null, hints: 'off', madeUp: 'no' })
+  let id = 1000
+  const rack = (letter: string): Tile[] => Array.from({ length: 7 }, () => ({ id: id++, letter, points: 9 }))
+  return {
+    ...game,
+    current,
+    players: game.players.map((p, i) => ({ ...p, score: SECRET_SCORES[i], rack: rack('QZXJ'[i]) }))
+  }
+}
+
+const render = (game: GameState) => renderToStaticMarkup(
+  <Game game={game} colors={COLORS} muted={false} difficulty="medium" onToggleSound={() => undefined} onTurnDone={() => undefined} onSaveQuit={() => undefined} onQuitNoSave={() => undefined} />
+)
+
+describe('play screen with four players', () => {
+  it("shows only the current player's letters and score", () => {
+    const markup = render(fourPlayers(1))
+    const letters = [...markup.matchAll(/class="wr-tile__letter[^"]*"[^>]*>([^<]*)</g)].map((m) => m[1])
+    expect(letters).toEqual(Array(7).fill('Z'))
+    expect(markup).toContain('4321')
+    for (const i of [0, 2, 3]) expect(markup).not.toContain(String(SECRET_SCORES[i]))
+  })
+
+  it('lists the three others as name plates with tile counts only', () => {
+    const markup = render(fourPlayers(0))
+    const plates = [...markup.matchAll(/class="wr-play__plate[^"]*"[\s\S]*?<strong>([^<]*)<\/strong><span class="wr-play__plate-count">([^<]*)</g)]
+    expect(plates.map((m) => [m[1], m[2]])).toEqual([['Dawn', '7 tiles'], ['Mo', '7 tiles'], ['Jo', '7 tiles']])
+    // Only one rack is rendered at all: the current player's.
+    expect(markup.match(/class="wr-tile wr-tile--rack/g)).toHaveLength(7)
+  })
+
+  it('marks a dropped-out player on their plate', () => {
+    const game = fourPlayers(0)
+    const out = { ...game, players: game.players.map((p, i) => (i === 2 ? { ...p, out: true, rack: [] } : p)) }
+    expect(render(out)).toMatch(/<strong>Mo<\/strong><span class="wr-play__plate-count">dropped out</)
+  })
+})
