@@ -191,6 +191,7 @@ export function App() {
             game={game}
             colors={colors}
             muted={muted}
+            difficulty={setup.difficulty}
             onToggleSound={() => changeMuted(!muted)}
             onTurnDone={turnDone}
             onSaveQuit={saveQuit}

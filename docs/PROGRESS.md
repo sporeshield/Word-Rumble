@@ -59,5 +59,8 @@ After each phase: `/clear`, then `/next-phase`.
   - Codex: `screens/GameOver.tsx` + `gameover.css` (itemised adjustments, winner confetti, NEW HIGH SCORE stamps), `screens/Notebook.tsx` + `notebook.css` + `notebook-format.ts` (+test) with tabs Top Scores / Head to Head / Best Plays / Recent Games / Hall of Shame. Claude: `screens/record.ts` (+test): `buildGameRecord`, `newHighScores` (top-10 per mode, zero/conceder/computer never stamped).
   - `App.tsx`: autosave `{game, setup}` after deal and after every turn (cleared at game over); on game over it reads the top table, records the game once (no button needed), then shows GameOver; "Write it in the notebook" and Title → High Scores both open the Notebook, which returns to where it came from. Continue/autosave never display scores.
   - Not visually checked in a running window (GameOver, Notebook, plus earlier unchecked screens): do a look-through in Phase 14. Stamp threshold is top 10 per mode.
-- [ ] **Phase 13 — Computer opponent**: Easy / Medium / Hard.
+- [x] **Phase 13 — Computer opponent** ✅ 2026-10-26: Easy / Medium / Hard wired into the play screen; 99 tests, typecheck pass.
+  - `ai/choose.ts` (+test): `chooseMove(moves, difficulty, rng)` picks from the best-first list (hard = top; medium = 20–50 % band; easy = 60–100 % band); `computerAction` falls back to swapping the whole rack (bag ≥ 7) then pass. Never made-up words or hints.
+  - `Game.tsx` takes a `difficulty` prop (from `setup.difficulty` in App) and runs the search via the shared `getFinder()` worker, with a ≥1.2 s "thinking" pause; on worker error it passes. Computer racks stay hidden; the result banner shows the computer's points.
+  - Not played through in a running window yet; Phase 14 should include a vs-Computer run on each level.
 - [ ] **Phase 14 — Ship it**: package the portable `Word Rumble/` folder, desktop-shortcut offer, Playwright e2e, offline + move checks, polish. *Codex final review.*

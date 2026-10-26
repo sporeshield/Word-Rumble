@@ -2,7 +2,9 @@ import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties }
 import { Board, DragLayer, GhostTiles, Rack, useTileDrag } from '../components'
 import { ComicBurst } from '../fx'
 import type { BurstTier } from '../fx/bursts'
+import { computerAction } from '../ai/choose'
 import { getFinder, teachFinder } from '../ai/shared'
+import type { Difficulty } from './types'
 import { sfx } from '../audio/sfx'
 import {
   isBlank, moveInList, orderRack, penaltySlices, PLACEMENT_HINTS, previewPlay, reduce, rollHintCost, shuffleIds, spinPenalty, wordsToCheck,
@@ -20,6 +22,8 @@ export interface GameProps {
   /** One colour per player: rack holder and the underline on tiles they played. */
   colors: string[]
   muted: boolean
+  /** Strength of the computer opponent (vs Computer mode only). */
+  difficulty: Difficulty
   onToggleSound(): void
   /** The turn is over (after the short result banner). App decides who sees the screen next. */
   onTurnDone(next: GameState): void
@@ -72,7 +76,7 @@ function TurnTimer({ seconds, total }: { seconds: number; total: number }) {
   )
 }
 
-export function Game({ game: initialGame, colors, muted, onToggleSound, onTurnDone, onSaveQuit }: GameProps) {
+export function Game({ game: initialGame, colors, muted, difficulty, onToggleSound, onTurnDone, onSaveQuit }: GameProps) {
   // Local copy: hint quotes and costs change the game state mid-turn, before the turn ends.
   const [game, setGame] = useState(initialGame)
   const solo = game.players.length === 1
@@ -139,12 +143,25 @@ export function Game({ game: initialGame, colors, muted, onToggleSound, onTurnDo
     return () => window.clearTimeout(id)
   }, [settle, onTurnDone])
 
-  // Placeholder opponent until Phase 13 teaches the computer to play.
+  // Computer opponent: search in the worker, pause so it feels like thinking, then act.
+  const applyRef = useRef(applyAction)
+  applyRef.current = applyAction
   useEffect(() => {
     if (!computerTurn || settle) return
-    const id = window.setTimeout(() => applyAction({ type: 'pass' }, 'Computer passed.'), 900)
-    return () => window.clearTimeout(id)
-  }, [computerTurn, settle, applyAction])
+    const started = Date.now()
+    let cancelled = false
+    let timer: number | undefined
+    const act = (action: GameAction) => {
+      if (cancelled) return
+      const text = action.type === 'exchange' ? 'Computer swapped tiles.' : 'Computer passed.'
+      timer = window.setTimeout(() => applyRef.current(action, text), Math.max(0, 1200 - (Date.now() - started)))
+    }
+    getFinder()
+      .then((finder) => finder.find(game.board, me.rack))
+      .then((moves) => act(computerAction(game, moves, difficulty)))
+      .catch(() => act({ type: 'pass' }))
+    return () => { cancelled = true; window.clearTimeout(timer) }
+  }, [computerTurn, settle, game, me.rack, difficulty])
 
   useEffect(() => { if (!computerTurn) sfx.play('flip-see') }, [computerTurn])
 
