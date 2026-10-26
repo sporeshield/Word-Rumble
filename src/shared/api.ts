@@ -112,7 +112,7 @@ export interface WordRumbleApi {
     create(): Promise<boolean>
     decline(): Promise<void>
   }
-  /** Opens the Merriam-Webster Scrabble page for `word` in the default browser. */
+  /** Opens the Merriam-Webster dictionary page for `word` in the default browser. */
   openLookup(word: string): Promise<void>
   quit(): Promise<void>
 }

@@ -11,7 +11,7 @@ import { WordService } from './words'
 import type { GameRecord, ScoreFilter } from '../shared/api'
 
 const lookupUrl = (word: string): string | null =>
-  /^[a-z]{1,15}$/i.test(word) ? `https://scrabble.merriam.com/finder/${word.toLowerCase()}` : null
+  /^[a-z]{1,15}$/i.test(word) ? `https://www.merriam-webster.com/dictionary/${word.toLowerCase()}` : null
 
 /** Open the database + word list and register every `wr:` IPC channel. Call after app ready. */
 export async function registerIpc(): Promise<void> {

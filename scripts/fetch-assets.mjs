@@ -46,7 +46,7 @@ async function fetchWords() {
   } else console.log('ENABLE: already present');
 
   // These post-ENABLE two-letter entries are absent from ENABLE and appear in
-  // Collins' official list: https://scrabble.collinsdictionary.com/word-lists/two-letter-words-in-scrabble/
+  // The official Collins two-letter word list
   // This is a small supplement, not a full tournament lexicon.
   const extras = ['da', 'ee', 'ew', 'fe', 'gi', 'ki', 'ok', 'oo', 'po', 'qi', 'te', 'za', 'ze', 'zo'];
   const extraPath = join(resources, 'words', 'extras.txt');

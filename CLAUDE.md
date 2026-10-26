@@ -1,6 +1,6 @@
 # Word Rumble (folder: `Word-Rumble`)
 
-Our own cartoon crossword-tile word game in the Scrabble style for the family: Electron + electron-vite + React + TypeScript, pnpm, sql.js. The game itself is **Word Rumble** — never use Scrabble's name, branding, board layout or tile values in the game; use ours from `docs/PLAN.md`.
+Our own cartoon crossword-tile word game in the classic crossword-tile style: Electron + electron-vite + React + TypeScript, pnpm, sql.js. The game itself is **Word Rumble** — never copy another game's name, branding, board layout or tile values in the game; use ours from `docs/PLAN.md`.
 
 ## Every session = one phase
 1. Read `docs/PROGRESS.md` first. Work on the **first phase not marked ✅** — that phase only.
