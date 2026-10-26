@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { Board, DragLayer, GhostTiles, Rack, useTileDrag } from '../components'
-import { ComicBurst } from '../fx'
+import { ComicBurst, Confetti } from '../fx'
 import type { BurstTier } from '../fx/bursts'
 import { computerAction } from '../ai/choose'
 import { getFinder, teachFinder } from '../ai/shared'
 import type { Difficulty, RackSide } from './types'
 import { sfx } from '../audio/sfx'
 import {
-  isBlank, moveInList, orderRack, penaltySlices, PLACEMENT_HINTS, previewPlay, reduce, rollHintCost, rollPenaltyCost, shuffleIds, spinPenalty, wordsToCheck,
+  isBlank, isPowerPremium, moveInList, orderRack, penaltySlices, PLACEMENT_HINTS, previewPlay, reduce, rollHintCost, rollPenaltyCost, shuffleIds, spinPenalty, wordsToCheck,
   type GameAction, type GameError, type GameState, type PenaltyOutcome, type Placement, type Tile, type Vote
 } from '../engine'
 import { Handoff } from './Handoff'
@@ -57,14 +57,22 @@ export type Dialog =
 
 type PlayAction = Extract<GameAction, { type: 'play' }>
 
-/** Square colour key: classic types only until Wild power squares arrive. */
+/** Square colour key: the classic types, then the Wild power types that are on this board (with their counts). */
 const SQUARE_KEY = [
-  { id: 'dl', swatch: '×2', label: 'letter' },
-  { id: 'tl', swatch: '×3', label: 'letter' },
-  { id: 'dw', swatch: '×2', label: 'WORD' },
-  { id: 'tw', swatch: '×3', label: 'WORD' },
-  { id: 'start', swatch: '★', label: 'start' }
+  { id: 'dl', premium: 'DL', swatch: '×2', label: 'letter' },
+  { id: 'tl', premium: 'TL', swatch: '×3', label: 'letter' },
+  { id: 'dw', premium: 'DW', swatch: '×2', label: 'WORD' },
+  { id: 'tw', premium: 'TW', swatch: '×3', label: 'WORD' },
+  { id: 'start', premium: 'START', swatch: '★', label: 'start' },
+  { id: 'pl5', premium: 'PL5', swatch: '×5', label: 'POWER letter', power: true },
+  { id: 'pl10', premium: 'PL10', swatch: '×10', label: 'POWER letter', power: true },
+  { id: 'qw', premium: 'QW', swatch: '×4', label: 'WORD', power: true },
+  { id: 'pw5', premium: 'PW5', swatch: '×5', label: 'POWER WORD', power: true },
+  { id: 'pw10', premium: 'PW10', swatch: '×10', label: 'POWER WORD', power: true }
 ] as const
+
+const REVEAL_MS = 2600
+const POWER_TIERS: readonly BurstTier[] = ['power5', 'power10', 'quad', 'powerword5', 'powerword10']
 
 const SETTLE_MS = 1500
 const BOOM_MS = 1600
@@ -129,6 +137,9 @@ export function Game({ game: initialGame, colors, muted, difficulty, rackSide = 
   const hintCount = useRef(0)
   const [remaining, setRemaining] = useState<number | null>(computerTurn ? null : resumeSeconds ?? timerTotal)
   const [boom, setBoom] = useState(false)
+  // Start of a Wild game: the power squares flash while the burst and voice announce them.
+  const wild = game.layout.some((row) => row.some(isPowerPremium))
+  const [reveal, setReveal] = useState(() => wild && game.turn === 1 && game.history.length === 0 && resumeSeconds === undefined && !testStart)
   // Nervous level 1–10 while the last ten seconds run on a human turn (drives the vignette).
   const stageNow = remaining !== null && !computerTurn ? countdownStage(remaining) : null
   const nervous = stageNow?.kind === 'nervous' && overlay === null ? stageNow.level : 0
@@ -144,6 +155,12 @@ export function Game({ game: initialGame, colors, muted, difficulty, rackSide = 
     () => orderRack(order, me.rack.filter((t) => !pendingIds.has(t.id))),
     [order, me.rack, pendingIds]
   )
+  // Squares of each power type on this board (only the types that are actually here get a key entry).
+  const keyEntries = useMemo(() => {
+    const counts = new Map<string, number>()
+    for (const row of game.layout) for (const p of row) if (isPowerPremium(p)) counts.set(p, (counts.get(p) ?? 0) + 1)
+    return SQUARE_KEY.filter((k) => !('power' in k) || counts.has(k.premium)).map((k) => ({ ...k, count: counts.get(k.premium) ?? 0 }))
+  }, [game.layout])
   const preview = useMemo(() => previewPlay(game.board, pending, game.layout), [game.board, pending, game.layout])
   // Letters are visible only to the player whose turn it is, and only while nothing covers the screen.
   // `secret` covers the dialogs another player may be looking at (wheel, recipient, drop-out, each voter's turn):
@@ -168,7 +185,10 @@ export function Game({ game: initialGame, colors, muted, difficulty, rackSide = 
       // Hidden scores: a computer mover's points are never shown.
       line = computerTurn ? 'Computer played a word.' : `${record.rumble ? 'RUMBLE bonus! ' : ''}${gained >= 0 ? '+' : ''}${gained} points${record.penalty ? ` — ${PENALTY_TEXT[record.penalty]}` : ''}`
     }
-    if (next.lastBurst) sfx.play('burst')
+    // A play on power squares gets loud random pool sounds instead of the normal burst sound — never the type.
+    const annoy = record?.kind === 'play' ? next.lastAnnoy ?? [] : []
+    if (annoy.length) annoy.forEach((name, i) => window.setTimeout(() => sfx.play(name, { varyPitch: false }), i * 450))
+    else if (next.lastBurst) sfx.play('burst')
     setGhost([])
     if (record?.rumble) sfx.play('rumble-fanfare')
     sfx.play('flip-hide')
@@ -205,6 +225,15 @@ export function Game({ game: initialGame, colors, muted, difficulty, rackSide = 
   }, [computerTurn, settle, game, me.rack, difficulty])
 
   useEffect(() => { if (!computerTurn) sfx.play('flip-see') }, [computerTurn])
+
+  useEffect(() => {
+    if (!reveal) return
+    sfx.play('power-reveal')
+    sfx.play('voice-power-up')
+    setFxBurst({ text: 'POWER SQUARES ARE LIVE!', tier: 'power10' })
+    const id = window.setTimeout(() => setReveal(false), REVEAL_MS)
+    return () => window.clearTimeout(id)
+  }, [reveal])
 
   const recall = useCallback((quiet = false) => {
     setPending((current) => {
@@ -276,6 +305,8 @@ export function Game({ game: initialGame, colors, muted, difficulty, rackSide = 
     setGhost([])
     if (isBlank(tile) && !existing) { setDialog({ kind: 'blank', tile, row, col }); return }
     sfx.play('tile-place')
+    // One neutral chime for any power square, so even a preview does not give the type away.
+    if (isPowerPremium(game.layout[row]?.[col])) sfx.play('power-preview')
     setPending((current) => [...current.filter((p) => p.tile.id !== tile.id), { row, col, tile, letter: existing?.letter ?? tile.letter }])
     setSelectedId(undefined)
   }
@@ -467,7 +498,7 @@ export function Game({ game: initialGame, colors, muted, difficulty, rackSide = 
   const style = { '--player': myColor } as CSSProperties
 
   return (
-    <div className={`wr-play wr-play--rack-${rackSide} halftone-2${boom ? ' is-booming' : ''}`} style={style}>
+    <div className={`wr-play wr-play--rack-${rackSide} halftone-2${boom ? ' is-booming' : ''}${reveal ? ' is-power-reveal' : ''}${settle?.burst && POWER_TIERS.includes(settle.burst.tier) ? ' is-kablam' : ''}`} style={style}>
       <div className="wr-play__board">
         <Board
           board={game.board}
@@ -540,9 +571,9 @@ export function Game({ game: initialGame, colors, muted, difficulty, rackSide = 
         <section className="wr-play__key" aria-label="Square colour key">
           <h2 className="wr-play__section-title">Square key</h2>
           <div className="wr-play__legend">
-            {SQUARE_KEY.map((k) => (
-              <div className={`wr-play__legend-item wr-play__legend-item--${k.id}`} key={k.id}>
-                <span className="wr-play__legend-swatch">{k.swatch}</span><span>{k.label}</span>
+            {keyEntries.map((k) => (
+              <div className={`wr-play__legend-item wr-play__legend-item--${k.id}${'power' in k ? ' wr-play__legend-item--power' : ''}`} key={k.id}>
+                <span className="wr-play__legend-swatch">{k.swatch}</span><span>{k.label}{'power' in k ? <em className="wr-play__legend-count"> · {k.count} on board</em> : null}</span>
               </div>
             ))}
           </div>
@@ -597,6 +628,7 @@ export function Game({ game: initialGame, colors, muted, difficulty, rackSide = 
       ) : null}
 
       {settle?.burst ? <ComicBurst text={settle.burst.text} tier={settle.burst.tier} /> : null}
+      {settle?.burst && POWER_TIERS.includes(settle.burst.tier) && !computerTurn ? <Confetti pieces={90} duration={1800} /> : null}
       {nervous ? <div className="wr-vignette" style={{ '--wr-level': nervous } as CSSProperties} aria-hidden="true" /> : null}
       {boom ? <div className="wr-boom" aria-hidden="true"><div className="wr-boom__flash" /><span className="wr-boom__text">BOOM!!</span></div> : null}
       {fxBurst ? <ComicBurst text={fxBurst.text} tier={fxBurst.tier} onDone={() => setFxBurst(null)} /> : null}
@@ -640,6 +672,7 @@ export function Game({ game: initialGame, colors, muted, difficulty, rackSide = 
             const { tile, row, col } = dialog
             setDialog(null)
             sfx.play('tile-place')
+            if (isPowerPremium(game.layout[row]?.[col])) sfx.play('power-preview')
             setPending((current) => [...current.filter((p) => p.tile.id !== tile.id), { row, col, tile, letter }])
             setSelectedId(undefined)
           }}

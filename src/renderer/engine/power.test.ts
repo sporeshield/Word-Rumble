@@ -183,6 +183,28 @@ describe('Wild games', () => {
     if (!r.ok) throw new Error(r.error)
     expect(r.state.players[0].score).toBe(100)
     expect(r.state.lastBurst?.tier).toBe('powerword10')
+    // One power square = one annoying sound from the pool; the deck position lives in state.
+    expect(r.state.lastAnnoy).toHaveLength(1)
+    expect(r.state.lastAnnoy?.[0]).toMatch(/^power-annoy-\d+$/)
+    expect(r.state.annoy).toHaveLength(base.annoy!.length - 1)
+  })
+
+  it('a play with no power square makes no annoying sound; two squares chain two', () => {
+    const base = createGame({ ...options, power: DEFAULT_POWER })
+    const layout = PREMIUM_LAYOUT.map((row) => row.slice())
+    const rack = [...'CATSERD'].map(tile)
+    const play = (lay: typeof layout) => {
+      const game: GameState = { ...base, layout: lay, current: 0, players: base.players.map((p, i) => (i === 0 ? { ...p, rack } : p)) }
+      const r = reduce(game, { type: 'play', placements: [...'CAT'].map((letter, i) => ({ row: 7, col: 6 + i, tile: rack[i], letter })) })
+      if (!r.ok) throw new Error(r.error)
+      return r.state
+    }
+    expect(play(layout).lastAnnoy).toEqual([])
+    layout[7][6] = 'PL5'
+    layout[7][8] = 'PW5'
+    const two = play(layout).lastAnnoy!
+    expect(two).toHaveLength(2)
+    expect(two[0]).not.toBe(two[1])
   })
 
   it('an old save without layout or the new burst tiers still plays', () => {

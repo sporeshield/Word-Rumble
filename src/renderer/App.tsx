@@ -141,7 +141,8 @@ export function App() {
       hints: config.hints,
       madeUp: config.madeUp,
       shuffle: config.shuffle,
-      swap: config.swap
+      swap: config.swap,
+      ...(config.board === 'wild' ? { power: config.power } : {})
     }))
     setScreen('shuffle')
   }

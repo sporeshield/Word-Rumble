@@ -1,7 +1,8 @@
+import { createAnnoyDeck, drawAnnoy, upgradeAnnoyDeck, type AnnoyDeck } from '../fx/annoy'
 import { createBurstDecks, drawBurst, upgradeBurstDecks, type Burst, type BurstDecks, type BurstTier } from '../fx/bursts'
 import { createBag, drawTiles, returnTiles } from './bag'
 import { createBoard, PREMIUM_LAYOUT } from './board'
-import { buildLayout, normalisePower, powerTotal, type PowerCounts } from './power'
+import { buildLayout, isPowerPremium, normalisePower, powerTotal, type PowerCounts } from './power'
 import { validatePlacement } from './rules'
 import { applyPlacements, scorePlay } from './scoring'
 import { createTileSet, rackValue } from './tiles'
@@ -119,6 +120,11 @@ export interface GameState {
   /** Swap quote: locked for the turn. */
   swap?: { cost: number } | null
   bursts: BurstDecks
+  /** Wild boards: unused annoying power-play sounds and the last one played (no repeats until the pool is used up). Old saves lack them. */
+  annoy?: AnnoyDeck
+  annoyLast?: number | null
+  /** Sounds for the latest play when it hit power squares (one, or two chained); empty otherwise. Never says which type. */
+  lastAnnoy?: string[]
   /** Burst produced by the most recent action (null when it produced none). */
   lastBurst: Burst | null
   firstDraw: FirstDrawStep[][]
@@ -227,6 +233,7 @@ export function createGame(options: GameOptions): GameState {
     options, board: createBoard(), layout: options.power && powerTotal(options.power) > 0 ? buildLayout(options.power) : PREMIUM_LAYOUT,
     owners: {}, bag, players, current: starter, turn: 1, phase: 'playing',
     consecutiveScoreless: 0, hint: null, shuffle: null, swap: null, bursts: createBurstDecks(), lastBurst: null,
+    annoy: createAnnoyDeck(), annoyLast: null, lastAnnoy: [],
     firstDraw: rounds, history: [], result: null
   }
 }
@@ -430,6 +437,12 @@ function doPlay(state: GameState, action: Extract<GameAction, { type: 'play' }>)
     madeUp, penalty, penaltyDelta, gifted, ...(giftTo !== undefined ? { giftTo } : {})
   })
   next = withBurst(next, madeUp ? 'fibber' : burstTierForPlay(score.total, score.rumble, score.premiumsHit))
+  // Power squares: a random sound from the shared pool (two chained for 2+ squares) replaces the normal burst sound.
+  const powerHits = score.premiumsHit.filter((p) => isPowerPremium(p as Premium)).length
+  if (powerHits > 0) {
+    const drawn = drawAnnoy(next.annoy ?? [], Math.min(2, powerHits), next.annoyLast ?? null)
+    next = { ...next, annoy: drawn.deck, annoyLast: drawn.last, lastAnnoy: drawn.sounds }
+  } else next = { ...next, lastAnnoy: [] }
 
   if (bag.length === 0 && rack.length === 0) return succeed(endGame(next, 'out', { out: state.current }))
   return succeed(finishTurn(next, !solo && awarded === 0))
@@ -558,6 +571,7 @@ export function normaliseGame(state: GameState): GameState {
   return {
     ...state, players, shuffle: state.shuffle ?? null, swap: state.swap ?? null, result,
     layout: state.layout ?? PREMIUM_LAYOUT, bursts: upgradeBurstDecks(state.bursts),
+    annoy: upgradeAnnoyDeck(state.annoy), annoyLast: state.annoyLast ?? null, lastAnnoy: state.lastAnnoy ?? [],
     options: state.options.power ? { ...state.options, power: normalisePower(state.options.power) } : state.options
   }
 }

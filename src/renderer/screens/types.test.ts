@@ -62,3 +62,17 @@ describe('default names', () => {
     expect(loadSetup({}, defaults).names).toEqual(['Mum', 'Dad', 'A', 'B'])
   })
 })
+
+describe('Wild board setup', () => {
+  it('defaults to Classic with the default power counts', () => {
+    const s = loadSetup({})
+    expect(s.board).toBe('classic')
+    expect(s.power).toEqual({ pl5: 2, pl10: 2, qw: 1, pw5: 2, pw10: 2 })
+  })
+  it('keeps saved counts, clamped to 0–4, and ignores a bad board value', () => {
+    const s = loadSetup({ board: 'wild', power: { pl5: 9, pl10: -3, qw: 3 } })
+    expect(s.board).toBe('wild')
+    expect(s.power).toEqual({ pl5: 4, pl10: 0, qw: 3, pw5: 0, pw10: 0 })
+    expect(loadSetup({ board: 'huge' }).board).toBe('classic')
+  })
+})

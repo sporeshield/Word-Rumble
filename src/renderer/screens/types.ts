@@ -1,7 +1,9 @@
+import { DEFAULT_POWER, normalisePower, type PowerCounts } from '../engine/power'
 import type { CostMode, GameMode, HintMode, MadeUpMode } from '../engine/game'
 
 export type Difficulty = 'easy' | 'medium' | 'hard'
 export type RackSide = 'left' | 'right'
+export type BoardKind = 'classic' | 'wild'
 
 /** Everything the Setup screen collects. */
 export interface SetupConfig {
@@ -22,6 +24,9 @@ export interface SetupConfig {
   swap: CostMode
   /** Which side of the board the upright rack stands on (whole game, not per player). */
   rackSide: RackSide
+  /** Classic board, or Wild (Classic plus the power squares counted in `power`). */
+  board: BoardKind
+  power: PowerCounts
 }
 
 export type PlayerCount = 2 | 3 | 4
@@ -45,7 +50,9 @@ export const DEFAULT_SETUP: SetupConfig = {
   madeUp: 'penalty',
   shuffle: 'penalty',
   swap: 'penalty',
-  rackSide: 'left'
+  rackSide: 'left',
+  board: 'classic',
+  power: { ...DEFAULT_POWER }
 }
 
 /** Factory default names for up to four players; Settings can change them (setting `defaultNames`). */
@@ -135,6 +142,9 @@ export function loadSetup(stored: unknown, defaults: readonly string[] = FACTORY
     madeUp: pick(s.madeUp, ['no', 'free', 'penalty'], DEFAULT_SETUP.madeUp),
     shuffle: pick(s.shuffle, ['free', 'penalty'], DEFAULT_SETUP.shuffle),
     swap: pick(s.swap, ['free', 'penalty'], DEFAULT_SETUP.swap),
-    rackSide: pick(s.rackSide, ['left', 'right'], DEFAULT_SETUP.rackSide)
+    rackSide: pick(s.rackSide, ['left', 'right'], DEFAULT_SETUP.rackSide),
+    board: pick(s.board, ['classic', 'wild'], DEFAULT_SETUP.board),
+    // A missing or hand-edited power setting falls back to the defaults, not to all zeros.
+    power: s.power && typeof s.power === 'object' ? normalisePower(s.power) : { ...DEFAULT_POWER }
   }
 }

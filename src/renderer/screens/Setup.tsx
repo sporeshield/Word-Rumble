@@ -1,5 +1,6 @@
 import { useState, type CSSProperties } from 'react'
 import { sfx } from '../audio/sfx'
+import { POWER_KINDS, POWER_MAX, randomPower, type PowerKind } from '../engine/power'
 import { COLOR_CHOICES, FACTORY_NAMES, computerColor, TIMER_PRESETS, clampTimer, seatCount, swapColor, type PlayerCount, type SetupConfig } from './types'
 import './screens.css'
 
@@ -13,6 +14,13 @@ export interface SetupProps {
 
 const PLAYER_COUNTS: readonly PlayerCount[] = [2, 3, 4]
 const timerLabel =(seconds: number) => seconds < 60 ? `${seconds}s` : `${seconds / 60} min`
+const POWER_LABELS: Record<PowerKind, { main: string; tag: string; name: string }> = {
+  pl5: { main: '×5', tag: 'POWER', name: 'power letter ×5' },
+  pl10: { main: '×10', tag: 'POWER', name: 'power letter ×10' },
+  qw: { main: '×4', tag: 'WORD', name: 'quadruple word ×4' },
+  pw5: { main: '×5', tag: 'POWER WORD', name: 'power word ×5' },
+  pw10: { main: '×10', tag: 'POWER WORD', name: 'power word ×10' }
+}
 const hover = () => sfx.play('ui-hover')
 const chooseSound = () => { sfx.play('ui-click'); sfx.play('ui-toggle') }
 
@@ -43,6 +51,11 @@ export function Setup({ initial, defaultNames = FACTORY_NAMES, onStart, onBack }
     const seconds = clampTimer(Number(customDraft)) ?? 90
     setCustomDraft(String(seconds))
     if (customTimer) setConfig((old) => ({ ...old, timerSeconds: seconds }))
+  }
+  const setBoard = (board: SetupConfig['board']) => { chooseSound(); setConfig((old) => ({ ...old, board })) }
+  const setPower = (kind: PowerKind, delta: number) => {
+    sfx.play('ui-click')
+    setConfig((old) => ({ ...old, power: { ...old.power, [kind]: Math.max(0, Math.min(POWER_MAX, old.power[kind] + delta)) } }))
   }
   const start = () => {
     sfx.play('ui-click')
@@ -105,6 +118,21 @@ export function Setup({ initial, defaultNames = FACTORY_NAMES, onStart, onBack }
             {(['shuffle', 'swap'] as const).map((key) => (
               <section key={key} className="wr-setup__rule"><h2>{key === 'shuffle' ? 'Shuffle' : 'Swap'}</h2><div className="wr-setup__options" role="group" aria-label={key === 'shuffle' ? 'Shuffle' : 'Swap'}>{([['free', 'Free'], ['penalty', 'Costs 1–10']] as const).map(([value, label]) => <button key={value} className={`wr-choice ${config[key] === value ? 'wr-choice--active' : ''}`} type="button" aria-pressed={config[key] === value} onMouseEnter={hover} onClick={() => { chooseSound(); setConfig((old) => ({ ...old, [key]: value })) }}>{label}</button>)}</div><p>{key === 'shuffle' ? 'Shuffling your rack can cost 1–10 points, quoted first.' : 'Swapping tiles can cost 1–10 points on top of losing your turn.'}</p></section>
             ))}
+            <section className="wr-setup__rule wr-setup__board"><h2>Board</h2><div className="wr-setup__options" role="group" aria-label="Board">{([['classic', 'Classic'], ['wild', 'Wild']] as const).map(([value, label]) => <button key={value} className={`wr-choice ${config.board === value ? 'wr-choice--active' : ''}`} type="button" aria-pressed={config.board === value} onMouseEnter={hover} onClick={() => setBoard(value)}>{label}</button>)}</div>
+              {config.board === 'wild' ? (
+                <div className="wr-setup__power">
+                  {POWER_KINDS.map((kind) => (
+                    <div className={`wr-setup__power-row wr-setup__power-row--${kind}`} key={kind} role="group" aria-label={POWER_LABELS[kind].name}>
+                      <span className={`wr-setup__power-swatch wr-square--${kind === 'qw' ? 'qw' : kind}`}>{POWER_LABELS[kind].main}<small>{POWER_LABELS[kind].tag}</small></span>
+                      <button type="button" className="wr-setup__step" aria-label={`Fewer ${POWER_LABELS[kind].name}`} disabled={config.power[kind] === 0} onMouseEnter={hover} onClick={() => setPower(kind, -1)}>−</button>
+                      <strong className="wr-setup__power-count" aria-live="polite">{config.power[kind]}</strong>
+                      <button type="button" className="wr-setup__step" aria-label={`More ${POWER_LABELS[kind].name}`} disabled={config.power[kind] === POWER_MAX} onMouseEnter={hover} onClick={() => setPower(kind, 1)}>+</button>
+                    </div>
+                  ))}
+                  <button type="button" className="btn btn--aqua wr-setup__surprise" onMouseEnter={hover} onClick={() => { chooseSound(); setConfig((old) => ({ ...old, power: randomPower() })) }}>Surprise me</button>
+                </div>
+              ) : null}
+              <p>{config.board === 'wild' ? 'Power squares go on random plain squares, new every game. Pick 0–4 of each.' : 'The standard board, no power squares.'}</p></section>
             <section className="wr-setup__rule"><h2>Rack side</h2><div className="wr-setup__options" role="group" aria-label="Rack side">{([['left', 'Left'], ['right', 'Right']] as const).map(([value, label]) => <button key={value} className={`wr-choice ${config.rackSide === value ? 'wr-choice--active' : ''}`} type="button" aria-pressed={config.rackSide === value} onMouseEnter={hover} onClick={() => { chooseSound(); setConfig((old) => ({ ...old, rackSide: value })) }}>{label}</button>)}</div><p>Which side of the board your upright rack stands on.</p></section>
             <section className="wr-setup__rule"><h2>Made-up words</h2><div className="wr-setup__options" role="group" aria-label="Made-up words">{([['no', 'Not allowed'], ['free', 'Allowed free'], ['penalty', 'Penalty Wheel']] as const).map(([value, label]) => <button key={value} className={`wr-choice ${config.madeUp === value ? 'wr-choice--active' : ''}`} type="button" aria-pressed={config.madeUp === value} onMouseEnter={hover} onClick={() => { chooseSound(); setConfig((old) => ({ ...old, madeUp: value })) }}>{label}</button>)}</div><p>Let invented words in freely, or spin the wheel for a surprise.</p></section>
           </div>
