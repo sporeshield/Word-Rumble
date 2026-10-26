@@ -61,6 +61,7 @@ export function App() {
   const [notebookBack, setNotebookBack] = useState<Screen>('title')
   /** Autosave save/clear calls run strictly one after another so a late save can never bring a quit game back. */
   const saveQueue = useRef<Promise<unknown>>(Promise.resolve())
+  const saveEpoch = useRef(0)
   const recorded = useRef<GameState | null>(null)
   /** Timer seconds to resume with after Continue; used by the first turn only. */
   const [resumeSeconds, setResumeSeconds] = useState<number | undefined>()
@@ -97,11 +98,13 @@ export function App() {
   }, [])
 
   const writeSave = useCallback((json: string) => {
-    void enqueue(() => window.wordRumble.savedGame.save(json)).then(() => setSaved(parseSaved(json)))
+    const epoch = saveEpoch.current
+    void enqueue(() => window.wordRumble.savedGame.save(json)).then(() => { if (epoch === saveEpoch.current) setSaved(parseSaved(json)) })
   }, [enqueue])
 
   /** Drop the autosave (and the in-memory Continue state) at once. */
   const dropSave = useCallback(() => {
+    saveEpoch.current += 1
     setSaved(null)
     return enqueue(() => window.wordRumble.savedGame.clear())
   }, [enqueue])

@@ -53,5 +53,5 @@ export function placeLabel(rank: number): string {
 /** "dropped out — gave 42 to Dawn" for a player who left a 3–4 player game; empty otherwise. */
 export function dropNote(player: RecentGamePlayer): string {
   if (!player.conceded) return ''
-  return player.givenAway > 0 && player.giftTo ? `dropped out — gave ${player.givenAway} to ${player.giftTo}` : 'dropped out'
+  return player.givenAway !== 0 && player.giftTo ? `dropped out — gave ${player.givenAway} to ${player.giftTo}` : 'dropped out'
 }

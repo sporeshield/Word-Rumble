@@ -502,7 +502,7 @@ export function Game({ game: initialGame, colors, muted, difficulty, rackSide = 
       <div className="wr-play__board">
         <Board
           board={game.board}
-          layout={game.layout}
+          layout={secret ? undefined : game.layout}
           pending={secret ? [] : pending}
           hoverSquare={drag.hoverSquare}
           onSquareClick={(row, col) => {
@@ -517,7 +517,7 @@ export function Game({ game: initialGame, colors, muted, difficulty, rackSide = 
             return owner === undefined ? undefined : colors[owner]
           }}
         >
-          {ghost.length ? <GhostTiles placements={ghost} /> : null}
+          {ghost.length && !secret ? <GhostTiles placements={ghost} /> : null}
         </Board>
       </div>
 

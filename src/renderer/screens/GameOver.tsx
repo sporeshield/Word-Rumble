@@ -67,7 +67,7 @@ export function GameOver({ game, colors, highScores, onNotebook, onTitle }: Game
     if (!many || !player.out || !player.conceded) return null
     const to = game.history.find((t) => t.kind === 'dropped' && t.player === index)?.giftTo
     const toName = to === undefined ? undefined : game.players[to]?.name
-    return toName && (player.givenAway ?? 0) > 0 ? `dropped out — gave ${player.givenAway} to ${toName}` : 'dropped out'
+    return toName && (player.givenAway ?? 0) !== 0 ? `dropped out — gave ${player.givenAway} to ${toName}` : 'dropped out'
   }
   const outcome = solo ? 'Final score' : result.winner === null ? (result.ranking[0].length === game.players.length ? "It's a draw!" : `${result.ranking[0].map((i) => game.players[i].name).join(' & ')} share first place!`) : `${game.players[result.winner].name} wins!`
 
