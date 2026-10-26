@@ -28,6 +28,18 @@ pnpm package      # build the portable "Word Rumble/" folder with Word Rumble.ex
 pnpm test:e2e     # packaged-app tests (run pnpm package first)
 ```
 
+## Build your own exe
+
+The repo holds the source code only. The built game (`Word Rumble/` with `Word Rumble.exe`) is not stored here, but you can build it yourself on Windows:
+
+1. Install [Node.js](https://nodejs.org) and [pnpm](https://pnpm.io).
+2. Get the code: `git clone https://github.com/sporeshield/Word-Rumble.git`, then open a terminal in the new `Word-Rumble` folder.
+3. Run `pnpm install`, then `pnpm package`.
+
+This creates a `Word Rumble/` folder with `Word Rumble.exe` inside. Keep the exe together with the rest of that folder (it holds the word list, fonts, sounds and your scores); the whole folder is portable, so you can move it to a USB drive or another PC. The exe is not code-signed, so Windows SmartScreen may warn on first run: click **More info**, then **Run anyway**.
+
+Scores are saved in `Word Rumble/data/`. A freshly built folder starts with none, so back that folder up if you want to keep them.
+
 Drop your own sounds into `Word Rumble/sounds/custom/`, named like the built-in ones, to replace them (the packaged folder lists the names).
 
 ## Licence and credits
