@@ -4,6 +4,20 @@ A cartoon crossword-tile word game for 1–4 players (or against the computer), 
 
 Word Rumble is an independent game. It is not affiliated with or endorsed by the makers of any other word game, and it uses its own board layout, tile set and scoring.
 
+## Screenshots
+
+![Title screen](docs/screenshots/title.jpg)
+
+![New game setup: mode, timer, hints, board and power squares](docs/screenshots/setup.jpg)
+
+![More setup options: rack side and made-up words](docs/screenshots/setup-options.jpg)
+
+![Give the tile bag a shake](docs/screenshots/tile-bag.jpg)
+
+![A game in progress on the Wild board](docs/screenshots/board.jpg)
+
+![A comic-book burst after a power-square play](docs/screenshots/kapow.jpg)
+
 ## Features
 
 - Solo run, 2–4 players on one screen (pass the laptop), or vs Computer (Easy / Medium / Hard)
