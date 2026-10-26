@@ -265,3 +265,22 @@
 .wr-settings__names { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .wr-settings__names input { min-width: 0; padding: 10px 14px; border: 3px solid var(--ink); border-radius: 14px; background: white; font: inherit; font-size: 1.15rem; font-weight: 600; }
 .wr-settings__footer { flex-wrap: wrap; }
+
+/* Board card: full width, the five power types in one wrapping row so Setup stays short. */
+.wr-setup__rules > .wr-setup__board { grid-column: 1 / -1; }
+.wr-setup__board .wr-setup__power { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; }
+.wr-setup__board .wr-setup__surprise { grid-column: auto; margin-left: auto; }
+
+/* Laptop height: three rule cards per row, hints under the small cards hidden, Board last, so no scrolling is needed. */
+@media (max-height: 800px) {
+  .wr-setup__rules.wr-setup__rules { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .wr-setup__rules > .wr-setup__rule:last-child { grid-column: span 2; }
+  .wr-setup__rules > .wr-setup__rule:not(.wr-setup__board) p { display: none; }
+  .wr-setup__rules > .wr-setup__board { order: 99; }
+}
+@media (max-height: 800px) {
+  .wr-setup__board p { display: none; }
+  .wr-setup__board .wr-setup__power { column-gap: 8px; }
+  .wr-setup__board .wr-setup__surprise { margin-left: 0; }
+}
+.wr-setup__board p { display: none; }
