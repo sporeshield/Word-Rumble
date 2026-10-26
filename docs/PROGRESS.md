@@ -71,7 +71,11 @@ After each phase: `/clear`, then `/next-phase`.
   - Not done: Codex final review, a live Wi-Fi-off play-through, vs-Computer runs on each level — please try these by hand from `Word Rumble/Word Rumble.exe`.
 
 ## Round 2 — family requests (planned 2026-10-26; details in PLAN.md "Round 2", R2-1 … R2-11)
-- [ ] **Phase 15 — Quit without saving, default names, Start afresh** (R2-1, R2-2)
+- [x] **Phase 15 — Quit without saving, default names, Start afresh** ✅ 2026-10-26 (R2-1, R2-2): 102 tests, typecheck pass.
+  - Pause menu has "Quit without saving" with a confirm (`PauseMenu` in `Dialogs.tsx`; `Game` prop `onQuitNoSave`). `App.tsx` now runs autosave/save/clear through one promise queue (`enqueue`, `writeSave`, `dropSave`) and drops the Continue state at once. The sound is a stand-in (`burst-whoosh-1`) — Phase 17 should add `quit-nosave` and swap it in `Dialogs.tsx`.
+  - Computer's turn banner no longer shows its points ("Computer played a word.").
+  - Settings → Players (4 name fields, setting `defaultNames`, "Back to Shane & Dawn") and **Start afresh** (confirm + "also forget words we added" tick-box; clears scores, autosave, `defaultNames`, `setup`). `types.ts`: `FACTORY_NAMES`, `loadDefaultNames`; `loadSetup`/`playerNames`/`Setup` take the defaults. New IPC `words:clearCustom` and `settings:delete` (db, `WordService.clearCustom`, `resetFinder()` in `ai/shared.ts`).
+  - CSS here was small and hand-written (reused existing dialog styles), not sent to Codex; not visually checked in a running window.
 - [ ] **Phase 16 — Penalty costs: Hint / Shuffle / Swap 1–10** (R2-11)
 - [ ] **Phase 17 — Sound pack 2 + annoying power-play pool** (R2-3) — voiceover + jingles zips already downloaded to `.cache/` during planning
 - [ ] **Phase 18 — Nervous countdown + BOOM!!** (R2-4)

@@ -13,7 +13,8 @@ import { Settings } from './screens/Settings'
 import { Setup } from './screens/Setup'
 import { ShuffleBag } from './screens/ShuffleBag'
 import { Title } from './screens/Title'
-import { DEFAULT_SETUP, loadSetup, playerNames, type SetupConfig } from './screens/types'
+import { DEFAULT_SETUP, FACTORY_NAMES, loadDefaultNames, loadSetup, playerNames, type SetupConfig } from './screens/types'
+import { resetFinder } from './ai/shared'
 import './screens/app.css'
 
 type Screen = 'title' | 'setup' | 'shuffle' | 'draw' | 'deal' | 'handoff' | 'game' | 'over' | 'notebook'
@@ -42,10 +43,15 @@ export function App() {
   const [confirmReset, setConfirmReset] = useState(false)
   const [volume, setVolume] = useState(sfx.getVolume())
   const [muted, setMuted] = useState(sfx.isMuted())
+  const [defaultNames, setDefaultNames] = useState<string[]>([...FACTORY_NAMES])
+  const [confirmAfresh, setConfirmAfresh] = useState(false)
+  const [forgetWords, setForgetWords] = useState(false)
   const [notice, setNotice] = useState<string | null>(null)
   /** Per player: earned the NEW HIGH SCORE stamp. Null while the finished game is still being written down. */
   const [highScores, setHighScores] = useState<boolean[] | null>(null)
   const [notebookBack, setNotebookBack] = useState<Screen>('title')
+  /** Autosave save/clear calls run strictly one after another so a late save can never bring a quit game back. */
+  const saveQueue = useRef<Promise<unknown>>(Promise.resolve())
   const recorded = useRef<GameState | null>(null)
   /** Desktop-shortcut offer: shown once on launch when missing, or when it points at another folder. */
   const [shortcut, setShortcut] = useState<ShortcutStatus | null>(null)
@@ -56,7 +62,9 @@ export function App() {
       const [settings, savedJson] = await Promise.all([window.wordRumble.settings.get(), window.wordRumble.savedGame.load()])
       if (typeof settings.volume === 'number') { sfx.setVolume(settings.volume); setVolume(settings.volume) }
       if (typeof settings.muted === 'boolean') { sfx.setMuted(settings.muted); setMuted(settings.muted) }
-      if (settings.setup) setSetup(loadSetup(settings.setup))
+      const names = loadDefaultNames(settings.defaultNames)
+      setDefaultNames(names)
+      if (settings.setup) setSetup(loadSetup(settings.setup, names))
       setSaved(parseSaved(savedJson))
       const status = await window.wordRumble.shortcut.status()
       setShortcut(status)
@@ -70,16 +78,27 @@ export function App() {
     window.setTimeout(() => setNotice(null), 2600)
   }, [])
 
+  const enqueue = useCallback((job: () => Promise<unknown>) => {
+    const run = saveQueue.current.then(job, job)
+    saveQueue.current = run.catch(() => undefined)
+    return run
+  }, [])
+
+  const writeSave = useCallback((json: string) => {
+    void enqueue(() => window.wordRumble.savedGame.save(json)).then(() => setSaved(parseSaved(json)))
+  }, [enqueue])
+
+  /** Drop the autosave (and the in-memory Continue state) at once. */
+  const dropSave = useCallback(() => {
+    setSaved(null)
+    return enqueue(() => window.wordRumble.savedGame.clear())
+  }, [enqueue])
+
   /** Autosave the game in progress (or drop the autosave once it is over). */
   const autosave = useCallback((current: GameState, config: SetupConfig) => {
-    if (current.phase === 'over') {
-      void window.wordRumble.savedGame.clear()
-      setSaved(null)
-      return
-    }
-    const json = JSON.stringify({ game: current, setup: config } satisfies SavedGame)
-    void window.wordRumble.savedGame.save(json).then(() => setSaved(parseSaved(json)))
-  }, [])
+    if (current.phase === 'over') { void dropSave(); return }
+    writeSave(JSON.stringify({ game: current, setup: config } satisfies SavedGame))
+  }, [dropSave, writeSave])
 
   const openNotebook = (from: Screen) => { setNotebookBack(from); setScreen('notebook') }
 
@@ -104,7 +123,7 @@ export function App() {
     void window.wordRumble.settings.set('setup', config)
     setGame(createGame({
       mode: config.mode,
-      names: playerNames(config),
+      names: playerNames(config, defaultNames),
       timerSeconds: config.timerSeconds,
       hints: config.hints,
       madeUp: config.madeUp
@@ -130,10 +149,40 @@ export function App() {
 
   // Save & quit from the pause menu.
   const saveQuit = (current: GameState) => {
-    const payload: SavedGame = { game: current, setup }
-    const json = JSON.stringify(payload)
-    void window.wordRumble.savedGame.save(json).then(() => setSaved(parseSaved(json)))
+    writeSave(JSON.stringify({ game: current, setup } satisfies SavedGame))
     setScreen('title')
+  }
+
+  // Quit without saving: the game is lost, nothing goes in the notebook.
+  const quitNoSave = () => {
+    void dropSave()
+    setGame(null)
+    setScreen('title')
+  }
+
+  // Start afresh: scores, autosave and default names (and optionally our added words) go.
+  const startAfresh = () => {
+    const alsoWords = forgetWords
+    setConfirmAfresh(false)
+    setForgetWords(false)
+    setDefaultNames([...FACTORY_NAMES])
+    setSetup((old) => ({ ...old, names: [FACTORY_NAMES[0], FACTORY_NAMES[1]] }))
+    void (async () => {
+      try {
+        await dropSave()
+        await window.wordRumble.scores.reset()
+        await window.wordRumble.settings.delete('defaultNames')
+        await window.wordRumble.settings.delete('setup')
+        if (alsoWords) { await window.wordRumble.words.clearCustom(); resetFinder() }
+        flash('All fresh and new!')
+      } catch { flash("Couldn't clear everything.") }
+    })()
+  }
+
+  const changeDefaultNames = (names: string[]) => {
+    const clean = loadDefaultNames(names)
+    setDefaultNames(clean)
+    void window.wordRumble.settings.set('defaultNames', clean)
   }
 
   const makeShortcut = () => {
@@ -171,7 +220,7 @@ export function App() {
       )
       break
     case 'setup':
-      body = <Setup initial={setup} onStart={startGame} onBack={() => setScreen('title')} />
+      body = <Setup initial={setup} defaultNames={defaultNames} onStart={startGame} onBack={() => setScreen('title')} />
       break
     case 'shuffle':
       body = (
@@ -216,6 +265,7 @@ export function App() {
             onToggleSound={() => changeMuted(!muted)}
             onTurnDone={turnDone}
             onSaveQuit={saveQuit}
+            onQuitNoSave={quitNoSave}
           />
         )
       }
@@ -247,7 +297,10 @@ export function App() {
           muted={muted}
           onVolume={changeVolume}
           onMuted={changeMuted}
+          defaultNames={defaultNames}
+          onDefaultNames={changeDefaultNames}
           onResetScores={() => setConfirmReset(true)}
+          onStartAfresh={() => { setShowSettings(false); setConfirmAfresh(true) }}
           onShortcut={shortcut?.available ? () => { setShowSettings(false); setOfferShortcut(true) } : undefined}
           onClose={() => setShowSettings(false)}
         />
@@ -279,6 +332,21 @@ export function App() {
               >
                 Reset scores
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {confirmAfresh && (
+        <div className="wr-app-confirm" role="alertdialog" aria-label="Start afresh">
+          <div className="wr-app-confirm__box">
+            <p>Start afresh? This wipes every score, the saved game and the player names.</p>
+            <label className="wr-app-confirm__check">
+              <input type="checkbox" checked={forgetWords} onChange={(e) => { sfx.play('ui-toggle'); setForgetWords(e.currentTarget.checked) }} />
+              Also forget words we added to the word list
+            </label>
+            <div className="wr-app-confirm__row">
+              <button className="btn btn--aqua" onClick={() => { sfx.play('ui-click'); setConfirmAfresh(false); setForgetWords(false) }}>Keep everything</button>
+              <button className="btn btn--pink" onClick={() => { sfx.play('ui-click'); startAfresh() }}>Start afresh</button>
             </div>
           </div>
         </div>

@@ -1,4 +1,6 @@
+import { useState } from 'react'
 import { sfx } from '../audio/sfx'
+import { FACTORY_NAMES, loadDefaultNames } from './types'
 import './screens.css'
 
 export interface SettingsProps {
@@ -6,13 +8,23 @@ export interface SettingsProps {
   muted: boolean
   onVolume(value: number): void
   onMuted(muted: boolean): void
+  /** The four default player names (Settings → Players). */
+  defaultNames: readonly string[]
+  onDefaultNames(names: string[]): void
   onResetScores(): void
+  onStartAfresh(): void
   /** Present only in the packaged game (dev has no exe to point at). */
   onShortcut?(): void
   onClose(): void
 }
 
-export function Settings({ volume, muted, onVolume, onMuted, onResetScores, onShortcut, onClose }: SettingsProps) {
+export function Settings({ volume, muted, onVolume, onMuted, defaultNames, onDefaultNames, onResetScores, onStartAfresh, onShortcut, onClose }: SettingsProps) {
+  const [names, setNames] = useState<string[]>(() => [...defaultNames])
+  const edit = (index: number, value: string) => {
+    const next = names.map((n, i) => (i === index ? value : n))
+    setNames(next)
+    onDefaultNames(next)
+  }
   const click = (action: () => void, toggle = false) => {
     sfx.play('ui-click')
     if (toggle) sfx.play('ui-toggle')
@@ -51,11 +63,32 @@ export function Settings({ volume, muted, onVolume, onMuted, onResetScores, onSh
         >
           <span>Mute sound</span><span className="wr-settings__switch" aria-hidden="true"><span /></span>
         </button>
+        <div className="wr-settings__volume">
+          <div className="wr-settings__volume-head"><span>Players</span></div>
+          <div className="wr-settings__names">
+            {names.map((name, i) => (
+              <input
+                key={i}
+                type="text"
+                value={name}
+                maxLength={16}
+                placeholder={FACTORY_NAMES[i]}
+                aria-label={`Default name for player ${i + 1}`}
+                onMouseEnter={() => sfx.play('ui-hover')}
+                onClick={() => sfx.play('ui-click')}
+                onChange={(event) => edit(i, event.currentTarget.value)}
+                onBlur={() => setNames(loadDefaultNames(names))}
+              />
+            ))}
+          </div>
+          <button className="btn btn--aqua" type="button" onMouseEnter={() => sfx.play('ui-hover')} onClick={() => click(() => { setNames([...FACTORY_NAMES]); onDefaultNames([...FACTORY_NAMES]) })}>Back to Shane &amp; Dawn</button>
+        </div>
         {onShortcut && (
           <button className="btn btn--aqua" type="button" onMouseEnter={() => sfx.play('ui-hover')} onClick={() => click(onShortcut)}>Desktop shortcut</button>
         )}
         <div className="wr-settings__footer">
           <button className="btn btn--pink" type="button" onMouseEnter={() => sfx.play('ui-hover')} onClick={() => click(onResetScores)}>Reset scores</button>
+          <button className="btn btn--pink" type="button" onMouseEnter={() => sfx.play('ui-hover')} onClick={() => click(onStartAfresh)}>Start afresh</button>
           <button className="btn btn--aqua" type="button" onMouseEnter={() => sfx.play('ui-hover')} onClick={() => click(onClose)}>Close</button>
         </div>
       </section>

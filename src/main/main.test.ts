@@ -111,6 +111,15 @@ describe('WordService', () => {
     words.add('Blorf')
     expect(words.missing(['blorf'])).toEqual([])
   })
+  it('forgets custom words but keeps built-in ones', () => {
+    const w = new WordService(join(__dirname, '../../resources/words'), ['zorp'])
+    w.add('quix')
+    w.add('cat')
+    w.clearCustom()
+    expect(w.has('zorp')).toBe(false)
+    expect(w.has('quix')).toBe(false)
+    expect(w.has('cat')).toBe(true)
+  })
 })
 
 describe('sounds', () => {

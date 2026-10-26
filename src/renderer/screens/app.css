@@ -12,3 +12,5 @@
   border: 3px solid var(--ink); border-radius: 16px; background: var(--gold); box-shadow: var(--chunk-shadow);
   font-weight: 600; animation: wr-pop-in 300ms var(--ease-pop) both;
 }
+.wr-app-confirm__check { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 14px; font-size: 1.1rem; }
+.wr-app-confirm__check input { width: 22px; height: 22px; }

@@ -56,6 +56,8 @@ export interface WordRumbleApi {
     add(word: string): Promise<boolean>
     /** The whole dictionary (ENABLE + extras + custom) for the move-generator worker. */
     all(): Promise<string[]>
+    /** Forget every word the family added (built-in words stay). */
+    clearCustom(): Promise<void>
   }
   scores: {
     record(game: GameRecord): Promise<number>
@@ -75,6 +77,7 @@ export interface WordRumbleApi {
   settings: {
     get(): Promise<Record<string, unknown>>
     set(key: string, value: unknown): Promise<void>
+    delete(key: string): Promise<void>
   }
   /** Sound files for sfx.ts: built-in ones from resources/sounds, replaced by same-named files in sounds/custom. */
   sounds: {

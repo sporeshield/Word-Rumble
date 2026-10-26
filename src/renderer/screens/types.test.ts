@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { DEFAULT_SETUP, clampTimer, loadSetup, playerNames } from './types'
+import { DEFAULT_SETUP, clampTimer, loadDefaultNames, loadSetup, playerNames } from './types'
 
 describe('setup helpers', () => {
   it('names players per mode and defaults blanks', () => {
@@ -20,5 +20,17 @@ describe('setup helpers', () => {
     expect(s.hints).toBe('free')
     expect(s.timerSeconds).toBe(90)
     expect(s.names).toEqual(['Al', 'Dawn'])
+  })
+})
+
+describe('default names', () => {
+  it('fills missing or blank names from the factory list', () => {
+    expect(loadDefaultNames(undefined)).toEqual(['Shane', 'Dawn', 'Player 3', 'Player 4'])
+    expect(loadDefaultNames(['Mum', '  ', 7])).toEqual(['Mum', 'Dawn', 'Player 3', 'Player 4'])
+  })
+  it('uses the saved defaults for blank setup names', () => {
+    const defaults = ['Mum', 'Dad', 'A', 'B']
+    expect(playerNames({ ...DEFAULT_SETUP, names: ['', ''] }, defaults)).toEqual(['Mum', 'Dad'])
+    expect(loadSetup({}, defaults).names).toEqual(['Mum', 'Dad'])
   })
 })

@@ -31,6 +31,10 @@ export async function registerIpc(): Promise<void> {
     if (ok) words.add(word)
     return ok
   })
+  handle('words:clearCustom', () => {
+    db.clearCustomWords()
+    words.clearCustom()
+  })
   handle('words:all', () => words.all())
 
   handle('scores:record', (game: GameRecord) => db.recordGame(game))
@@ -47,6 +51,7 @@ export async function registerIpc(): Promise<void> {
 
   handle('settings:get', () => db.getSettings())
   handle('settings:set', (key: string, value: unknown) => db.setSetting(key, value))
+  handle('settings:delete', (key: string) => db.deleteSetting(key))
 
   handle('sounds:list', () => listSounds(builtInSounds, customSoundsDir()))
   handle('sounds:read', (file: string, custom: boolean) => readSound(builtInSounds, customSoundsDir(), file, custom))

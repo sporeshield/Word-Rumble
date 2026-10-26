@@ -96,9 +96,19 @@ export class GameDb {
     this.persist()
   }
 
+  deleteSetting(key: string): void {
+    this.run('DELETE FROM settings WHERE key = ?', [key])
+    this.persist()
+  }
+
   // ---- custom words ----
   customWords(): string[] {
     return this.rows('SELECT word FROM custom_words ORDER BY word').map((r) => String(r.word))
+  }
+
+  clearCustomWords(): void {
+    this.run('DELETE FROM custom_words')
+    this.persist()
   }
 
   addCustomWord(word: string): boolean {

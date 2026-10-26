@@ -1,10 +1,12 @@
 import { useState, type CSSProperties } from 'react'
 import { sfx } from '../audio/sfx'
-import { COLOR_CHOICES, DEFAULT_SETUP, TIMER_PRESETS, clampTimer, type SetupConfig } from './types'
+import { COLOR_CHOICES, FACTORY_NAMES, TIMER_PRESETS, clampTimer, type SetupConfig } from './types'
 import './screens.css'
 
 export interface SetupProps {
   initial: SetupConfig
+  /** Names from Settings → Players; used as placeholders and when a name is left blank. */
+  defaultNames?: readonly string[]
   onStart(config: SetupConfig): void
   onBack(): void
 }
@@ -13,7 +15,7 @@ const timerLabel = (seconds: number) => seconds < 60 ? `${seconds}s` : `${second
 const hover = () => sfx.play('ui-hover')
 const chooseSound = () => { sfx.play('ui-click'); sfx.play('ui-toggle') }
 
-export function Setup({ initial, onStart, onBack }: SetupProps) {
+export function Setup({ initial, defaultNames = FACTORY_NAMES, onStart, onBack }: SetupProps) {
   const [config, setConfig] = useState<SetupConfig>(() => ({ ...initial, names: [...initial.names], colors: [...initial.colors] }))
   const [customDraft, setCustomDraft] = useState(() => String(initial.timerSeconds && !TIMER_PRESETS.includes(initial.timerSeconds as typeof TIMER_PRESETS[number]) ? initial.timerSeconds : 90))
   const customTimer = config.timerSeconds !== null && !TIMER_PRESETS.includes(config.timerSeconds as typeof TIMER_PRESETS[number])
@@ -42,7 +44,7 @@ export function Setup({ initial, onStart, onBack }: SetupProps) {
   }
   const start = () => {
     sfx.play('ui-click')
-    const names: [string, string] = [config.names[0].trim() || DEFAULT_SETUP.names[0], config.names[1].trim() || DEFAULT_SETUP.names[1]]
+    const names: [string, string] = [config.names[0].trim() || defaultNames[0], config.names[1].trim() || defaultNames[1]]
     onStart({ ...config, names, timerSeconds: customTimer ? (clampTimer(Number(customDraft)) ?? 90) : config.timerSeconds })
   }
 
@@ -53,7 +55,7 @@ export function Setup({ initial, onStart, onBack }: SetupProps) {
         <div className="wr-setup__player-head"><span className="wr-setup__number">{index + 1}</span><strong>{computer ? 'Computer' : `Player ${index + 1}`}</strong></div>
         {computer ? <div className="wr-setup__computer">Computer opponent</div> : (
           <label className="wr-field">Name
-            <input type="text" value={config.names[index]} maxLength={16} placeholder={index === 0 ? 'Shane' : 'Dawn'} onMouseEnter={hover} onClick={() => sfx.play('ui-click')} onChange={(event) => setName(index, event.currentTarget.value)} />
+            <input type="text" value={config.names[index]} maxLength={16} placeholder={defaultNames[index]} onMouseEnter={hover} onClick={() => sfx.play('ui-click')} onChange={(event) => setName(index, event.currentTarget.value)} />
           </label>
         )}
         <div className="wr-setup__swatches" role="group" aria-label={`${computer ? 'Computer' : `Player ${index + 1}`} colour`}>

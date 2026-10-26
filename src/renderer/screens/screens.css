@@ -184,3 +184,7 @@
 @media (prefers-reduced-motion: reduce) {
   .wr-title__logo, .wr-title__button, .wr-panel, .wr-setup__player, .wr-setup__rule, .wr-shuffle__burst, .wr-shuffle__bag, .wr-first-draw__card, .wr-first-draw__tile .wr-tile, .wr-first-draw__banner, .wr-deal__rack, .wr-deal__next, .wr-handoff__card, .wr-handoff__art, .wr-handoff__go { animation: none !important; }
 }
+
+.wr-settings__names { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.wr-settings__names input { min-width: 0; padding: 10px 14px; border: 3px solid var(--ink); border-radius: 14px; background: white; font: inherit; font-size: 1.15rem; font-weight: 600; }
+.wr-settings__footer { flex-wrap: wrap; }

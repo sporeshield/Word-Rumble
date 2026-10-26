@@ -12,3 +12,10 @@ export function getFinder(): Promise<MoveFinder> {
 export function teachFinder(words: string[]): void {
   if (finder) void finder.then((f) => f.addWords(words))
 }
+
+/** Drop the worker so the next search rebuilds it from the current word list (after custom words are cleared). */
+export function resetFinder(): void {
+  const old = finder
+  finder = null
+  if (old) void old.then((f) => f.terminate())
+}

@@ -28,6 +28,7 @@ export interface GameProps {
   /** The turn is over (after the short result banner). App decides who sees the screen next. */
   onTurnDone(next: GameState): void
   onSaveQuit(game: GameState): void
+  onQuitNoSave(): void
 }
 
 type Dialog =
@@ -76,7 +77,7 @@ function TurnTimer({ seconds, total }: { seconds: number; total: number }) {
   )
 }
 
-export function Game({ game: initialGame, colors, muted, difficulty, onToggleSound, onTurnDone, onSaveQuit }: GameProps) {
+export function Game({ game: initialGame, colors, muted, difficulty, onToggleSound, onTurnDone, onSaveQuit, onQuitNoSave }: GameProps) {
   // Local copy: hint quotes and costs change the game state mid-turn, before the turn ends.
   const [game, setGame] = useState(initialGame)
   const solo = game.players.length === 1
@@ -127,7 +128,8 @@ export function Game({ game: initialGame, colors, muted, difficulty, onToggleSou
     let line = text
     if (record?.kind === 'play') {
       const gained = record.awarded + record.penaltyDelta
-      line = `${record.rumble ? 'RUMBLE bonus! ' : ''}${gained >= 0 ? '+' : ''}${gained} points${record.penalty ? ` — ${PENALTY_TEXT[record.penalty]}` : ''}`
+      // Hidden scores: a computer mover's points are never shown.
+      line = computerTurn ? 'Computer played a word.' : `${record.rumble ? 'RUMBLE bonus! ' : ''}${gained >= 0 ? '+' : ''}${gained} points${record.penalty ? ` — ${PENALTY_TEXT[record.penalty]}` : ''}`
     }
     if (next.lastBurst) sfx.play('burst')
     setGhost([])
@@ -508,7 +510,7 @@ export function Game({ game: initialGame, colors, muted, difficulty, onToggleSou
       ) : null}
 
       {overlay === 'pause' ? (
-        <PauseMenu muted={muted} onResume={() => resume()} onToggleSound={onToggleSound} onSaveQuit={() => onSaveQuit(game)} />
+        <PauseMenu muted={muted} onResume={() => resume()} onToggleSound={onToggleSound} onSaveQuit={() => onSaveQuit(game)} onQuitNoSave={onQuitNoSave} />
       ) : null}
       {overlay === 'handoff' ? <Handoff name={me.name} color={myColor} onGo={() => { setOverlay(null); sfx.play('flip-see') }} /> : null}
     </div>

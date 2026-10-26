@@ -129,9 +129,22 @@ export interface PauseMenuProps {
   onResume(): void
   onToggleSound(): void
   onSaveQuit(): void
+  onQuitNoSave(): void
 }
 
-export function PauseMenu({ muted, onResume, onToggleSound, onSaveQuit }: PauseMenuProps) {
+export function PauseMenu({ muted, onResume, onToggleSound, onSaveQuit, onQuitNoSave }: PauseMenuProps) {
+  const [confirming, setConfirming] = useState(false)
+  if (confirming) {
+    return (
+      <Dialog title="Quit without saving?" label="Quit without saving">
+        <p className="wr-dlg__text">This game will be lost — nobody's score is recorded.</p>
+        <div className="wr-dlg__row">
+          <button type="button" className="btn btn--aqua" onClick={() => { click(); setConfirming(false) }}>Keep playing</button>
+          <button type="button" className="btn btn--pink" onClick={() => { sfx.play('burst-whoosh-1'); /* stand-in until Phase 17 adds quit-nosave */ onQuitNoSave() }}>Quit without saving</button>
+        </div>
+      </Dialog>
+    )
+  }
   return (
     <div className="wr-dlg wr-dlg--pause" role="dialog" aria-label="Paused">
       <div className="wr-dlg__box">
@@ -140,6 +153,7 @@ export function PauseMenu({ muted, onResume, onToggleSound, onSaveQuit }: PauseM
           <button type="button" className="btn btn--aqua" onClick={onResume}>Resume</button>
           <button type="button" className="btn" onClick={() => { sfx.play('ui-toggle'); onToggleSound() }}>{muted ? 'Sound: off' : 'Sound: on'}</button>
           <button type="button" className="btn btn--pink" onClick={() => { click(); onSaveQuit() }}>Save &amp; quit to title</button>
+          <button type="button" className="btn" onClick={() => { click(); setConfirming(true) }}>Quit without saving</button>
         </div>
       </div>
     </div>
