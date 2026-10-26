@@ -8,10 +8,10 @@ import {
 let nextId = 5000
 const tile = (letter: string, points = letter === '?' ? 0 : 1): Tile => ({ id: nextId++, letter, points })
 
-const twoPlayer: GameOptions = { mode: 'two', names: ['Shane', 'Dawn'], timerSeconds: null, hints: 'penalty', madeUp: 'penalty' }
-const solo: GameOptions = { mode: 'solo', names: ['Shane'], timerSeconds: null, hints: 'free', madeUp: 'penalty' }
+const twoPlayer: GameOptions = { mode: 'two', names: ['Tess', 'Blair'], timerSeconds: null, hints: 'penalty', madeUp: 'penalty' }
+const solo: GameOptions = { mode: 'solo', names: ['Tess'], timerSeconds: null, hints: 'free', madeUp: 'penalty' }
 
-/** A fresh game with the given racks and Shane to move. */
+/** A fresh game with the given racks and Tess to move. */
 function setup(options: GameOptions, racks: string[][] = [['C', 'A', 'T', 'S', 'E', 'R', 'D'], ['A', 'B', 'C', 'D', 'E', 'F', 'G']]): GameState {
   const game = createGame(options)
   return {
@@ -190,7 +190,7 @@ describe('made-up words and the penalty wheel', () => {
 
   it('skip: the opponent plays twice in a row', () => {
     let g = play(setup(twoPlayer), { penalty: 'skip' })
-    // Shane (0) played, Dawn (1) is up. Dawn passes, Shane is skipped, Dawn again.
+    // Tess (0) played, Blair (1) is up. Blair passes, Tess is skipped, Blair again.
     expect(g.current).toBe(1)
     g = must(g, { type: 'pass' })
     expect(g.current).toBe(1)
@@ -360,7 +360,7 @@ describe('review regressions', () => {
   it('a skipped turn counts as scoreless', () => {
     let g = setup(twoPlayer)
     g = { ...g, consecutiveScoreless: 4, players: g.players.map((p, i) => (i === 1 ? { ...p, skipNext: true } : p)) }
-    g = must(g, { type: 'pass' }) // 5th scoreless, then Dawn's skipped turn is the 6th
+    g = must(g, { type: 'pass' }) // 5th scoreless, then Blair's skipped turn is the 6th
     expect(g.result?.reason).toBe('scoreless')
   })
 

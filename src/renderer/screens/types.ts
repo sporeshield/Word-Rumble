@@ -43,7 +43,7 @@ export const DEFAULT_SETUP: SetupConfig = {
   mode: 'two',
   difficulty: 'medium',
   players: 2,
-  names: ['Shane', 'Dawn', 'Player 3', 'Player 4'],
+  names: ['Player 1', 'Player 2', 'Player 3', 'Player 4'],
   colors: [...DEFAULT_COLORS],
   timerSeconds: null,
   hints: 'penalty',
@@ -56,7 +56,7 @@ export const DEFAULT_SETUP: SetupConfig = {
 }
 
 /** Factory default names for up to four players; Settings can change them (setting `defaultNames`). */
-export const FACTORY_NAMES: readonly string[] = ['Shane', 'Dawn', 'Player 3', 'Player 4']
+export const FACTORY_NAMES: readonly string[] = ['Player 1', 'Player 2', 'Player 3', 'Player 4']
 
 /** Merge a stored `defaultNames` setting over the factory names (always 4 usable names). */
 export function loadDefaultNames(stored: unknown): string[] {

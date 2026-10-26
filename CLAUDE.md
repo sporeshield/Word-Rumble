@@ -1,6 +1,6 @@
 # Word Rumble (folder: `Word-Rumble`)
 
-Our own cartoon crossword-tile word game in the Scrabble style for Shane & Dawn: Electron + electron-vite + React + TypeScript, pnpm, sql.js. The game itself is **Word Rumble** — never use Scrabble's name, branding, board layout or tile values in the game; use ours from `docs/PLAN.md`.
+Our own cartoon crossword-tile word game in the Scrabble style for the family: Electron + electron-vite + React + TypeScript, pnpm, sql.js. The game itself is **Word Rumble** — never use Scrabble's name, branding, board layout or tile values in the game; use ours from `docs/PLAN.md`.
 
 ## Every session = one phase
 1. Read `docs/PROGRESS.md` first. Work on the **first phase not marked ✅** — that phase only.
@@ -18,5 +18,5 @@ Our own cartoon crossword-tile word game in the Scrabble style for Shane & Dawn:
 - **Hidden scores**: during play only the current player sees their **own** score; the opponent's score (and any lead/behind hint) is never shown anywhere until Game over. Keep opponent totals out of the DOM, like hidden racks. See `docs/PLAN.md` feature 5.
 - **Sound on every action** through `src/renderer/audio/sfx.ts` (named sounds; `sounds/custom/` overrides).
 - Game logic stays pure in `src/renderer/engine/` (no React/DOM) and is unit-tested with vitest.
-- Defaults: player names **Shane** and **Dawn**; Shane teal, Dawn violet.
+- Defaults: player names **Player 1** and **Player 2**; Player 1 teal, Player 2 violet.
 - Dev runs use `dev-data/`; real scores live in `Word Rumble/data/` — never delete or overwrite them.

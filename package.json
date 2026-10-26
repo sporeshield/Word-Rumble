@@ -2,7 +2,7 @@
   "name": "word-rumble",
   "version": "0.1.0",
   "private": true,
-  "description": "Word Rumble - a cartoon crossword tile word game for Shane & Dawn",
+  "description": "Word Rumble - a cartoon crossword tile word game for friends and family",
   "main": "./out/main/index.js",
   "scripts": {
     "dev": "electron-vite dev",

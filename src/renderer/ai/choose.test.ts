@@ -32,7 +32,7 @@ describe('chooseMove', () => {
 })
 
 describe('computerAction', () => {
-  const game = createGame({ mode: 'computer', names: ['Shane', 'Computer'], timerSeconds: null, hints: 'off', madeUp: 'no' })
+  const game = createGame({ mode: 'computer', names: ['Tess', 'Computer'], timerSeconds: null, hints: 'off', madeUp: 'no' })
 
   it('plays the chosen move', () => {
     const list = moves(3)

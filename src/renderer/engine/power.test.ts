@@ -161,7 +161,7 @@ describe('power square scoring', () => {
 })
 
 describe('Wild games', () => {
-  const options = { mode: 'two' as const, names: ['Shane', 'Dawn'], timerSeconds: null, hints: 'free' as const, madeUp: 'no' as const }
+  const options = { mode: 'two' as const, names: ['Tess', 'Blair'], timerSeconds: null, hints: 'free' as const, madeUp: 'no' as const }
 
   it('a Wild game gets its own layout; Classic (or all zero) keeps the standard one', () => {
     expect(createGame(options).layout).toEqual(PREMIUM_LAYOUT)

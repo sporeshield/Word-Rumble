@@ -8,7 +8,7 @@ const initialBoard = createBoard()
 for (const [index, letter] of [...'RUMBLE'].entries()) initialBoard[7][4 + index] = { tile: demoTile(letter), letter }
 for (const [index, letter] of [...'INT'].entries()) initialBoard[8 + index][6] = { tile: demoTile(letter), letter }
 const initialRack = [...'CARTOON'].map(demoTile)
-const dawnTiles = [...'QZXPINK'].map(demoTile)
+const blairTiles = [...'QZXPINK'].map(demoTile)
 const hints: Placement[] = [...'POP'].map((letter, index) => ({ row: 4, col: 5 + index, letter, tile: demoTile(letter) }))
 
 export function Gallery() {
@@ -17,7 +17,7 @@ export function Gallery() {
     { row: 6, col: 10, tile: demoTile('S'), letter: 'S' },
     { row: 6, col: 11, tile: demoTile('T'), letter: 'T' }
   ])
-  const [dawnFaceDown, setDawnFaceDown] = useState(true)
+  const [blairFaceDown, setBlairFaceDown] = useState(true)
   const [selectedId, setSelectedId] = useState<number>()
 
   const reorder = (from: number, to: number) => setRackTiles((current) => {
@@ -67,7 +67,7 @@ export function Gallery() {
           <p>Drag a tile onto the board, or click a tile and then a square.</p>
         </div>
         <div className="wr-gallery__buttons">
-          <button className="btn" onClick={() => setDawnFaceDown((value) => !value)}>Flip Dawn’s rack</button>
+          <button className="btn" onClick={() => setBlairFaceDown((value) => !value)}>Flip Blair’s rack</button>
           <button className="btn btn--pink" onClick={() => { setPending([]); setRackTiles(initialRack); setSelectedId(undefined) }}>Reset demo</button>
           <button className="btn btn--aqua" onClick={() => setSelectedId(undefined)}>Pop!</button>
         </div>
@@ -87,7 +87,7 @@ export function Gallery() {
           <div className="wr-gallery__card halftone-1">
             <h2>Ready to rumble?</h2>
             <Rack
-              owner="Shane"
+              owner="Tess"
               color="#1cc5b4"
               tiles={rackTiles}
               count={rackTiles.length}
@@ -100,7 +100,7 @@ export function Gallery() {
           </div>
           <div className="wr-gallery__card halftone-3">
             <h2>Keep it secret</h2>
-            <Rack owner="Dawn" color="#9361e9" tiles={dawnTiles} count={dawnTiles.length} faceDown={dawnFaceDown} />
+            <Rack owner="Blair" color="#9361e9" tiles={blairTiles} count={blairTiles.length} faceDown={blairFaceDown} />
           </div>
         </div>
       </div>

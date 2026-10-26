@@ -10,7 +10,7 @@ import { analyze } from './analyze.mjs'
 import { writeProjects } from './build-rpp.mjs'
 import { outDir, reaperCfgDir, reaperExe, root, studioDir } from './lib.mjs'
 
-// The lean REAPER config: dummy audio device, no undo, no peak files. Shane's own REAPER setup is never touched.
+// The lean REAPER config: dummy audio device, no undo, no peak files. A personal REAPER setup is never touched.
 export const prepareConfig = () => {
   mkdirSync(reaperCfgDir, { recursive: true })
   const appData = process.env.APPDATA ?? ''

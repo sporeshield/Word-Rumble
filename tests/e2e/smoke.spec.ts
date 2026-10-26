@@ -33,8 +33,8 @@ test('play, hidden racks, save, relaunch, defeat, notebook', async () => {
 
   // Title -> Setup with the default names -> Start.
   await page.getByRole('button', { name: 'New Game' }).dispatchEvent('click')
-  await expect(page.locator('input[type=text]').first()).toHaveValue('Shane')
-  await expect(page.locator('input[type=text]').nth(1)).toHaveValue('Dawn')
+  await expect(page.locator('input[type=text]').first()).toHaveValue('Player 1')
+  await expect(page.locator('input[type=text]').nth(1)).toHaveValue('Player 2')
   await page.getByRole('button', { name: 'Start!' }).click()
 
   // Shuffle the bag, first draw, deal.

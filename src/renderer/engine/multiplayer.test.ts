@@ -9,7 +9,7 @@ const tile = (letter: string): Tile => ({ id: nextId++, letter, points: letter =
 
 const friends = (names: string[]): GameOptions =>
   ({ mode: 'two', names, timerSeconds: null, hints: 'off', madeUp: 'penalty' })
-const NAMES = ['Shane', 'Dawn', 'Ann', 'Bo']
+const NAMES = ['Tess', 'Blair', 'Ann', 'Bo']
 
 function setup(count: number, racks: string[][] = []): GameState {
   const game = createGame(friends(NAMES.slice(0, count)))
@@ -121,7 +121,7 @@ describe('Convince them! majority vote', () => {
   it('dropped players do not vote', () => {
     let g = setup(3, [CATS, CATS, CATS])
     g = must(g, { type: 'pass' })
-    g = must(g, { type: 'concede', recipient: null }) // Dawn drops, back to Ann
+    g = must(g, { type: 'concede', recipient: null }) // Blair drops, back to Ann
     g = { ...g, current: 0 }
     expect(playMade(g, { penalty: 'convince', votes: ['zero'] }).ok).toBe(true)
     expect(playMade(g, { penalty: 'convince', votes: ['zero', 'zero'] })).toEqual({ ok: false, error: 'vote-missing' })
@@ -176,7 +176,7 @@ describe('dropping out', () => {
     g = must(g, { type: 'pass' })
     g = must(g, { type: 'pass' })
     expect(g.consecutiveScoreless).toBe(2)
-    g = must(g, { type: 'concede', recipient: null }) // Ann (2) drops; Shane up
+    g = must(g, { type: 'concede', recipient: null }) // Ann (2) drops; Tess up
     expect(g.consecutiveScoreless).toBe(2)
     for (let i = 0; i < 3; i++) g = must(g, { type: 'pass' }) // 5 passes in total
     expect(g.phase).toBe('playing')
@@ -228,7 +228,7 @@ describe('normaliseGame', () => {
     const played = must(g, { type: 'play', placements: placeWord(g, 'CATS') })
     expect(played.current).toBe(1)
     const ended = must(must(played, { type: 'pass' }), { type: 'concede' })
-    expect(ended.result?.ranking).toEqual([[1], [0]]) // Shane (0) was up again, so Shane conceded
+    expect(ended.result?.ranking).toEqual([[1], [0]]) // Tess (0) was up again, so Tess conceded
   })
 
   it('adds a ranking to an old finished result', () => {

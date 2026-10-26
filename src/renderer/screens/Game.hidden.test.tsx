@@ -10,7 +10,7 @@ const SECRET_SCORES = [111, 4321, 8765, 9753]
 
 /** A fresh four-player game where every rack and score is known, with player 1 on turn. */
 function fourPlayers(current: number): GameState {
-  const game = createGame({ mode: 'two', names: ['Shane', 'Dawn', 'Mo', 'Jo'], timerSeconds: null, hints: 'off', madeUp: 'no' })
+  const game = createGame({ mode: 'two', names: ['Tess', 'Blair', 'Mo', 'Jo'], timerSeconds: null, hints: 'off', madeUp: 'no' })
   let id = 1000
   const rack = (letter: string): Tile[] => Array.from({ length: 7 }, () => ({ id: id++, letter, points: 9 }))
   return {
@@ -36,7 +36,7 @@ describe('play screen with four players', () => {
   it('lists the three others as name plates with tile counts only', () => {
     const markup = render(fourPlayers(0))
     const plates = [...markup.matchAll(/class="wr-play__plate[^"]*"[\s\S]*?<strong>([^<]*)<\/strong><span class="wr-play__plate-count">([^<]*)</g)]
-    expect(plates.map((m) => [m[1], m[2]])).toEqual([['Dawn', '7 tiles'], ['Mo', '7 tiles'], ['Jo', '7 tiles']])
+    expect(plates.map((m) => [m[1], m[2]])).toEqual([['Blair', '7 tiles'], ['Mo', '7 tiles'], ['Jo', '7 tiles']])
     // Only one rack is rendered at all: the current player's.
     expect(markup.match(/class="wr-tile wr-tile--rack/g)).toHaveLength(7)
   })
@@ -81,6 +81,6 @@ describe('dialogs where someone else may look', () => {
 
   it('the recipient picker lists the other players without scores', () => {
     const markup = start({ kind: 'recipient', action })
-    for (const name of ['Shane', 'Mo', 'Jo']) expect(markup).toContain(name)
+    for (const name of ['Tess', 'Mo', 'Jo']) expect(markup).toContain(name)
   })
 })

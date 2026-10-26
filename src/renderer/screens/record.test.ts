@@ -7,7 +7,7 @@ let id = 9000
 const tile = (letter: string): Tile => ({ id: id++, letter, points: 1 })
 
 function twoPlayerGame(): GameState {
-  const g = createGame({ mode: 'two', names: ['Shane', 'Dawn'], timerSeconds: null, hints: 'off', madeUp: 'no' })
+  const g = createGame({ mode: 'two', names: ['Tess', 'Blair'], timerSeconds: null, hints: 'off', madeUp: 'no' })
   return { ...g, current: 0, players: g.players.map((p) => ({ ...p, rack: 'CATSERD'.split('').map(tile) })) }
 }
 
@@ -23,11 +23,11 @@ function played(): GameState {
 }
 
 describe('buildGameRecord', () => {
-  it('maps a game where Dawn conceded two-player game', () => {
+  it('maps a game where Blair conceded two-player game', () => {
     const rec = buildGameRecord(played(), DEFAULT_SETUP, '2026-10-25T10:00:00.000Z')
     expect(rec.mode).toBe('two')
     expect(rec.endedReason).toBe('conceded')
-    expect(rec.players.map((p) => p.name)).toEqual(['Shane', 'Dawn'])
+    expect(rec.players.map((p) => p.name)).toEqual(['Tess', 'Blair'])
     expect(rec.players[0].conceded).toBe(false)
     expect(rec.players[1].conceded).toBe(true)
     expect(rec.players[0].winner).toBe(true)
@@ -37,16 +37,16 @@ describe('buildGameRecord', () => {
   })
 
   it('records places, drop-out gifts and recipients for three players', () => {
-    const g0 = createGame({ mode: 'two', names: ['Shane', 'Dawn', 'Pip'], timerSeconds: null, hints: 'off', madeUp: 'no' })
+    const g0 = createGame({ mode: 'two', names: ['Tess', 'Blair', 'Pip'], timerSeconds: null, hints: 'off', madeUp: 'no' })
     const g: GameState = { ...g0, current: 0, players: g0.players.map((p, i) => ({ ...p, score: [30, 10, 5][i] })) }
-    const a = reduce(g, { type: 'concede', recipient: 1 }) // Shane gives 30 to Dawn
+    const a = reduce(g, { type: 'concede', recipient: 1 }) // Tess gives 30 to Blair
     if (!a.ok) throw new Error(a.error)
     const b = reduce({ ...a.state, current: 2 }, { type: 'concede', recipient: null }) // Pip drops, gives nothing
     if (!b.ok) throw new Error(b.error)
     const rec = buildGameRecord(b.state, DEFAULT_SETUP)
     expect(rec.players.map((p) => [p.name, p.rank, p.finalScore, p.givenAway, p.giftTo, p.conceded, p.winner])).toEqual([
-      ['Shane', 3, 0, 30, 'Dawn', true, false],
-      ['Dawn', 1, 40, 0, null, false, true],
+      ['Tess', 3, 0, 30, 'Blair', true, false],
+      ['Blair', 1, 40, 0, null, false, true],
       ['Pip', 2, 5, 0, null, true, false]
     ])
   })
@@ -60,7 +60,7 @@ describe('buildGameRecord', () => {
   })
 
   it('flags the computer seat', () => {
-    const g = createGame({ mode: 'computer', names: ['Shane', 'Computer'], timerSeconds: null, hints: 'off', madeUp: 'no' })
+    const g = createGame({ mode: 'computer', names: ['Tess', 'Computer'], timerSeconds: null, hints: 'off', madeUp: 'no' })
     const done = reduce(g, { type: 'concede' })
     if (!done.ok) throw new Error(done.error)
     const rec = buildGameRecord(done.state, { ...DEFAULT_SETUP, difficulty: 'hard' })

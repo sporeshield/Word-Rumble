@@ -97,7 +97,7 @@ export function Settings({ volume, muted, onVolume, onMuted, voice, onVoice, def
               />
             ))}
           </div>
-          <button className="btn btn--aqua" type="button" onMouseEnter={() => sfx.play('ui-hover')} onClick={() => click(() => { setNames([...FACTORY_NAMES]); onDefaultNames([...FACTORY_NAMES]) })}>Back to Shane &amp; Dawn</button>
+          <button className="btn btn--aqua" type="button" onMouseEnter={() => sfx.play('ui-hover')} onClick={() => click(() => { setNames([...FACTORY_NAMES]); onDefaultNames([...FACTORY_NAMES]) })}>Back to Player 1 &amp; 2</button>
         </div>
         {onShortcut && (
           <button className="btn btn--aqua" type="button" onMouseEnter={() => sfx.play('ui-hover')} onClick={() => click(onShortcut)}>Desktop shortcut</button>

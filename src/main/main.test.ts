@@ -15,12 +15,12 @@ beforeAll(async () => {
 })
 afterAll(() => rmSync(tmp, { recursive: true, force: true }))
 
-const game = (shane: number, dawn: number, extra = {}) => ({
+const game = (tess: number, blair: number, extra = {}) => ({
   mode: 'two' as const,
   endedReason: 'bag-empty',
   players: [
-    { name: 'Shane', finalScore: shane, preAdjustScore: shane, winner: shane > dawn },
-    { name: 'Dawn', finalScore: dawn, preAdjustScore: dawn, winner: dawn > shane }
+    { name: 'Tess', finalScore: tess, preAdjustScore: tess, winner: tess > blair },
+    { name: 'Blair', finalScore: blair, preAdjustScore: blair, winner: blair > tess }
   ],
   plays: [
     { playerIndex: 0, words: ['QUIZ'], score: 44 },
@@ -59,7 +59,7 @@ describe('GameDb', () => {
     const db = GameDb.open(SQL, null)
     db.recordGame(game(300, 250))
     db.recordGame(game(200, 280, { playedAt: '2030-01-01T00:00:00Z' }))
-    db.recordGame({ mode: 'solo', endedReason: 'finished', players: [{ name: 'Shane', finalScore: 410, preAdjustScore: 420 }] })
+    db.recordGame({ mode: 'solo', endedReason: 'finished', players: [{ name: 'Tess', finalScore: 410, preAdjustScore: 420 }] })
 
     const top = db.topScores('all')
     expect(top.map((r) => r.score)).toEqual([410, 300, 280, 250, 200])
@@ -67,9 +67,9 @@ describe('GameDb', () => {
 
     const h2h = db.headToHead()
     expect(h2h).toHaveLength(1)
-    expect(h2h[0]).toMatchObject({ a: 'Dawn', b: 'Shane', games: 2, aWins: 1, bWins: 1 })
+    expect(h2h[0]).toMatchObject({ a: 'Blair', b: 'Tess', games: 2, aWins: 1, bWins: 1 })
 
-    expect(db.bestPlays()[0]).toMatchObject({ name: 'Shane', score: 44, words: ['QUIZ'] })
+    expect(db.bestPlays()[0]).toMatchObject({ name: 'Tess', score: 44, words: ['QUIZ'] })
     expect(db.recentGames()[0].playedAt).toBe('2030-01-01T00:00:00Z')
 
     const shame = db.hallOfShame()
@@ -85,7 +85,7 @@ describe('GameDb', () => {
     old.exec(MIGRATIONS[0])
     old.exec(MIGRATIONS[1])
     old.exec(`PRAGMA user_version = 2;
-      INSERT INTO players (id, name) VALUES (1, 'Shane'), (2, 'Dawn');
+      INSERT INTO players (id, name) VALUES (1, 'Tess'), (2, 'Blair');
       INSERT INTO games (id, mode, ended_reason, played_at) VALUES (1, 'two', 'out', 'a'), (2, 'two', 'out', 'b'), (3, 'solo', 'finished', 'c');
       INSERT INTO game_players (game_id, player_id, seat, final_score, pre_adjust_score, winner) VALUES
         (1, 1, 0, 300, 300, 1), (1, 2, 1, 200, 200, 0),
@@ -104,7 +104,7 @@ describe('GameDb', () => {
       [1, 1, 0, null], [1, 2, 0, null], [2, 1, 0, null], [2, 1, 0, null], [3, 1, 0, null]
     ])
     check.close()
-    expect(GameDb.open(SQL, file).headToHead()[0]).toMatchObject({ a: 'Dawn', b: 'Shane', games: 2, aWins: 0, bWins: 1, draws: 1 })
+    expect(GameDb.open(SQL, file).headToHead()[0]).toMatchObject({ a: 'Blair', b: 'Tess', games: 2, aWins: 0, bWins: 1, draws: 1 })
   })
 
   it('tallies every pair of a 3-player game by place and lists recent players by place', () => {
@@ -112,20 +112,20 @@ describe('GameDb', () => {
     db.recordGame({
       mode: 'two', endedReason: 'conceded', playedAt: '2030-01-01T00:00:00Z',
       players: [
-        { name: 'Shane', finalScore: 0, preAdjustScore: 0, rank: 3, conceded: true, givenAway: 30, giftTo: 'Dawn' },
-        { name: 'Dawn|Ann', finalScore: 90, preAdjustScore: 90, rank: 1, winner: true },
+        { name: 'Tess', finalScore: 0, preAdjustScore: 0, rank: 3, conceded: true, givenAway: 30, giftTo: 'Blair' },
+        { name: 'Blair|Ann', finalScore: 90, preAdjustScore: 90, rank: 1, winner: true },
         { name: 'Pip', finalScore: 90, preAdjustScore: 90, rank: 1 }
       ]
     })
     const h2h = db.headToHead()
     expect(h2h.map((r) => [r.a, r.b, r.aWins, r.bWins, r.draws])).toEqual([
-      ['Dawn|Ann', 'Pip', 0, 0, 1], ['Dawn|Ann', 'Shane', 1, 0, 0], ['Pip', 'Shane', 1, 0, 0]
+      ['Blair|Ann', 'Pip', 0, 0, 1], ['Blair|Ann', 'Tess', 1, 0, 0], ['Pip', 'Tess', 1, 0, 0]
     ])
     const [recent] = db.recentGames()
     expect(recent.players).toEqual([
-      { name: 'Dawn|Ann', isComputer: false, score: 90, rank: 1, winner: true, conceded: false, givenAway: 0, giftTo: null },
+      { name: 'Blair|Ann', isComputer: false, score: 90, rank: 1, winner: true, conceded: false, givenAway: 0, giftTo: null },
       { name: 'Pip', isComputer: false, score: 90, rank: 1, winner: false, conceded: false, givenAway: 0, giftTo: null },
-      { name: 'Shane', isComputer: false, score: 0, rank: 3, winner: false, conceded: true, givenAway: 30, giftTo: 'Dawn' }
+      { name: 'Tess', isComputer: false, score: 0, rank: 3, winner: false, conceded: true, givenAway: 30, giftTo: 'Blair' }
     ])
   })
 
@@ -143,11 +143,11 @@ describe('GameDb', () => {
       difficulty: 'hard',
       endedReason: 'bag-empty',
       players: [
-        { name: 'Shane', finalScore: 100, preAdjustScore: 100 },
+        { name: 'Tess', finalScore: 100, preAdjustScore: 100 },
         { name: 'Computer', isComputer: true, finalScore: 500, preAdjustScore: 500, winner: true }
       ]
     })
-    expect(db.topScores('computer').map((r) => r.name)).toEqual(['Shane'])
+    expect(db.topScores('computer').map((r) => r.name)).toEqual(['Tess'])
   })
 })
 

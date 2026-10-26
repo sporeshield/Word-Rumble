@@ -19,7 +19,7 @@ export function recentPlayers(value: unknown): RecentGamePlayer[] {
   })
 }
 
-/** "Shane won", "Shane & Dawn tied", "It's a draw!" (everyone level) or "Shane's run" (solo). */
+/** "Tess won", "Tess & Blair tied", "It's a draw!" (everyone level) or "Tess's run" (solo). */
 export function recentHeadline(players: RecentGamePlayer[]): string {
   if (!players.length) return 'Game over'
   if (players.length === 1) return `${players[0].name}'s run`
@@ -50,7 +50,7 @@ export function placeLabel(rank: number): string {
   return rank === 1 ? '1st' : rank === 2 ? '2nd' : rank === 3 ? '3rd' : `${rank}th`
 }
 
-/** "dropped out — gave 42 to Dawn" for a player who left a 3–4 player game; empty otherwise. */
+/** "dropped out — gave 42 to Blair" for a player who left a 3–4 player game; empty otherwise. */
 export function dropNote(player: RecentGamePlayer): string {
   if (!player.conceded) return ''
   return player.givenAway !== 0 && player.giftTo ? `dropped out — gave ${player.givenAway} to ${player.giftTo}` : 'dropped out'
