@@ -211,10 +211,10 @@
   },
   "defeat-trombone": {
     "group": "big",
-    "seconds": 2.2,
-    "lufs": -22.1,
-    "peakDb": -6.5,
-    "gainDb": 5.5
+    "seconds": 1.7,
+    "lufs": -18.9,
+    "peakDb": -5.5,
+    "gainDb": 4.5
   },
   "dice-roll": {
     "group": "tiles",
@@ -593,13 +593,6 @@
     "lufs": -18.3,
     "peakDb": -7.5,
     "gainDb": 4.3
-  },
-  "tile-drag-tick": {
-    "group": "ui",
-    "seconds": 0.02,
-    "lufs": -12.8,
-    "peakDb": -0.7,
-    "gainDb": -9.2
   },
   "tile-pickup": {
     "group": "tiles",

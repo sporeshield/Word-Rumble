@@ -205,6 +205,104 @@
       "A": {},
       "B": {
         "preset": "In The Mix/Presets/Distant Majestic Lead.vital"
+      },
+      "C": {
+        "notes": [
+          {
+            "t": 0,
+            "len": 0.24,
+            "pitch": 70,
+            "vel": 105
+          },
+          {
+            "t": 0.28,
+            "len": 0.24,
+            "pitch": 69,
+            "vel": 105
+          },
+          {
+            "t": 0.56,
+            "len": 0.24,
+            "pitch": 68,
+            "vel": 105
+          },
+          {
+            "t": 0.84,
+            "len": 0.7,
+            "pitch": 65,
+            "vel": 105
+          }
+        ],
+        "length": 1.7,
+        "bend": [
+          {
+            "t": 0.95,
+            "v": 0
+          },
+          {
+            "t": 1.15,
+            "v": -0.3
+          },
+          {
+            "t": 1.35,
+            "v": -0.6
+          },
+          {
+            "t": 1.55,
+            "v": -1
+          }
+        ]
+      },
+      "D": {
+        "preset": "In The Mix/Presets/Distant Majestic Lead.vital",
+        "notes": [
+          {
+            "t": 0,
+            "len": 0.24,
+            "pitch": 70,
+            "vel": 105
+          },
+          {
+            "t": 0.28,
+            "len": 0.24,
+            "pitch": 69,
+            "vel": 105
+          },
+          {
+            "t": 0.56,
+            "len": 0.24,
+            "pitch": 68,
+            "vel": 105
+          },
+          {
+            "t": 0.84,
+            "len": 0.7,
+            "pitch": 65,
+            "vel": 105
+          }
+        ],
+        "length": 1.7,
+        "bend": [
+          {
+            "t": 0.95,
+            "v": 0
+          },
+          {
+            "t": 1.15,
+            "v": -0.3
+          },
+          {
+            "t": 1.35,
+            "v": -0.6
+          },
+          {
+            "t": 1.55,
+            "v": -1
+          }
+        ],
+        "tweaks": {
+          "settings.volume": 7399
+        }
       }
     }
   },

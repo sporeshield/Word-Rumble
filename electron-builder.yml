@@ -7,6 +7,18 @@ directories:
 files:
   - out/**
   - package.json
+  # not needed at run time: the renderer bundles React; only the sql.js wasm build is loaded
+  - '!out/chrome-profile'
+  - '!out/gallery-check'
+  - '!node_modules/react'
+  - '!node_modules/react-dom'
+  - '!node_modules/scheduler'
+  - '!node_modules/sql.js/dist/sql-asm*'
+  - '!node_modules/sql.js/dist/*debug*'
+  - '!node_modules/sql.js/dist/*.zip'
+  - '!node_modules/sql.js/dist/worker.*'
+  - '!node_modules/sql.js/dist/sql-wasm-inline*'
+electronLanguages: en-US
 asar: true
 # The word list and sounds ship as plain files next to the app (process.resourcesPath).
 extraResources:

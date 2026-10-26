@@ -18,7 +18,7 @@ const MAX_BOOST_DB = 12
 
 // Loudness targets (LUFS) by sound group; the first matching rule wins.
 export const GROUPS = [
-  { group: 'ui', target: -22, match: /^(ui-|tile-drag-tick|timer-tick|rack-reorder|flip-|page-flip|pencil-scribble|rank-reveal)/ },
+  { group: 'ui', target: -22, match: /^(ui-|timer-tick|rack-reorder|flip-|page-flip|pencil-scribble|rank-reveal)/ },
   { group: 'tiles', target: -18, match: /^(tile-|recall-all|rack-shuffle|blank-chosen|exchange|pass|bag-shake|first-draw-reveal|pause|resume|dice-roll|wheel-|penalty-cost|hint-ghost|power-preview|player-joins|word-)/ },
   { group: 'voice', target: -16, match: /^(male-)?(count-|voice-)/ },
   { group: 'heartbeat', target: -20, match: /^heartbeat/ },

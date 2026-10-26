@@ -21,7 +21,6 @@ Selected Kenney clips:
 - `ui-click.ogg` — ui-audio: `Audio/click1.ogg`
 - `ui-toggle.ogg` — interface-sounds: `Audio/toggle_001.ogg`
 - `tile-pickup.ogg` — casino-audio: `Audio/chips-handle-1.ogg`
-- `tile-drag-tick.ogg` — interface-sounds: `Audio/tick_001.ogg`
 - `tile-place.ogg` — impact-sounds: `Audio/impactWood_light_000.ogg`
 - `tile-return.ogg` — impact-sounds: `Audio/impactWood_light_001.ogg`
 - `recall-all.ogg` — casino-audio: `Audio/chips-collide-1.ogg`

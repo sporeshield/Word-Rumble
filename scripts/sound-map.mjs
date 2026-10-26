@@ -30,7 +30,6 @@ export const SOUND_SOURCES = {
   'ui-click': [source('ui-audio', 'click1'), source('interface-sounds', 'click_001')],
   'ui-toggle': [source('interface-sounds', 'toggle_001'), source('ui-audio', 'switch1')],
   'tile-pickup': [source('casino-audio', 'chips-handle-1'), source('interface-sounds', 'pluck_001')],
-  'tile-drag-tick': [source('interface-sounds', 'tick_001'), source('ui-audio', 'rollover2')],
   'tile-place': [source('impact-sounds', 'impactWood_light_000'), source('casino-audio', 'chip-lay-1')],
   'tile-return': [source('impact-sounds', 'impactWood_light_001'), source('casino-audio', 'chip-lay-2')],
   'recall-all': [source('casino-audio', 'chips-collide-1'), source('interface-sounds', 'drop_001')],
