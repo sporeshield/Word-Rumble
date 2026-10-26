@@ -1,10 +1,13 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { createGame, type GameState } from './engine/game'
 import { sfx } from './audio/sfx'
 import { Deal } from './screens/Deal'
 import { Game } from './screens/Game'
+import { GameOver } from './screens/GameOver'
 import { FirstDraw } from './screens/FirstDraw'
 import { Handoff } from './screens/Handoff'
+import { Notebook } from './screens/Notebook'
+import { buildGameRecord, newHighScores } from './screens/record'
 import { Settings } from './screens/Settings'
 import { Setup } from './screens/Setup'
 import { ShuffleBag } from './screens/ShuffleBag'
@@ -12,9 +15,9 @@ import { Title } from './screens/Title'
 import { DEFAULT_SETUP, loadSetup, playerNames, type SetupConfig } from './screens/types'
 import './screens/app.css'
 
-type Screen = 'title' | 'setup' | 'shuffle' | 'draw' | 'deal' | 'handoff' | 'game' | 'over'
+type Screen = 'title' | 'setup' | 'shuffle' | 'draw' | 'deal' | 'handoff' | 'game' | 'over' | 'notebook'
 
-/** Shape the Phase 12 autosave will use; Continue accepts it as-is. */
+/** The autosave: written at the start of the game and after every turn; Continue reads it back. */
 interface SavedGame {
   game: GameState
   setup: SetupConfig
@@ -39,6 +42,10 @@ export function App() {
   const [volume, setVolume] = useState(sfx.getVolume())
   const [muted, setMuted] = useState(sfx.isMuted())
   const [notice, setNotice] = useState<string | null>(null)
+  /** Per player: earned the NEW HIGH SCORE stamp. Null while the finished game is still being written down. */
+  const [highScores, setHighScores] = useState<boolean[] | null>(null)
+  const [notebookBack, setNotebookBack] = useState<Screen>('title')
+  const recorded = useRef<GameState | null>(null)
 
   useEffect(() => {
     void (async () => {
@@ -55,6 +62,35 @@ export function App() {
     setNotice(text)
     window.setTimeout(() => setNotice(null), 2600)
   }, [])
+
+  /** Autosave the game in progress (or drop the autosave once it is over). */
+  const autosave = useCallback((current: GameState, config: SetupConfig) => {
+    if (current.phase === 'over') {
+      void window.wordRumble.savedGame.clear()
+      setSaved(null)
+      return
+    }
+    const json = JSON.stringify({ game: current, setup: config } satisfies SavedGame)
+    void window.wordRumble.savedGame.save(json).then(() => setSaved(parseSaved(json)))
+  }, [])
+
+  const openNotebook = (from: Screen) => { setNotebookBack(from); setScreen('notebook') }
+
+  // Game over: read the table, write the game in the notebook once, then reveal the Game over screen.
+  useEffect(() => {
+    if (screen !== 'over' || !game?.result || recorded.current === game) return
+    recorded.current = game
+    setHighScores(null)
+    void (async () => {
+      let stamps = game.players.map(() => false)
+      try {
+        const top = await window.wordRumble.scores.top(game.options.mode, 10)
+        stamps = newHighScores(game, top)
+        await window.wordRumble.scores.record(buildGameRecord(game, setup))
+      } catch { /* the notebook is a nicety: still show the result */ }
+      setHighScores(stamps)
+    })()
+  }, [screen, game, setup])
 
   const startGame = (config: SetupConfig) => {
     setSetup(config)
@@ -80,11 +116,12 @@ export function App() {
   /** A turn finished: game over, the next player's "take the laptop" screen (two players), or straight on. */
   const turnDone = useCallback((next: GameState) => {
     setGame(next)
-    if (next.phase === 'over') { setScreen('over'); return }
+    autosave(next, setup)
+    if (next.phase === 'over') { setHighScores(null); setScreen('over'); return }
     setScreen(next.options.mode === 'two' ? 'handoff' : 'game')
-  }, [])
+  }, [autosave, setup])
 
-  // Save & quit from the pause menu (Phase 12 adds the save after every turn).
+  // Save & quit from the pause menu.
   const saveQuit = (current: GameState) => {
     const payload: SavedGame = { game: current, setup }
     const json = JSON.stringify(payload)
@@ -106,7 +143,7 @@ export function App() {
           canContinue={saved !== null}
           onNewGame={() => setScreen('setup')}
           onContinue={continueGame}
-          onScores={() => flash('The high-score notebook arrives in a later phase.')}
+          onScores={() => openNotebook('title')}
           onSettings={() => setShowSettings(true)}
           onQuit={() => void window.wordRumble.quit()}
         />
@@ -138,7 +175,7 @@ export function App() {
     case 'deal':
       if (game) {
         // Counts only: the letters never reach the deal screen.
-        body = <Deal names={names} colors={colors} counts={game.players.map((p) => p.rack.length)} onDone={() => setScreen('handoff')} />
+        body = <Deal names={names} colors={colors} counts={game.players.map((p) => p.rack.length)} onDone={() => { if (game) autosave(game, setup); setScreen('handoff') }} />
       }
       break
     case 'handoff':
@@ -162,18 +199,20 @@ export function App() {
       }
       break
     case 'over':
-      // PLACEHOLDER until Phase 12 builds the real Game over screen and notebook.
-      if (game?.result) {
+      if (game?.result && highScores) {
         body = (
-          <main className="wr-screen halftone-3 wr-app-over">
-            <div className="wr-app-confirm__box">
-              <h1>Game over</h1>
-              {game.players.map((p, i) => <p key={i}>{p.name}: {game.result!.finalScores[i]}</p>)}
-              <button className="btn btn--pink" onClick={() => { sfx.play('ui-click'); setScreen('title') }}>Back to title</button>
-            </div>
-          </main>
+          <GameOver
+            game={game}
+            colors={colors}
+            highScores={highScores}
+            onNotebook={() => openNotebook('over')}
+            onTitle={() => setScreen('title')}
+          />
         )
       }
+      break
+    case 'notebook':
+      body = <Notebook onClose={() => setScreen(notebookBack)} />
       break
   }
 

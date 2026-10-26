@@ -1,0 +1,35 @@
+.wr-gameover { overflow: auto; padding: clamp(18px, 3vh, 40px); }
+.wr-gameover__layout { position: relative; z-index: 1; display: grid; gap: clamp(13px, 2vh, 25px); width: min(1300px, 96vw); margin: auto; }
+.wr-gameover__header { text-align: center; }
+.wr-gameover__header .wr-screen-title { font-size: clamp(3rem, 5.5vw, 6rem); color: var(--cream); -webkit-text-stroke: 2px var(--ink); text-shadow: 4px 5px 0 var(--ink), 8px 9px 0 var(--magenta); }
+.wr-gameover__header .wr-eyebrow { display: inline-block; padding: 4px 16px; border: 3px solid var(--ink); border-radius: 99px; background: var(--gold); color: var(--ink); box-shadow: 3px 4px 0 var(--ink); transform: rotate(-3deg); }
+.wr-gameover__outcome { display: inline-block; margin: 12px 0 0; padding: 3px 20px; border: 3px solid var(--ink); border-radius: 14px; background: var(--aqua); box-shadow: 4px 5px 0 var(--ink); font-family: 'Bangers', sans-serif; font-size: clamp(1.5rem, 2.8vw, 2.5rem); letter-spacing: .05em; transform: rotate(2deg); }
+.wr-gameover__cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(18px, 3vw, 42px); align-items: stretch; }
+.wr-gameover__cards--solo { grid-template-columns: minmax(0, 650px); justify-content: center; }
+.wr-gameover__card { position: relative; min-width: 0; padding: clamp(17px, 2vw, 30px); border: 5px solid var(--ink); border-radius: 27px; background: var(--cream); box-shadow: 8px 10px 0 var(--ink), 13px 15px 0 rgb(34 20 47 / 25%); animation: wr-gameover-card-in 620ms var(--ease-pop) var(--card-delay) both; }
+.wr-gameover__card--winner { background: linear-gradient(145deg, #fffbea, var(--cream) 65%); box-shadow: 8px 10px 0 var(--gold), 13px 15px 0 var(--ink); }
+.wr-gameover__card-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; min-height: 44px; }
+.wr-gameover__card h2 { margin: 0; max-width: 70%; color: var(--card-color); font-family: 'Bangers', sans-serif; font-size: clamp(2rem, 3.7vw, 3.7rem); letter-spacing: .04em; line-height: 1; -webkit-text-stroke: 1.5px var(--ink); paint-order: stroke fill; text-shadow: 3px 3px 0 var(--ink); overflow-wrap: anywhere; }
+.wr-gameover__conceded { padding: 2px 8px; border: 2px solid var(--ink); border-radius: 7px; background: #eadde5; font-weight: 700; font-size: .82rem; transform: rotate(-5deg); }
+.wr-gameover__score { display: flex; align-items: baseline; gap: 12px; margin: clamp(5px, 1vh, 12px) 0; color: var(--ink); }
+.wr-gameover__score strong { font-family: 'Bangers', sans-serif; font-size: clamp(5rem, 9vw, 9.5rem); line-height: .9; letter-spacing: .02em; font-variant-numeric: tabular-nums; text-shadow: 4px 5px 0 var(--card-color); }
+.wr-gameover__score span { font-family: 'Bangers', sans-serif; font-size: clamp(1.4rem, 2vw, 2.2rem); }
+.wr-gameover__ledger { display: grid; gap: 5px; padding: 12px 16px; border: 3px dashed var(--ink); border-radius: 12px; background: white; font-size: clamp(.9rem, 1.25vw, 1.06rem); }
+.wr-gameover__ledger > div { display: flex; justify-content: space-between; gap: 12px; }
+.wr-gameover__ledger b { flex: none; }
+.wr-gameover__stats { display: flex; justify-content: space-between; gap: 7px; margin-top: 14px; font-size: clamp(.78rem, 1.13vw, .98rem); font-weight: 600; }
+.wr-gameover__stats span { text-align: center; }
+.wr-gameover__stats b { display: block; color: var(--magenta); font-family: 'Bangers', sans-serif; font-size: 1.7em; line-height: 1; }
+.wr-gameover__crown { position: absolute; z-index: 2; top: -43px; left: 28px; width: clamp(65px, 7vw, 100px); transform: rotate(-13deg); filter: drop-shadow(2px 3px 0 var(--ink)); }
+.wr-gameover__trophy { position: absolute; top: 10px; right: 15px; width: clamp(58px, 7vw, 105px); filter: drop-shadow(2px 4px 0 var(--ink)); }
+.wr-gameover__stamp { position: absolute; z-index: 3; top: -22px; right: 15px; max-width: 190px; padding: 7px 10px; border: 3px solid var(--ink); border-radius: 9px; background: var(--gold); color: #bd1430; box-shadow: 3px 4px 0 var(--ink); font-family: 'Bangers', sans-serif; font-size: clamp(1.1rem, 1.8vw, 1.7rem); line-height: .9; text-align: center; letter-spacing: .03em; transform: rotate(9deg); animation: wr-gameover-stamp 550ms var(--ease-pop) calc(840ms + var(--card-delay)) both; }
+.wr-gameover__card--winner .wr-gameover__stamp { right: 115px; }
+.wr-gameover__actions { display: flex; justify-content: center; gap: 24px; flex-wrap: wrap; padding-top: 4px; }
+.wr-gameover__actions .btn { min-width: min(320px, 100%); }
+.wr-gameover .wr-comic-burst { z-index: 3; padding-right: 0; }
+.wr-gameover .wr-comic-burst--top { --burst-size: min(36vw, 42vh, 370px); }
+@keyframes wr-gameover-card-in { from { opacity: 0; transform: translateY(35px) rotate(-5deg) scale(.83); } 75% { opacity: 1; transform: translateY(-5px) rotate(2deg) scale(1.04); } to { transform: none; opacity: 1; } }
+@keyframes wr-gameover-stamp { from { opacity: 0; transform: rotate(23deg) scale(2); } to { opacity: 1; transform: rotate(9deg) scale(1); } }
+@media (max-height: 760px) { .wr-gameover { padding: 12px 20px; } .wr-gameover__layout { gap: 10px; } .wr-gameover__card { padding: 15px 20px; } .wr-gameover__score strong { font-size: clamp(4rem, 8vh, 6.5rem); } .wr-gameover__header .wr-screen-title { font-size: 3.2rem; } .wr-gameover__outcome { margin-top: 5px; } .wr-gameover__ledger { padding: 7px 12px; } .wr-gameover__stats { margin-top: 7px; } }
+@media (max-width: 700px) { .wr-gameover__cards { grid-template-columns: 1fr; } .wr-gameover__card h2 { max-width: 75%; } .wr-gameover__trophy { width: 65px; } .wr-gameover__actions .btn { min-width: min(280px, 100%); } }
+@media (prefers-reduced-motion: reduce) { .wr-gameover__card, .wr-gameover__stamp { animation: none; } }
