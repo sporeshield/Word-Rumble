@@ -9,6 +9,8 @@ Labels and tile letters are rendered later with fonts; no image contains text.
 | `bag-shake.webp` | 768 x 768 | Shaking bag pose. |
 | `rack-holder.webp` | 1024 x 320 | Seven-groove gold rack. |
 | `rack-holder-tint.webp` | 1024 x 320 | Neutral tintable rack. |
+| `rack-holder-upright.webp` | 256 x 1024 | Seven-groove upright wooden rack with blank lower nameplate; generated to match the horizontal rack. |
+| `rack-holder-upright-tint.webp` | 256 x 1024 | Neutral tintable version of the upright rack for player-colour CSS overlay. |
 | `tile-face.webp` | 512 x 512 | Blank cream tile face. |
 | `tile-back.webp` | 512 x 512 | Patterned tile back. |
 | `board-frame.webp` | 1024 x 1024 | Magenta board frame with open centre. |

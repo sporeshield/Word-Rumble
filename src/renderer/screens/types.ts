@@ -1,6 +1,7 @@
 import type { CostMode, GameMode, HintMode, MadeUpMode } from '../engine/game'
 
 export type Difficulty = 'easy' | 'medium' | 'hard'
+export type RackSide = 'left' | 'right'
 
 /** Everything the Setup screen collects. */
 export interface SetupConfig {
@@ -17,6 +18,8 @@ export interface SetupConfig {
   /** Shuffle and Swap: free, or a random 1–10 point cost quoted first. */
   shuffle: CostMode
   swap: CostMode
+  /** Which side of the board the upright rack stands on (whole game, not per player). */
+  rackSide: RackSide
 }
 
 export const COLOR_CHOICES = ['#1cc5b4', '#9361e9', '#ff8a2a', '#ff81ba', '#3772ff', '#e4b400'] as const
@@ -30,7 +33,8 @@ export const DEFAULT_SETUP: SetupConfig = {
   hints: 'penalty',
   madeUp: 'penalty',
   shuffle: 'penalty',
-  swap: 'penalty'
+  swap: 'penalty',
+  rackSide: 'left'
 }
 
 /** Factory default names for up to four players; Settings can change them (setting `defaultNames`). */
@@ -78,6 +82,7 @@ export function loadSetup(stored: unknown, defaults: readonly string[] = FACTORY
     hints: pick(s.hints, ['off', 'free', 'penalty'], DEFAULT_SETUP.hints),
     madeUp: pick(s.madeUp, ['no', 'free', 'penalty'], DEFAULT_SETUP.madeUp),
     shuffle: pick(s.shuffle, ['free', 'penalty'], DEFAULT_SETUP.shuffle),
-    swap: pick(s.swap, ['free', 'penalty'], DEFAULT_SETUP.swap)
+    swap: pick(s.swap, ['free', 'penalty'], DEFAULT_SETUP.swap),
+    rackSide: pick(s.rackSide, ['left', 'right'], DEFAULT_SETUP.rackSide)
   }
 }

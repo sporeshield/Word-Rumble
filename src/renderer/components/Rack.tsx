@@ -8,6 +8,8 @@ export interface RackProps {
   tiles: GameTile[] | null
   count: number
   faceDown: boolean
+  /** Upright: tiles stack top-to-bottom (play screen). Default is the flat horizontal rack. */
+  upright?: boolean
   selectedId?: number
   onTilePointerDown?: (tile: GameTile, event: PointerEvent<HTMLDivElement>) => void
   onTileClick?: (tile: GameTile) => void
@@ -20,6 +22,7 @@ export function Rack({
   tiles,
   count,
   faceDown,
+  upright = false,
   selectedId,
   onTilePointerDown,
   onTileClick,
@@ -34,7 +37,7 @@ export function Rack({
   } as CSSProperties
 
   return (
-    <section className="wr-rack" style={style} aria-label={`${owner}'s rack`}>
+    <section className={`wr-rack${upright ? ' wr-rack--upright' : ''}`} style={style} aria-label={`${owner}'s rack`}>
       <div className="wr-rack__name">{owner}</div>
       <div className="wr-rack__holder">
         <div className="wr-rack__slots">
@@ -50,8 +53,8 @@ export function Rack({
                 role={tile && (onReorder || onTileClick) ? 'button' : undefined}
                 aria-label={tile && (onReorder || onTileClick) ? `Tile ${index + 1}${onReorder ? ', use arrow keys to move' : ''}` : undefined}
                 onKeyDown={tile && (onReorder || onTileClick) ? (event) => {
-                  if (event.key === 'ArrowLeft' && index > 0 && onReorder) { event.preventDefault(); onReorder(index, index - 1) }
-                  if (event.key === 'ArrowRight' && index < slotCount - 1 && onReorder) { event.preventDefault(); onReorder(index, index + 1) }
+                  if ((event.key === 'ArrowLeft' || event.key === 'ArrowUp') && index > 0 && onReorder) { event.preventDefault(); onReorder(index, index - 1) }
+                  if ((event.key === 'ArrowRight' || event.key === 'ArrowDown') && index < slotCount - 1 && onReorder) { event.preventDefault(); onReorder(index, index + 1) }
                   if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onTileClick?.(tile) }
                 } : undefined}
               >

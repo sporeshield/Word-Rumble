@@ -4,7 +4,7 @@ import { ComicBurst } from '../fx'
 import type { BurstTier } from '../fx/bursts'
 import { computerAction } from '../ai/choose'
 import { getFinder, teachFinder } from '../ai/shared'
-import type { Difficulty } from './types'
+import type { Difficulty, RackSide } from './types'
 import { sfx } from '../audio/sfx'
 import {
   isBlank, moveInList, orderRack, penaltySlices, PLACEMENT_HINTS, previewPlay, reduce, rollHintCost, rollPenaltyCost, shuffleIds, spinPenalty, wordsToCheck,
@@ -27,6 +27,8 @@ export interface GameProps {
   muted: boolean
   /** Strength of the computer opponent (vs Computer mode only). */
   difficulty: Difficulty
+  /** Which side of the board the upright rack stands on (whole game). */
+  rackSide?: RackSide
   onToggleSound(): void
   /** The turn is over (after the short result banner). App decides who sees the screen next. */
   onTurnDone(next: GameState): void
@@ -50,6 +52,15 @@ type Dialog =
   | { kind: 'nohint' }
 
 type PlayAction = Extract<GameAction, { type: 'play' }>
+
+/** Square colour key: classic types only until Wild power squares arrive. */
+const SQUARE_KEY = [
+  { id: 'dl', swatch: '×2', label: 'letter' },
+  { id: 'tl', swatch: '×3', label: 'letter' },
+  { id: 'dw', swatch: '×2', label: 'WORD' },
+  { id: 'tw', swatch: '×3', label: 'WORD' },
+  { id: 'start', swatch: '★', label: 'start' }
+] as const
 
 const SETTLE_MS = 1500
 const BOOM_MS = 1600
@@ -92,7 +103,7 @@ function TurnTimer({ seconds, total }: { seconds: number; total: number }) {
   )
 }
 
-export function Game({ game: initialGame, colors, muted, difficulty, onToggleSound, onTurnDone, resumeSeconds, onSaveQuit, onQuitNoSave }: GameProps) {
+export function Game({ game: initialGame, colors, muted, difficulty, rackSide = 'left', onToggleSound, onTurnDone, resumeSeconds, onSaveQuit, onQuitNoSave }: GameProps) {
   // Local copy: hint quotes and costs change the game state mid-turn, before the turn ends.
   const [game, setGame] = useState(initialGame)
   const solo = game.players.length === 1
@@ -426,7 +437,7 @@ export function Game({ game: initialGame, colors, muted, difficulty, onToggleSou
   const style = { '--player': myColor } as CSSProperties
 
   return (
-    <div className={`wr-play halftone-2${boom ? ' is-booming' : ''}`} style={style}>
+    <div className={`wr-play wr-play--rack-${rackSide} halftone-2${boom ? ' is-booming' : ''}`} style={style}>
       <div className="wr-play__board">
         <Board
           board={game.board}
@@ -448,35 +459,64 @@ export function Game({ game: initialGame, colors, muted, difficulty, onToggleSou
         </Board>
       </div>
 
+      <section className="wr-play__rack" aria-label="Your tiles">
+        <Rack
+          owner={me.name}
+          color={myColor}
+          upright
+          tiles={hidden ? null : rackTiles}
+          count={hidden ? me.rack.length - pending.length : rackTiles.length}
+          faceDown={hidden}
+          selectedId={selectedId}
+          onTilePointerDown={idle ? (tile, event) => drag.startDrag(tile, { kind: 'rack', index: rackTiles.findIndex((t) => t.id === tile.id) }, event) : undefined}
+          onTileClick={idle ? (tile) => {
+            if (drag.wasDragged) return
+            sfx.play('tile-pickup')
+            setSelectedId((current) => (current === tile.id ? undefined : tile.id))
+          } : undefined}
+          onReorder={idle ? reorder : undefined}
+        />
+      </section>
+
       <aside className="wr-play__side">
         <header className="wr-play__status halftone-1">
+          <p className="wr-play__now">▶ {computerTurn ? 'THINKING' : 'PLAYING NOW'}</p>
           <h1 className="wr-play__turn">{computerTurn ? `${me.name} is thinking…` : `${me.name}'s turn`}</h1>
-          {/* Hidden scores: only the player on turn ever sees a score, and only their own. */}
-          {!hidden ? <p className="wr-play__score">Your score <strong>{me.score}</strong></p> : null}
-          <p className="wr-play__bag">{game.bag.length} {game.bag.length === 1 ? 'tile' : 'tiles'} in the bag</p>
+          <div className="wr-play__score-row">
+            {/* Hidden scores: only the player on turn ever sees a score, and only their own. */}
+            {!hidden ? <p className="wr-play__score">Your score <strong>{me.score}</strong></p> : null}
+            <p className="wr-play__bag">{game.bag.length} {game.bag.length === 1 ? 'tile' : 'tiles'} in the bag</p>
+          </div>
           {remaining !== null && timerTotal !== null && !computerTurn ? <TurnTimer seconds={remaining} total={timerTotal} /> : null}
         </header>
 
-        <div className="wr-play__racks">
-          {others.map(({ p, i }) => (
-            <Rack key={i} owner={p.name} color={colors[i]} tiles={null} count={p.rack.length} faceDown />
-          ))}
-          <Rack
-            owner={me.name}
-            color={myColor}
-            tiles={hidden ? null : rackTiles}
-            count={hidden ? me.rack.length - pending.length : rackTiles.length}
-            faceDown={hidden}
-            selectedId={selectedId}
-            onTilePointerDown={idle ? (tile, event) => drag.startDrag(tile, { kind: 'rack', index: rackTiles.findIndex((t) => t.id === tile.id) }, event) : undefined}
-            onTileClick={idle ? (tile) => {
-              if (drag.wasDragged) return
-              sfx.play('tile-pickup')
-              setSelectedId((current) => (current === tile.id ? undefined : tile.id))
-            } : undefined}
-            onReorder={idle ? reorder : undefined}
-          />
-        </div>
+        {others.length ? (
+          <section className="wr-play__players halftone-3" aria-label="Other players">
+            <h2 className="wr-play__section-title">Players <span className="wr-play__subtitle">· other racks</span></h2>
+            <div className="wr-play__plates">
+              {/* Counts only: other players' letters and scores never reach the DOM. */}
+              {others.map(({ p, i }) => (
+                <div className="wr-play__plate" key={i} style={{ '--plate': colors[i] } as CSSProperties}>
+                  <span className="wr-play__plate-back" aria-hidden="true" />
+                  <strong>{p.name}</strong>
+                  <span className="wr-play__plate-count">{p.rack.length} {p.rack.length === 1 ? 'tile' : 'tiles'}</span>
+                </div>
+              ))}
+            </div>
+          </section>
+        ) : null}
+
+        <section className="wr-play__key" aria-label="Square colour key">
+          <h2 className="wr-play__section-title">Square key</h2>
+          <div className="wr-play__legend">
+            {SQUARE_KEY.map((k) => (
+              <div className={`wr-play__legend-item wr-play__legend-item--${k.id}`} key={k.id}>
+                <span className="wr-play__legend-swatch">{k.swatch}</span><span>{k.label}</span>
+              </div>
+            ))}
+          </div>
+        </section>
+
 
         <div className="wr-play__preview" aria-live="polite">
           {preview.kind === 'ok' && score ? (

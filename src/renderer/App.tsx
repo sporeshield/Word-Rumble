@@ -275,6 +275,7 @@ export function App() {
             colors={colors}
             muted={muted}
             difficulty={setup.difficulty}
+            rackSide={setup.rackSide}
             onToggleSound={() => changeMuted(!muted)}
             resumeSeconds={resumeSeconds}
             onTurnDone={turnDone}

@@ -111,6 +111,15 @@
 .wr-setup__footer .btn { min-width: 145px; }
 .wr-setup__start { min-width: 220px !important; font-size: clamp(1.5rem, 2.6vw, 2.2rem); }
 
+@media (max-height: 800px) and (min-width: 1100px) {
+  .wr-setup__rules { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .wr-setup__rule { min-width: 0; padding: 7px 9px; }
+  .wr-setup__rule h2 { margin-bottom: 4px; font-size: 1.4rem; }
+  .wr-setup__rule p { margin-top: 5px; font-size: .72rem; }
+  .wr-setup__rule .wr-choice { min-height: 29px; padding: 3px 7px; font-size: .8rem; }
+  .wr-setup__rule .wr-setup__options { gap: 4px; }
+}
+
 /* Bag, first draw and deal */
 .wr-shuffle { align-content: center; justify-items: center; gap: 0; }
 .wr-shuffle__burst { position: absolute; width: min(84vh, 75vw); aspect-ratio: 1; background: url('@art/burst-1.webp') center / contain no-repeat; opacity: .9; animation: wr-title-land 650ms var(--ease-pop) both; }
