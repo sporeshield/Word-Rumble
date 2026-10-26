@@ -26,8 +26,9 @@ export function spinPenalty(solo: boolean): { index: number; outcome: PenaltyOut
   return { index: 0, outcome: slices[0] }
 }
 
-export const HINT_COST_MIN = 5
-export const HINT_COST_MAX = 30
+export const HINT_COST_MIN = 1
+export const HINT_COST_MAX = 10
 
-/** Random hint price (5–30 points) for "with penalty" hints. */
+/** Random price (1–10 points) for a hint, shuffle or swap that costs points. */
 export const rollHintCost = (): number => HINT_COST_MIN + randomInt(HINT_COST_MAX - HINT_COST_MIN + 1)
+export const rollPenaltyCost = rollHintCost

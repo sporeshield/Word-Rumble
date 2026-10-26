@@ -10,6 +10,8 @@ import { HINT_COST_MAX, HINT_COST_MIN, type PenaltyOutcome } from './penalties'
 export type GameMode = 'solo' | 'two' | 'computer'
 export type HintMode = 'off' | 'free' | 'penalty'
 export type MadeUpMode = 'no' | 'free' | 'penalty'
+/** Shuffle and Swap: free, or a random 1–10 point cost quoted first. Missing in old saves = free. */
+export type CostMode = 'free' | 'penalty'
 
 export interface GameOptions {
   mode: GameMode
@@ -19,6 +21,8 @@ export interface GameOptions {
   timerSeconds: number | null
   hints: HintMode
   madeUp: MadeUpMode
+  shuffle?: CostMode
+  swap?: CostMode
 }
 
 export interface PlayerState {
@@ -28,6 +32,9 @@ export interface PlayerState {
   rumbles: number
   hintsUsed: number
   hintPointsLost: number
+  /** Absent in old saves = 0. */
+  shufflePointsLost?: number
+  swapPointsLost?: number
   madeUpCount: number
   penaltyCount: number
   conceded: boolean
@@ -92,6 +99,10 @@ export interface GameState {
   consecutiveScoreless: number
   /** Hint price quoted this turn ("penalty" mode); locked so declining and re-pressing cannot re-roll. */
   hint: { cost: number } | null
+  /** Shuffle quote: locked until a shuffle is accepted (or the turn ends). Absent in old saves. */
+  shuffle?: { cost: number } | null
+  /** Swap quote: locked for the turn. */
+  swap?: { cost: number } | null
   bursts: BurstDecks
   /** Burst produced by the most recent action (null when it produced none). */
   lastBurst: Burst | null
@@ -114,10 +125,15 @@ export type GameError =
   | 'hint-not-offered'
   | 'not-solo'
   | 'bad-hint-cost'
+  | 'shuffle-free'
+  | 'shuffle-not-offered'
+  | 'swap-free'
+  | 'bad-swap-cost'
 
 export type GameAction =
   | { type: 'play'; placements: Placement[]; madeUp?: boolean; penalty?: PenaltyOutcome; vote?: 'keep' | 'zero' }
-  | { type: 'exchange'; tileIds: number[] }
+  /** `cost` is the quoted swap price; a locked quote wins, and the computer passes a freshly rolled one. */
+  | { type: 'exchange'; tileIds: number[]; cost?: number }
   | { type: 'pass' }
   | { type: 'timeout' }
   | { type: 'concede' }
@@ -127,6 +143,9 @@ export type GameAction =
   | { type: 'hint-offer'; cost: number }
   | { type: 'hint-accept' }
   | { type: 'hint-decline' }
+  | { type: 'shuffle-offer'; cost: number }
+  | { type: 'shuffle-accept' }
+  | { type: 'swap-offer'; cost: number }
 
 export type ReduceResult = { ok: true; state: GameState } | { ok: false; error: GameError }
 
@@ -170,12 +189,13 @@ export function createGame(options: GameOptions): GameState {
     bag = dealt.bag
     return {
       name, rack: dealt.drawn, score: 0, rumbles: 0, hintsUsed: 0, hintPointsLost: 0,
+      shufflePointsLost: 0, swapPointsLost: 0,
       madeUpCount: 0, penaltyCount: 0, conceded: false, skipNext: false
     }
   })
   return {
     options, board: createBoard(), owners: {}, bag, players, current: starter, turn: 1, phase: 'playing',
-    consecutiveScoreless: 0, hint: null, bursts: createBurstDecks(), lastBurst: null,
+    consecutiveScoreless: 0, hint: null, shuffle: null, swap: null, bursts: createBurstDecks(), lastBurst: null,
     firstDraw: rounds, history: [], result: null
   }
 }
@@ -228,7 +248,7 @@ function endGame(state: GameState, reason: EndReason, opts: { out?: number; conc
     ...p, score: finalScores[i], conceded: p.conceded || opts.conceder === i
   }))
   return {
-    ...state, players, phase: 'over', hint: null,
+    ...state, players, phase: 'over', hint: null, shuffle: null, swap: null,
     result: { reason, winner, conceder: opts.conceder ?? null, preAdjust, adjustments, finalScores }
   }
 }
@@ -236,7 +256,7 @@ function endGame(state: GameState, reason: EndReason, opts: { out?: number; conc
 /** Move to the next player (honouring "skip your next turn") and clear the per-turn hint lock. */
 function advance(state: GameState): GameState {
   const n = state.players.length
-  let next: GameState = { ...state, turn: state.turn + 1, current: (state.current + 1) % n, hint: null }
+  let next: GameState = { ...state, turn: state.turn + 1, current: (state.current + 1) % n, hint: null, shuffle: null, swap: null }
   while (n > 1 && next.players[next.current].skipNext) {
     next = record({ ...next, players: patchPlayer(next, next.current, { skipNext: false }) }, { kind: 'skipped' })
     // A skipped turn is a scoreless turn too.
@@ -348,18 +368,59 @@ function doPlay(state: GameState, action: Extract<GameAction, { type: 'play' }>)
   return succeed(finishTurn(next, !solo && awarded === 0))
 }
 
-function doExchange(state: GameState, tileIds: number[]): ReduceResult {
+const validCost = (cost: unknown): cost is number =>
+  typeof cost === 'number' && Number.isInteger(cost) && cost >= HINT_COST_MIN && cost <= HINT_COST_MAX
+
+function doExchange(state: GameState, tileIds: number[], quoted?: number): ReduceResult {
   if (state.bag.length < EXCHANGE_MIN_BAG) return fail('exchange-not-allowed')
   const player = state.players[state.current]
   const ids = new Set(tileIds)
   if (ids.size === 0 || ids.size !== tileIds.length) return fail('bad-exchange')
   const give = player.rack.filter((t) => ids.has(t.id))
   if (give.length !== ids.size) return fail('bad-exchange')
+  let cost = 0
+  if (state.options.swap === 'penalty') {
+    cost = state.swap?.cost ?? quoted ?? 0
+    if (!validCost(cost)) return fail('bad-swap-cost')
+  }
   const drawn = drawTiles(state.bag, give.length)
   const bag = returnTiles(drawn.bag, give)
   const rack = [...player.rack.filter((t) => !ids.has(t.id)), ...drawn.drawn]
-  const next = record({ ...state, bag, players: patchPlayer(state, state.current, { rack }) }, { kind: 'exchange' })
+  const next = record(
+    {
+      ...state, bag,
+      players: patchPlayer(state, state.current, {
+        rack, score: player.score - cost, swapPointsLost: (player.swapPointsLost ?? 0) + cost
+      })
+    },
+    { kind: 'exchange', penaltyDelta: -cost }
+  )
   return succeed(finishTurn(withBurst(next, null), state.players.length > 1))
+}
+
+/** Swap price quote: locked for the turn so declining and re-pressing shows the same number. */
+function doSwapOffer(state: GameState, cost: number): ReduceResult {
+  if (state.options.swap !== 'penalty') return fail('swap-free')
+  if (!validCost(cost)) return fail('bad-swap-cost')
+  return succeed({ ...state, swap: state.swap ?? { cost }, lastBurst: null })
+}
+
+/** The rack order is a UI matter; the engine only quotes and charges. A fresh quote is needed after each accepted shuffle. */
+function doShuffle(state: GameState, action: Extract<GameAction, { type: 'shuffle-offer' | 'shuffle-accept' }>): ReduceResult {
+  if (state.options.shuffle !== 'penalty') return fail('shuffle-free')
+  if (action.type === 'shuffle-offer') {
+    if (!validCost(action.cost)) return fail('bad-swap-cost')
+    return succeed({ ...state, shuffle: state.shuffle ?? { cost: action.cost }, lastBurst: null })
+  }
+  if (!state.shuffle) return fail('shuffle-not-offered')
+  const cost = state.shuffle.cost
+  const player = state.players[state.current]
+  return succeed({
+    ...state, shuffle: null, lastBurst: null,
+    players: patchPlayer(state, state.current, {
+      score: player.score - cost, shufflePointsLost: (player.shufflePointsLost ?? 0) + cost
+    })
+  })
 }
 
 function doHint(state: GameState, action: GameAction): ReduceResult {
@@ -367,7 +428,7 @@ function doHint(state: GameState, action: GameAction): ReduceResult {
   const player = state.players[state.current]
   const free = state.options.hints === 'free'
   if (action.type === 'hint-offer') {
-    if (!Number.isInteger(action.cost) || action.cost < HINT_COST_MIN || action.cost > HINT_COST_MAX) return fail('bad-hint-cost')
+    if (!validCost(action.cost)) return fail('bad-hint-cost')
     // Locked for the turn: a second quote never changes the price.
     return succeed({ ...state, hint: free ? null : (state.hint ?? { cost: action.cost }), lastBurst: null })
   }
@@ -392,7 +453,7 @@ export function reduce(state: GameState, action: GameAction): ReduceResult {
   if (state.phase === 'over') return fail('game-over')
   switch (action.type) {
     case 'play': return doPlay(state, action)
-    case 'exchange': return doExchange(state, action.tileIds)
+    case 'exchange': return doExchange(state, action.tileIds, action.cost)
     case 'pass':
       return succeed(finishTurn(withBurst(record(state, { kind: 'pass' }), null), true))
     case 'timeout':
@@ -409,5 +470,10 @@ export function reduce(state: GameState, action: GameAction): ReduceResult {
     case 'hint-accept':
     case 'hint-decline':
       return doHint(state, action)
+    case 'shuffle-offer':
+    case 'shuffle-accept':
+      return doShuffle(state, action)
+    case 'swap-offer':
+      return doSwapOffer(state, action.cost)
   }
 }

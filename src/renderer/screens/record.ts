@@ -11,7 +11,7 @@ export function buildGameRecord(game: GameState, setup: SetupConfig, playedAt = 
     mode: game.options.mode,
     difficulty: game.options.mode === 'computer' ? setup.difficulty : null,
     timer: game.options.timerSeconds,
-    options: { hints: game.options.hints, madeUp: game.options.madeUp },
+    options: { hints: game.options.hints, madeUp: game.options.madeUp, shuffle: game.options.shuffle ?? 'free', swap: game.options.swap ?? 'free' },
     endedReason: result.reason,
     playedAt,
     players: game.players.map((p, i) => ({
@@ -22,6 +22,8 @@ export function buildGameRecord(game: GameState, setup: SetupConfig, playedAt = 
       rumbles: p.rumbles,
       hintsUsed: p.hintsUsed,
       hintPointsLost: p.hintPointsLost,
+      shufflePointsLost: p.shufflePointsLost ?? 0,
+      swapPointsLost: p.swapPointsLost ?? 0,
       madeUpCount: p.madeUpCount,
       conceded: result.conceder === i,
       winner: result.winner === i

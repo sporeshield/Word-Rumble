@@ -25,7 +25,9 @@ const MIGRATIONS: string[] = [
      words TEXT NOT NULL, score INTEGER NOT NULL, rumble INTEGER NOT NULL DEFAULT 0, made_up INTEGER NOT NULL DEFAULT 0, penalty TEXT);
    CREATE TABLE custom_words (word TEXT PRIMARY KEY, added_at TEXT NOT NULL);
    CREATE TABLE saved_game (id INTEGER PRIMARY KEY CHECK (id = 1), json TEXT NOT NULL, saved_at TEXT NOT NULL);
-   CREATE TABLE settings (key TEXT PRIMARY KEY, value TEXT NOT NULL);`
+   CREATE TABLE settings (key TEXT PRIMARY KEY, value TEXT NOT NULL);`,
+  `ALTER TABLE game_players ADD COLUMN shuffle_points_lost INTEGER NOT NULL DEFAULT 0;
+   ALTER TABLE game_players ADD COLUMN swap_points_lost INTEGER NOT NULL DEFAULT 0;`
 ]
 
 export class GameDb {
@@ -154,9 +156,10 @@ export class GameDb {
       g.players.forEach((p, seat) => {
         this.run(
           `INSERT INTO game_players (game_id, player_id, seat, final_score, pre_adjust_score, rumbles, hints_used,
-             hint_points_lost, made_up_count, conceded, winner) VALUES (?,?,?,?,?,?,?,?,?,?,?)`,
+             hint_points_lost, made_up_count, conceded, winner, shuffle_points_lost, swap_points_lost) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`,
           [gameId, ids[seat], seat, p.finalScore, p.preAdjustScore, p.rumbles ?? 0, p.hintsUsed ?? 0,
-           p.hintPointsLost ?? 0, p.madeUpCount ?? 0, p.conceded ? 1 : 0, p.winner ? 1 : 0]
+           p.hintPointsLost ?? 0, p.madeUpCount ?? 0, p.conceded ? 1 : 0, p.winner ? 1 : 0,
+           p.shufflePointsLost ?? 0, p.swapPointsLost ?? 0]
         )
       })
       for (const pl of g.plays ?? []) {
@@ -233,7 +236,8 @@ export class GameDb {
     )
     const perPlayer = this.rows(
       `SELECT p.name, SUM(gp.made_up_count) AS madeUp, SUM(gp.hints_used) AS hints,
-         SUM(gp.hint_points_lost) AS hintPointsLost, SUM(gp.conceded) AS defeats
+         SUM(gp.hint_points_lost) AS hintPointsLost, SUM(gp.shuffle_points_lost) AS shufflePointsLost,
+         SUM(gp.swap_points_lost) AS swapPointsLost, SUM(gp.conceded) AS defeats
        FROM game_players gp JOIN players p ON p.id = gp.player_id WHERE p.is_computer = 0 GROUP BY p.name`
     )
     return { madeUpWords, penalties, perPlayer }

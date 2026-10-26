@@ -1,4 +1,4 @@
-import type { GameMode, HintMode, MadeUpMode } from '../engine/game'
+import type { CostMode, GameMode, HintMode, MadeUpMode } from '../engine/game'
 
 export type Difficulty = 'easy' | 'medium' | 'hard'
 
@@ -14,6 +14,9 @@ export interface SetupConfig {
   timerSeconds: number | null
   hints: HintMode
   madeUp: MadeUpMode
+  /** Shuffle and Swap: free, or a random 1–10 point cost quoted first. */
+  shuffle: CostMode
+  swap: CostMode
 }
 
 export const COLOR_CHOICES = ['#1cc5b4', '#9361e9', '#ff8a2a', '#ff81ba', '#3772ff', '#e4b400'] as const
@@ -25,7 +28,9 @@ export const DEFAULT_SETUP: SetupConfig = {
   colors: ['#1cc5b4', '#9361e9'],
   timerSeconds: null,
   hints: 'penalty',
-  madeUp: 'penalty'
+  madeUp: 'penalty',
+  shuffle: 'penalty',
+  swap: 'penalty'
 }
 
 /** Factory default names for up to four players; Settings can change them (setting `defaultNames`). */
@@ -71,6 +76,8 @@ export function loadSetup(stored: unknown, defaults: readonly string[] = FACTORY
     colors: [str(s.colors?.[0], DEFAULT_SETUP.colors[0]), str(s.colors?.[1], DEFAULT_SETUP.colors[1])],
     timerSeconds: clampTimer(typeof s.timerSeconds === 'number' ? s.timerSeconds : null),
     hints: pick(s.hints, ['off', 'free', 'penalty'], DEFAULT_SETUP.hints),
-    madeUp: pick(s.madeUp, ['no', 'free', 'penalty'], DEFAULT_SETUP.madeUp)
+    madeUp: pick(s.madeUp, ['no', 'free', 'penalty'], DEFAULT_SETUP.madeUp),
+    shuffle: pick(s.shuffle, ['free', 'penalty'], DEFAULT_SETUP.shuffle),
+    swap: pick(s.swap, ['free', 'penalty'], DEFAULT_SETUP.swap)
   }
 }

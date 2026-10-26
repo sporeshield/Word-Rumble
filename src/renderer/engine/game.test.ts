@@ -229,12 +229,12 @@ describe('made-up words and the penalty wheel', () => {
 describe('hints', () => {
   it('locks the quoted cost for the turn and charges on accept', () => {
     let g = setup(twoPlayer)
-    g = must(g, { type: 'hint-offer', cost: 12 })
+    g = must(g, { type: 'hint-offer', cost: 7 })
     g = must(g, { type: 'hint-decline' })
-    g = must(g, { type: 'hint-offer', cost: 29 })
-    expect(g.hint).toEqual({ cost: 12 })
+    g = must(g, { type: 'hint-offer', cost: 9 })
+    expect(g.hint).toEqual({ cost: 7 })
     g = must(g, { type: 'hint-accept' })
-    expect(g.players[0]).toMatchObject({ score: -12, hintsUsed: 1, hintPointsLost: 12 })
+    expect(g.players[0]).toMatchObject({ score: -7, hintsUsed: 1, hintPointsLost: 7 })
     expect(g.lastBurst?.tier).toBe('hint')
     expect(g.hint).toBeNull() // next hint gets a fresh price
     expect(reduce(g, { type: 'hint-accept' })).toEqual({ ok: false, error: 'hint-not-offered' })
@@ -255,6 +255,52 @@ describe('hints', () => {
       expect(c).toBeGreaterThanOrEqual(HINT_COST_MIN)
       expect(c).toBeLessThanOrEqual(HINT_COST_MAX)
     }
+  })
+})
+
+describe('shuffle and swap costs', () => {
+  const costly: GameOptions = { ...twoPlayer, shuffle: 'penalty', swap: 'penalty' }
+
+  it('shuffle quote stays until accepted, then the next one is fresh', () => {
+    let g = must(setup(costly), { type: 'shuffle-offer', cost: 4 })
+    g = must(g, { type: 'shuffle-offer', cost: 9 })
+    expect(g.shuffle).toEqual({ cost: 4 })
+    g = must(g, { type: 'shuffle-accept' })
+    expect(g.players[0]).toMatchObject({ score: -4, shufflePointsLost: 4 })
+    expect(g.shuffle).toBeNull()
+    expect(reduce(g, { type: 'shuffle-accept' })).toEqual({ ok: false, error: 'shuffle-not-offered' })
+    g = must(g, { type: 'shuffle-offer', cost: 9 })
+    expect(g.shuffle).toEqual({ cost: 9 })
+  })
+
+  it('free shuffle has nothing to quote', () => {
+    expect(reduce(setup(twoPlayer), { type: 'shuffle-offer', cost: 3 })).toEqual({ ok: false, error: 'shuffle-free' })
+  })
+
+  it('swap charges the locked quote, ends the turn and clears the lock', () => {
+    let g = must(setup(costly), { type: 'swap-offer', cost: 6 })
+    g = must(g, { type: 'swap-offer', cost: 2 })
+    expect(g.swap).toEqual({ cost: 6 })
+    const ids = [g.players[0].rack[0].id]
+    g = must(g, { type: 'exchange', tileIds: ids, cost: 1 })
+    expect(g.players[0]).toMatchObject({ score: -6, swapPointsLost: 6 })
+    expect(g.history[0]).toMatchObject({ kind: 'exchange', penaltyDelta: -6 })
+    expect(g.swap).toBeNull()
+    expect(g.current).toBe(1)
+  })
+
+  it('swap without any quote uses the cost passed in (computer) and refuses a bad one', () => {
+    const g = setup(costly)
+    const ids = [g.players[0].rack[0].id]
+    expect(reduce(g, { type: 'exchange', tileIds: ids })).toEqual({ ok: false, error: 'bad-swap-cost' })
+    expect(reduce(g, { type: 'exchange', tileIds: ids, cost: 0 })).toEqual({ ok: false, error: 'bad-swap-cost' })
+    expect(must(g, { type: 'exchange', tileIds: ids, cost: 5 }).players[0].score).toBe(-5)
+  })
+
+  it('free swap costs nothing even if a cost is supplied', () => {
+    const g = setup(twoPlayer)
+    const next = must(g, { type: 'exchange', tileIds: [g.players[0].rack[0].id], cost: 5 })
+    expect(next.players[0].score).toBe(0)
   })
 })
 
@@ -320,7 +366,7 @@ describe('review regressions', () => {
 
   it('rejects out-of-range hint quotes', () => {
     const g = setup(twoPlayer)
-    for (const cost of [-30, 4, 31, NaN, Infinity]) {
+    for (const cost of [-30, 0, 11, 31, 1.5, NaN, Infinity]) {
       expect(reduce(g, { type: 'hint-offer', cost })).toEqual({ ok: false, error: 'bad-hint-cost' })
     }
   })

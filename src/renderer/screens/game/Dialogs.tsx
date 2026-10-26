@@ -41,7 +41,7 @@ export function BlankPicker({ onPick, onCancel }: { onPick(letter: string): void
   )
 }
 
-export function ExchangeDialog({ rack, onExchange, onCancel }: { rack: GameTile[]; onExchange(ids: number[]): void; onCancel(): void }) {
+export function ExchangeDialog({ rack, cost = null, onExchange, onCancel }: { rack: GameTile[]; cost?: number | null; onExchange(ids: number[]): void; onCancel(): void }) {
   const [chosen, setChosen] = useState<number[]>([])
   const toggle = (id: number) => {
     sfx.play('ui-toggle')
@@ -49,7 +49,7 @@ export function ExchangeDialog({ rack, onExchange, onCancel }: { rack: GameTile[
   }
   return (
     <Dialog title="Swap tiles" label="Choose tiles to exchange">
-      <p className="wr-dlg__text">Pick the tiles to put back in the bag. You score nothing this turn.</p>
+      <p className="wr-dlg__text">Pick the tiles to put back in the bag. You score nothing this turn.{cost !== null ? ` It costs ${cost} ${cost === 1 ? 'point' : 'points'}.` : ''}</p>
       <div className="wr-dlg__tiles">
         {rack.map((tile) => (
           <button
@@ -71,7 +71,7 @@ export function ExchangeDialog({ rack, onExchange, onCancel }: { rack: GameTile[
           disabled={chosen.length === 0}
           onClick={() => onExchange(chosen)}
         >
-          Swap {chosen.length || ''} {chosen.length === 1 ? 'tile' : 'tiles'}
+          Swap {chosen.length || ''} {chosen.length === 1 ? 'tile' : 'tiles'}{cost !== null ? ` (−${cost})` : ''}
         </button>
       </div>
     </Dialog>

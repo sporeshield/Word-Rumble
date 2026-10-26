@@ -7,11 +7,12 @@ import { getFinder, teachFinder } from '../ai/shared'
 import type { Difficulty } from './types'
 import { sfx } from '../audio/sfx'
 import {
-  isBlank, moveInList, orderRack, penaltySlices, PLACEMENT_HINTS, previewPlay, reduce, rollHintCost, shuffleIds, spinPenalty, wordsToCheck,
+  isBlank, moveInList, orderRack, penaltySlices, PLACEMENT_HINTS, previewPlay, reduce, rollHintCost, rollPenaltyCost, shuffleIds, spinPenalty, wordsToCheck,
   type GameAction, type GameError, type GameState, type PenaltyOutcome, type Placement, type Tile
 } from '../engine'
 import { Handoff } from './Handoff'
 import { BlankPicker, DefeatDialog, ExchangeDialog, PauseMenu, WordCheckDialog } from './game/Dialogs'
+import { CostQuoteDialog } from './game/CostDialog'
 import { HintOfferDialog, NoHintDialog } from './game/HintDialog'
 import { PenaltyWheel } from './game/PenaltyWheel'
 import { VoteDialog } from './game/VoteDialog'
@@ -35,6 +36,8 @@ type Dialog =
   | null
   | { kind: 'blank'; tile: Tile; row: number; col: number }
   | { kind: 'exchange' }
+  | { kind: 'shuffle'; cost: number; rolling: boolean }
+  | { kind: 'swapquote'; cost: number; rolling: boolean }
   | { kind: 'defeat' }
   | { kind: 'words'; missing: string[] }
   | { kind: 'wheel'; action: PlayAction; index: number; outcome: PenaltyOutcome; word: string }
@@ -156,7 +159,9 @@ export function Game({ game: initialGame, colors, muted, difficulty, onToggleSou
     const act = (action: GameAction) => {
       if (cancelled) return
       const text = action.type === 'exchange' ? 'Computer swapped tiles.' : 'Computer passed.'
-      timer = window.setTimeout(() => applyRef.current(action, text), Math.max(0, 1200 - (Date.now() - started)))
+      // The computer pays the same rolled swap cost, silently.
+      const final = action.type === 'exchange' && game.options.swap === 'penalty' ? { ...action, cost: rollPenaltyCost() } : action
+      timer = window.setTimeout(() => applyRef.current(final, text), Math.max(0, 1200 - (Date.now() - started)))
     }
     getFinder()
       .then((finder) => finder.find(game.board, me.rack))
@@ -250,9 +255,38 @@ export function Game({ game: initialGame, colors, muted, difficulty, onToggleSou
     setOrder(moveInList(rackTiles.map((t) => t.id), from, to))
   }
 
-  const shuffleRack = () => {
+  const doShuffle = () => {
     sfx.play('rack-shuffle')
     setOrder(shuffleIds(rackTiles))
+  }
+
+  const shuffleRack = () => {
+    if (!idle) return
+    if (game.options.shuffle !== 'penalty') { doShuffle(); return }
+    sfx.play('ui-click')
+    const quoted = reduce(game, { type: 'shuffle-offer', cost: rollPenaltyCost() })
+    if (!quoted.ok) { flash('Shuffle is not available.'); return }
+    setGame(quoted.state)
+    setDialog({ kind: 'shuffle', cost: quoted.state.shuffle?.cost ?? 0, rolling: !game.shuffle })
+  }
+
+  const acceptShuffle = () => {
+    const paid = reduce(game, { type: 'shuffle-accept' })
+    setDialog(null)
+    if (!paid.ok) { flash('That shuffle was not available.'); return }
+    setGame(paid.state)
+    doShuffle()
+  }
+
+  const openSwap = () => {
+    if (!idle) return
+    sfx.play('ui-click')
+    recall(true)
+    if (game.options.swap !== 'penalty') { setDialog({ kind: 'exchange' }); return }
+    const quoted = reduce(game, { type: 'swap-offer', cost: rollPenaltyCost() })
+    if (!quoted.ok) { flash('Swap is not available.'); return }
+    setGame(quoted.state)
+    setDialog({ kind: 'swapquote', cost: quoted.state.swap?.cost ?? 0, rolling: !game.swap })
   }
 
   // ------------------------------------------------------------------ turn buttons
@@ -300,7 +334,7 @@ export function Game({ game: initialGame, colors, muted, difficulty, onToggleSou
   const doExchange = (ids: number[]) => {
     setDialog(null)
     recall(true)
-    if (applyAction({ type: 'exchange', tileIds: ids }, `Swapped ${ids.length} ${ids.length === 1 ? 'tile' : 'tiles'}.`)) sfx.play('exchange')
+    if (applyAction({ type: 'exchange', tileIds: ids }, `Swapped ${ids.length} ${ids.length === 1 ? 'tile' : 'tiles'}${game.options.swap === 'penalty' && game.swap ? ` (−${game.swap.cost})` : ''}.`)) sfx.play('exchange')
   }
 
   const doPass = () => {
@@ -433,7 +467,7 @@ export function Game({ game: initialGame, colors, muted, difficulty, onToggleSou
           <button
             type="button" className="btn btn--aqua" disabled={!idle || !canExchange}
             title={canExchange ? undefined : 'Needs at least 7 tiles in the bag'}
-            onClick={() => { sfx.play('ui-click'); recall(true); setDialog({ kind: 'exchange' }) }}
+            onClick={openSwap}
           >
             Swap
           </button>
@@ -496,7 +530,13 @@ export function Game({ game: initialGame, colors, muted, difficulty, onToggleSou
           }}
         />
       ) : null}
-      {dialog?.kind === 'exchange' ? <ExchangeDialog rack={rackTiles} onExchange={doExchange} onCancel={() => setDialog(null)} /> : null}
+      {dialog?.kind === 'shuffle' ? (
+        <CostQuoteDialog kind="shuffle" cost={dialog.cost} rolling={dialog.rolling} onAccept={acceptShuffle} onDecline={() => setDialog(null)} />
+      ) : null}
+      {dialog?.kind === 'swapquote' ? (
+        <CostQuoteDialog kind="swap" cost={dialog.cost} rolling={dialog.rolling} onAccept={() => setDialog({ kind: 'exchange' })} onDecline={() => setDialog(null)} />
+      ) : null}
+      {dialog?.kind === 'exchange' ? <ExchangeDialog rack={rackTiles} cost={game.options.swap === 'penalty' ? game.swap?.cost ?? null : null} onExchange={doExchange} onCancel={() => setDialog(null)} /> : null}
       {dialog?.kind === 'defeat' ? <DefeatDialog solo={solo} onConfirm={doConcede} onCancel={() => setDialog(null)} /> : null}
       {dialog?.kind === 'words' ? (
         <WordCheckDialog

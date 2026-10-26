@@ -126,7 +126,9 @@ export function App() {
       names: playerNames(config, defaultNames),
       timerSeconds: config.timerSeconds,
       hints: config.hints,
-      madeUp: config.madeUp
+      madeUp: config.madeUp,
+      shuffle: config.shuffle,
+      swap: config.swap
     }))
     setScreen('shuffle')
   }

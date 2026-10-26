@@ -10,6 +10,8 @@ export interface GamePlayerRecord {
   rumbles?: number
   hintsUsed?: number
   hintPointsLost?: number
+  shufflePointsLost?: number
+  swapPointsLost?: number
   madeUpCount?: number
   conceded?: boolean
   winner?: boolean

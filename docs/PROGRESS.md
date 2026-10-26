@@ -76,7 +76,11 @@ After each phase: `/clear`, then `/next-phase`.
   - Computer's turn banner no longer shows its points ("Computer played a word.").
   - Settings → Players (4 name fields, setting `defaultNames`, "Back to Shane & Dawn") and **Start afresh** (confirm + "also forget words we added" tick-box; clears scores, autosave, `defaultNames`, `setup`). `types.ts`: `FACTORY_NAMES`, `loadDefaultNames`; `loadSetup`/`playerNames`/`Setup` take the defaults. New IPC `words:clearCustom` and `settings:delete` (db, `WordService.clearCustom`, `resetFinder()` in `ai/shared.ts`).
   - CSS here was small and hand-written (reused existing dialog styles), not sent to Codex; not visually checked in a running window.
-- [ ] **Phase 16 — Penalty costs: Hint / Shuffle / Swap 1–10** (R2-11)
+- [x] **Phase 16 — Penalty costs: Hint / Shuffle / Swap 1–10** ✅ 2026-10-26 (R2-11): 107 tests, typecheck pass.
+  - Engine: `HINT_COST_MIN/MAX` now 1–10, `rollPenaltyCost()`; `GameOptions.shuffle/swap` (`CostMode` free|penalty, absent in old saves = free); actions `shuffle-offer`/`shuffle-accept`/`swap-offer`; `exchange` takes `cost` (a locked `state.swap` quote wins; computer passes a fresh roll); state `shuffle`/`swap` quote locks (shuffle lock clears on accept, swap lock on turn end); `PlayerState.shufflePointsLost/swapPointsLost`; swap records `penaltyDelta`. Scores may go below 0, like hints.
+  - UI: `screens/game/CostDialog.tsx` (`CostQuoteDialog`, dice then "Shuffling your rack will cost you N points" / "Swapping costs N points and ends your turn"), `ExchangeDialog` shows "(−N)"; `Game.tsx` wires Shuffle/Swap; Setup has Shuffle and Swap rows (default Costs 1–10) and hints label "Costs 1–10"; `SetupConfig.shuffle/swap`.
+  - DB migration 2 adds `shuffle_points_lost`/`swap_points_lost` to `game_players`; Hall of Shame shows them. Phase 21 must keep these columns.
+  - Sound `penalty-cost` doesn't exist yet: `CostDialog` plays `wheel-land` as a stand-in — Phase 17 should add it. Dialog CSS reuses the hint dialog styles (not sent to Codex); not visually checked in a running window.
 - [ ] **Phase 17 — Sound pack 2 + annoying power-play pool** (R2-3) — voiceover + jingles zips already downloaded to `.cache/` during planning
 - [ ] **Phase 18 — Nervous countdown + BOOM!!** (R2-4)
 - [ ] **Phase 19 — New play-screen layout (approved mockup)** (R2-5, R2-6) — `docs/mockups/`
