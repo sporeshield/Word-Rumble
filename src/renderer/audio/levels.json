@@ -15,24 +15,24 @@
   },
   "burst-boom-1": {
     "group": "big",
-    "seconds": 0.6,
-    "lufs": -15.1,
-    "peakDb": 0,
-    "gainDb": -1
+    "seconds": 1.2,
+    "lufs": -12.9,
+    "peakDb": -2.6,
+    "gainDb": -1.1
   },
   "burst-boom-2": {
     "group": "big",
-    "seconds": 0.68,
-    "lufs": -14.8,
-    "peakDb": -0.2,
-    "gainDb": -0.8
+    "seconds": 1.4,
+    "lufs": -13.6,
+    "peakDb": 0,
+    "gainDb": -1
   },
   "burst-boom-3": {
     "group": "big",
-    "seconds": 0.76,
-    "lufs": -14.9,
-    "peakDb": 0,
-    "gainDb": -1
+    "seconds": 1.5,
+    "lufs": -13.8,
+    "peakDb": -2,
+    "gainDb": -0.2
   },
   "burst-crash-1": {
     "group": "big",
