@@ -6,11 +6,19 @@
 .wr-gameover__outcome { display: inline-block; margin: 12px 0 0; padding: 3px 20px; border: 3px solid var(--ink); border-radius: 14px; background: var(--aqua); box-shadow: 4px 5px 0 var(--ink); font-family: 'Bangers', sans-serif; font-size: clamp(1.5rem, 2.8vw, 2.5rem); letter-spacing: .05em; transform: rotate(2deg); }
 .wr-gameover__cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(18px, 3vw, 42px); align-items: stretch; }
 .wr-gameover__cards--solo { grid-template-columns: minmax(0, 650px); justify-content: center; }
+.wr-gameover__cards--n3 { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(16px, 2vw, 28px); }
+.wr-gameover__cards--n4 { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: clamp(12px, 1.5vw, 20px); }
 .wr-gameover__card { position: relative; min-width: 0; padding: clamp(17px, 2vw, 30px); border: 5px solid var(--ink); border-radius: 27px; background: var(--cream); box-shadow: 8px 10px 0 var(--ink), 13px 15px 0 rgb(34 20 47 / 25%); animation: wr-gameover-card-in 620ms var(--ease-pop) var(--card-delay) both; }
 .wr-gameover__card--winner { background: linear-gradient(145deg, #fffbea, var(--cream) 65%); box-shadow: 8px 10px 0 var(--gold), 13px 15px 0 var(--ink); }
 .wr-gameover__card-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; min-height: 44px; }
 .wr-gameover__card h2 { margin: 0; max-width: 70%; color: var(--card-color); font-family: 'Bangers', sans-serif; font-size: clamp(2rem, 3.7vw, 3.7rem); letter-spacing: .04em; line-height: 1; -webkit-text-stroke: 1.5px var(--ink); paint-order: stroke fill; text-shadow: 3px 3px 0 var(--ink); overflow-wrap: anywhere; }
 .wr-gameover__conceded { padding: 2px 8px; border: 2px solid var(--ink); border-radius: 7px; background: #eadde5; font-weight: 700; font-size: .82rem; transform: rotate(-5deg); }
+.wr-gameover__place { position: absolute; z-index: 4; top: -17px; right: 10px; display: grid; place-items: center; min-width: 53px; min-height: 49px; padding: 4px 7px 1px; border: 3px solid var(--ink); border-radius: 50%; background: var(--cream); box-shadow: 3px 4px 0 var(--ink); color: var(--ink); font: 1.6rem/1 'Bangers', sans-serif; letter-spacing: .02em; transform: rotate(8deg); }
+.wr-gameover__place--1 { background: var(--gold); }
+.wr-gameover__place--2 { background: #e2e4eb; }
+.wr-gameover__place--3 { background: #e7a570; }
+.wr-gameover__place--4 { background: #eee6e9; }
+.wr-gameover__dropped { margin: 3px 0 0; color: #706674; font-size: clamp(.76rem, 1vw, .9rem); font-style: italic; font-weight: 600; line-height: 1.15; overflow-wrap: anywhere; }
 .wr-gameover__score { display: flex; align-items: baseline; gap: 12px; margin: clamp(5px, 1vh, 12px) 0; color: var(--ink); }
 .wr-gameover__score strong { font-family: 'Bangers', sans-serif; font-size: clamp(5rem, 9vw, 9.5rem); line-height: .9; letter-spacing: .02em; font-variant-numeric: tabular-nums; text-shadow: 4px 5px 0 var(--card-color); }
 .wr-gameover__score span { font-family: 'Bangers', sans-serif; font-size: clamp(1.4rem, 2vw, 2.2rem); }
@@ -24,6 +32,15 @@
 .wr-gameover__trophy { position: absolute; top: 10px; right: 15px; width: clamp(58px, 7vw, 105px); filter: drop-shadow(2px 4px 0 var(--ink)); }
 .wr-gameover__stamp { position: absolute; z-index: 3; top: -22px; right: 15px; max-width: 190px; padding: 7px 10px; border: 3px solid var(--ink); border-radius: 9px; background: var(--gold); color: #bd1430; box-shadow: 3px 4px 0 var(--ink); font-family: 'Bangers', sans-serif; font-size: clamp(1.1rem, 1.8vw, 1.7rem); line-height: .9; text-align: center; letter-spacing: .03em; transform: rotate(9deg); animation: wr-gameover-stamp 550ms var(--ease-pop) calc(840ms + var(--card-delay)) both; }
 .wr-gameover__card--winner .wr-gameover__stamp { right: 115px; }
+.wr-gameover__cards--n3 .wr-gameover__card, .wr-gameover__cards--n4 .wr-gameover__card { padding: clamp(13px, 1.3vw, 19px); }
+.wr-gameover__cards--n3 .wr-gameover__card h2, .wr-gameover__cards--n4 .wr-gameover__card h2 { max-width: calc(100% - 48px); font-size: clamp(1.85rem, 2.55vw, 3rem); }
+.wr-gameover__cards--n3 .wr-gameover__score strong, .wr-gameover__cards--n4 .wr-gameover__score strong { font-size: clamp(4.2rem, 6vw, 6.5rem); }
+.wr-gameover__cards--n3 .wr-gameover__score span, .wr-gameover__cards--n4 .wr-gameover__score span { font-size: clamp(1.1rem, 1.5vw, 1.5rem); }
+.wr-gameover__cards--n3 .wr-gameover__ledger, .wr-gameover__cards--n4 .wr-gameover__ledger { gap: 3px; padding: 8px 10px; font-size: clamp(.78rem, 1vw, .95rem); }
+.wr-gameover__cards--n3 .wr-gameover__stats, .wr-gameover__cards--n4 .wr-gameover__stats { margin-top: 9px; font-size: clamp(.72rem, .87vw, .85rem); }
+.wr-gameover__cards--n3 .wr-gameover__trophy, .wr-gameover__cards--n4 .wr-gameover__trophy { top: 36px; right: 8px; width: clamp(43px, 4vw, 58px); }
+.wr-gameover__cards--n3 .wr-gameover__crown, .wr-gameover__cards--n4 .wr-gameover__crown { top: -31px; left: 12px; width: clamp(52px, 5vw, 70px); }
+.wr-gameover__cards--n3 .wr-gameover__stamp, .wr-gameover__cards--n4 .wr-gameover__stamp, .wr-gameover__cards--n3 .wr-gameover__card--winner .wr-gameover__stamp, .wr-gameover__cards--n4 .wr-gameover__card--winner .wr-gameover__stamp { top: -23px; right: 76px; max-width: 140px; font-size: clamp(.95rem, 1.15vw, 1.2rem); }
 .wr-gameover__actions { display: flex; justify-content: center; gap: 24px; flex-wrap: wrap; padding-top: 4px; }
 .wr-gameover__actions .btn { min-width: min(320px, 100%); }
 .wr-gameover .wr-comic-burst { z-index: 3; padding-right: 0; }
@@ -31,5 +48,18 @@
 @keyframes wr-gameover-card-in { from { opacity: 0; transform: translateY(35px) rotate(-5deg) scale(.83); } 75% { opacity: 1; transform: translateY(-5px) rotate(2deg) scale(1.04); } to { transform: none; opacity: 1; } }
 @keyframes wr-gameover-stamp { from { opacity: 0; transform: rotate(23deg) scale(2); } to { opacity: 1; transform: rotate(9deg) scale(1); } }
 @media (max-height: 760px) { .wr-gameover { padding: 12px 20px; } .wr-gameover__layout { gap: 10px; } .wr-gameover__card { padding: 15px 20px; } .wr-gameover__score strong { font-size: clamp(4rem, 8vh, 6.5rem); } .wr-gameover__header .wr-screen-title { font-size: 3.2rem; } .wr-gameover__outcome { margin-top: 5px; } .wr-gameover__ledger { padding: 7px 12px; } .wr-gameover__stats { margin-top: 7px; } }
+@media (max-height: 800px) {
+  .wr-gameover__cards--n3, .wr-gameover__cards--n4 { gap: 13px; }
+  .wr-gameover__cards--n3 .wr-gameover__card, .wr-gameover__cards--n4 .wr-gameover__card { padding: 12px 14px; }
+  .wr-gameover__cards--n3 .wr-gameover__score strong, .wr-gameover__cards--n4 .wr-gameover__score strong { font-size: clamp(3.8rem, 7.5vh, 5rem); }
+  .wr-gameover__cards--n3 .wr-gameover__stats, .wr-gameover__cards--n4 .wr-gameover__stats { margin-top: 6px; }
+  .wr-gameover__cards--n3 .wr-gameover__ledger, .wr-gameover__cards--n4 .wr-gameover__ledger { padding: 6px 8px; }
+  .wr-gameover:has(.wr-gameover__cards--n3, .wr-gameover__cards--n4) { padding-block: 12px; }
+  .wr-gameover__layout:has(.wr-gameover__cards--n3, .wr-gameover__cards--n4) { gap: 11px; }
+  .wr-gameover__layout:has(.wr-gameover__cards--n3, .wr-gameover__cards--n4) .wr-screen-title { font-size: clamp(3rem, 5vw, 4rem); }
+  .wr-gameover__layout:has(.wr-gameover__cards--n3, .wr-gameover__cards--n4) .wr-gameover__outcome { margin-top: 5px; }
+}
+@media (max-width: 1100px) { .wr-gameover__cards--n4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 700px) { .wr-gameover__cards { grid-template-columns: 1fr; } .wr-gameover__card h2 { max-width: 75%; } .wr-gameover__trophy { width: 65px; } .wr-gameover__actions .btn { min-width: min(280px, 100%); } }
+@media (max-width: 700px) { .wr-gameover__cards--n3, .wr-gameover__cards--n4 { grid-template-columns: 1fr; } }
 @media (prefers-reduced-motion: reduce) { .wr-gameover__card, .wr-gameover__stamp { animation: none; } }

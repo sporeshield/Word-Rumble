@@ -8,7 +8,7 @@ import type { Difficulty, RackSide } from './types'
 import { sfx } from '../audio/sfx'
 import {
   isBlank, moveInList, orderRack, penaltySlices, PLACEMENT_HINTS, previewPlay, reduce, rollHintCost, rollPenaltyCost, shuffleIds, spinPenalty, wordsToCheck,
-  type GameAction, type GameError, type GameState, type PenaltyOutcome, type Placement, type Tile
+  type GameAction, type GameError, type GameState, type PenaltyOutcome, type Placement, type Tile, type Vote
 } from '../engine'
 import { Handoff } from './Handoff'
 import { BlankPicker, DefeatDialog, ExchangeDialog, PauseMenu, WordCheckDialog } from './game/Dialogs'
@@ -17,6 +17,7 @@ import { HintOfferDialog, NoHintDialog } from './game/HintDialog'
 import { countdownStage } from './game/countdown'
 import { PenaltyWheel } from './game/PenaltyWheel'
 import { VoteDialog } from './game/VoteDialog'
+import { RecipientDialog } from './game/PlayerDialogs'
 import './game/game.css'
 import './game/countdown.css'
 
@@ -36,9 +37,11 @@ export interface GameProps {
   resumeSeconds?: number
   onSaveQuit(game: GameState, secondsLeft: number | null): void
   onQuitNoSave(): void
+  /** Tests only: start with tiles already on the board and/or a dialog open. */
+  testStart?: { pending?: Placement[]; dialog?: Dialog }
 }
 
-type Dialog =
+export type Dialog =
   | null
   | { kind: 'blank'; tile: Tile; row: number; col: number }
   | { kind: 'exchange' }
@@ -47,7 +50,8 @@ type Dialog =
   | { kind: 'defeat' }
   | { kind: 'words'; missing: string[] }
   | { kind: 'wheel'; action: PlayAction; index: number; outcome: PenaltyOutcome; word: string }
-  | { kind: 'vote'; action: PlayAction; word: string }
+  | { kind: 'recipient'; action: PlayAction }
+  | { kind: 'vote'; action: PlayAction; word: string; voters: number[]; votes: Vote[] }
   | { kind: 'hint'; cost: number | null; rolling: boolean }
   | { kind: 'nohint' }
 
@@ -103,7 +107,7 @@ function TurnTimer({ seconds, total }: { seconds: number; total: number }) {
   )
 }
 
-export function Game({ game: initialGame, colors, muted, difficulty, rackSide = 'left', onToggleSound, onTurnDone, resumeSeconds, onSaveQuit, onQuitNoSave }: GameProps) {
+export function Game({ game: initialGame, colors, muted, difficulty, rackSide = 'left', onToggleSound, onTurnDone, resumeSeconds, onSaveQuit, onQuitNoSave, testStart }: GameProps) {
   // Local copy: hint quotes and costs change the game state mid-turn, before the turn ends.
   const [game, setGame] = useState(initialGame)
   const solo = game.players.length === 1
@@ -112,10 +116,10 @@ export function Game({ game: initialGame, colors, muted, difficulty, rackSide = 
   const computerTurn = game.options.mode === 'computer' && game.current === 1
   const timerTotal = game.options.timerSeconds
 
-  const [pending, setPending] = useState<Placement[]>([])
+  const [pending, setPending] = useState<Placement[]>(testStart?.pending ?? [])
   const [order, setOrder] = useState<number[]>(() => me.rack.map((t) => t.id))
   const [selectedId, setSelectedId] = useState<number>()
-  const [dialog, setDialog] = useState<Dialog>(null)
+  const [dialog, setDialog] = useState<Dialog>(testStart?.dialog ?? null)
   const [overlay, setOverlay] = useState<null | 'pause' | 'handoff'>(null)
   const [settle, setSettle] = useState<{ next: GameState; text: string; burst: { text: string; tier: BurstTier } | null } | null>(null)
   const [toast, setToast] = useState<string | null>(null)
@@ -142,7 +146,10 @@ export function Game({ game: initialGame, colors, muted, difficulty, rackSide = 
   )
   const preview = useMemo(() => previewPlay(game.board, pending), [game.board, pending])
   // Letters are visible only to the player whose turn it is, and only while nothing covers the screen.
-  const hidden = overlay !== null || settle !== null || computerTurn || dialog?.kind === 'wheel' || dialog?.kind === 'vote'
+  // `secret` covers the dialogs another player may be looking at (wheel, recipient, drop-out, each voter's turn):
+  // there the pending tiles, the live preview and the Play button's points leave the DOM too.
+  const secret = overlay !== null || dialog?.kind === 'wheel' || dialog?.kind === 'recipient' || dialog?.kind === 'vote' || dialog?.kind === 'defeat'
+  const hidden = secret || settle !== null || computerTurn
   const idle = dialog === null && overlay === null && settle === null && !busy && !boom
 
   // ------------------------------------------------------------------ actions
@@ -424,10 +431,33 @@ export function Game({ game: initialGame, colors, muted, difficulty, rackSide = 
     }
   }
 
-  const doConcede = () => {
+  const activeOthers = useMemo(
+    () => game.players.map((p, i) => ({ p, i })).filter(({ p, i }) => i !== game.current && !p.out),
+    [game.players, game.current]
+  )
+  const seatChoices = (list: typeof activeOthers) => list.map(({ p, i }) => ({ index: i, name: p.name, color: colors[i] }))
+
+  const doConcede = (recipient?: number | null) => {
     setDialog(null)
-    sfx.play('defeat-trombone')
-    applyAction({ type: 'concede' }, '')
+    sfx.play(game.players.length > 2 ? 'drop-out' : 'defeat-trombone')
+    applyAction(recipient === undefined ? { type: 'concede' } : { type: 'concede', recipient }, '')
+  }
+
+  // Wheel landed: Gift asks who gets the points (automatic with one other), Convince collects private votes.
+  const afterWheel = (current: Extract<NonNullable<Dialog>, { kind: 'wheel' }>) => {
+    if (current.outcome === 'gift' && activeOthers.length > 1) setDialog({ kind: 'recipient', action: current.action })
+    else if (current.outcome === 'convince') {
+      // The computer never votes by hand: it lets the word stand.
+      const voters = activeOthers.filter(({ i }) => !(game.options.mode === 'computer' && i === 1)).map(({ i }) => i)
+      if (voters.length === 0) finishPlay({ ...current.action, votes: activeOthers.map(() => 'keep' as Vote) })
+      else setDialog({ kind: 'vote', action: current.action, word: current.word, voters, votes: [] })
+    } else finishPlay(current.action)
+  }
+
+  const castVote = (current: Extract<NonNullable<Dialog>, { kind: 'vote' }>, vote: Vote) => {
+    const votes = [...current.votes, vote]
+    if (votes.length < current.voters.length) setDialog({ ...current, votes })
+    else finishPlay({ ...current.action, votes: [...votes, ...activeOthers.slice(votes.length).map(() => 'keep' as Vote)] })
   }
 
   // ------------------------------------------------------------------ view
@@ -441,7 +471,7 @@ export function Game({ game: initialGame, colors, muted, difficulty, rackSide = 
       <div className="wr-play__board">
         <Board
           board={game.board}
-          pending={pending}
+          pending={secret ? [] : pending}
           hoverSquare={drag.hoverSquare}
           onSquareClick={(row, col) => {
             if (!idle || selectedId === undefined) return
@@ -519,7 +549,7 @@ export function Game({ game: initialGame, colors, muted, difficulty, rackSide = 
 
 
         <div className="wr-play__preview" aria-live="polite">
-          {preview.kind === 'ok' && score ? (
+          {secret ? null : preview.kind === 'ok' && score ? (
             <>
               <p className="wr-play__preview-total">{score.total} points{score.rumble ? ' — RUMBLE!' : ''}</p>
               <p className="wr-play__preview-words">{score.words.map((w) => `${w.text} ${w.score}`).join(' · ')}</p>
@@ -533,7 +563,7 @@ export function Game({ game: initialGame, colors, muted, difficulty, rackSide = 
 
         <div className="wr-play__buttons">
           <button type="button" className="btn btn--pink wr-play__go" disabled={!idle || pending.length === 0} onClick={() => void submit()}>
-            Play{score ? ` (${score.total})` : ''}
+            Play{score && !secret ? ` (${score.total})` : ''}
           </button>
           <button type="button" className="btn btn--aqua" disabled={!idle || pending.length === 0} onClick={() => recall()}>Recall</button>
           <button type="button" className="btn btn--aqua" disabled={!idle} onClick={shuffleRack}>Shuffle</button>
@@ -550,7 +580,7 @@ export function Game({ game: initialGame, colors, muted, difficulty, rackSide = 
           ) : null}
           <button type="button" className="btn" disabled={!idle} onClick={pause}>Pause</button>
           <button type="button" className="btn wr-play__defeat" disabled={!idle} onClick={() => { sfx.play('ui-click'); setDialog({ kind: 'defeat' }) }}>
-            {solo ? 'End run' : 'Admit defeat'}
+            {solo ? 'End run' : game.players.length > 2 ? 'Drop out' : 'Admit defeat'}
           </button>
         </div>
       </aside>
@@ -579,17 +609,26 @@ export function Game({ game: initialGame, colors, muted, difficulty, rackSide = 
           slices={[...penaltySlices(solo)]}
           landingIndex={dialog.index}
           solo={solo}
-          onLanded={() => {
-            if (dialog.outcome === 'convince') setDialog({ kind: 'vote', action: dialog.action, word: dialog.word })
-            else finishPlay(dialog.action)
-          }}
+          onLanded={() => afterWheel(dialog)}
+        />
+      ) : null}
+      {dialog?.kind === 'recipient' ? (
+        <RecipientDialog
+          title="Who gets the points?"
+          text="The wheel says gift! Pick the player who gets this play's points."
+          label="Who gets the points"
+          seats={seatChoices(activeOthers)}
+          onPick={(index) => { if (index !== null) finishPlay({ ...dialog.action, recipient: index }) }}
         />
       ) : null}
       {dialog?.kind === 'vote' ? (
         <VoteDialog
-          playerName={game.players[(game.current + 1) % game.players.length].name}
+          key={dialog.votes.length}
+          playerName={game.players[dialog.voters[dialog.votes.length]].name}
+          color={colors[dialog.voters[dialog.votes.length]]}
           word={dialog.word}
-          onVote={(vote) => finishPlay({ ...dialog.action, vote })}
+          position={{ number: dialog.votes.length + 1, of: dialog.voters.length }}
+          onVote={(vote) => castVote(dialog, vote)}
         />
       ) : null}
 
@@ -612,7 +651,18 @@ export function Game({ game: initialGame, colors, muted, difficulty, rackSide = 
         <CostQuoteDialog kind="swap" cost={dialog.cost} rolling={dialog.rolling} onAccept={() => setDialog({ kind: 'exchange' })} onDecline={() => setDialog(null)} />
       ) : null}
       {dialog?.kind === 'exchange' ? <ExchangeDialog rack={rackTiles} cost={game.options.swap === 'penalty' ? game.swap?.cost ?? null : null} onExchange={doExchange} onCancel={() => setDialog(null)} /> : null}
-      {dialog?.kind === 'defeat' ? <DefeatDialog solo={solo} onConfirm={doConcede} onCancel={() => setDialog(null)} /> : null}
+      {dialog?.kind === 'defeat' && game.players.length > 2 ? (
+        <RecipientDialog
+          title="Drop out?"
+          text="You're out for the rest of the game. Pick who gets your points, or nobody."
+          label="Drop out"
+          seats={seatChoices(activeOthers)}
+          allowNobody
+          onPick={(index) => doConcede(index)}
+          onCancel={() => setDialog(null)}
+        />
+      ) : null}
+      {dialog?.kind === 'defeat' && game.players.length <= 2 ? <DefeatDialog solo={solo} onConfirm={() => doConcede()} onCancel={() => setDialog(null)} /> : null}
       {dialog?.kind === 'words' ? (
         <WordCheckDialog
           missing={dialog.missing}

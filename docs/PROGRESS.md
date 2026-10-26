@@ -111,7 +111,11 @@ After each phase: `/clear`, then `/next-phase`.
   - Codex CSS (`screens.css`, `game.css`): count buttons, compact 3–4 player cards, 4 first-draw cards in a row, 2×2 deal racks, up to 3 plates. **Not visually checked in a running window** (also kept the earlier uncommitted Setup widening in screens.css).
   - New `screens/Game.hidden.test.tsx`: renders the play screen for 4 players — only the current player's letters and score in the markup, others as name plates with counts.
   - Still two-player only until Phase 23: the Gift and Convince wheel slices fail with 3+ players (engine needs `recipient` / `votes[]`), and Admit defeat drops out with "nobody" as recipient.
-- [ ] **Phase 23 — 2–4 players: dialogs, Game over, Notebook, e2e** (R2-8c)
+- [x] **Phase 23 — 2–4 players: dialogs, Game over, Notebook, e2e** ✅ 2026-10-26 (R2-8c): 150 tests, typecheck pass, packaged e2e (2 tests) pass.
+  - New `screens/game/PlayerDialogs.tsx` (`RecipientDialog`: name plates, no scores; used for Gift "Who gets the points?" and the 3–4 player "Drop out?" with a Nobody option). `VoteDialog` is now one private voter at a time with a "take the laptop" cover; `Game.tsx` collects `votes[]` (computer seat auto-keeps) and sends `recipient` / `concede {recipient}`. Admit defeat button reads "Drop out" with 3+ players.
+  - Hidden-DOM: `secret` flag in `Game.tsx` (wheel, recipient, vote, drop-out dialogs, pause/handoff) removes rack letters, score, pending board tiles, preview text and the Play button's points. `Game` has a tests-only `testStart` prop; `Game.hidden.test.tsx` covers each dialog plus a control.
+  - `GameOver.tsx`: cards in place order with 1st–4th badges, "dropped out — gave N to X", "Last player standing!", shared-first title and confetti. Notebook Recent Games shows places and drop notes (`placeLabel`, `dropNote` in `notebook-format.ts`, tested). Codex wrote the CSS (`game.css`, `gameover.css`, `notebook.css`) — **not visually checked in a running window**.
+  - e2e: new 3-player test in `tests/e2e/smoke.spec.ts` (two drop-outs, one with a gift → Game over → notebook). Penalty wheel slice label still says "Gift to opponent" in the Notebook (`penaltyLabel`).
 - [ ] **Phase 24 — Engine: Wild power squares (0–4 of each type)** (R2-9) — Codex review
 - [ ] **Phase 25 — Wild power squares UI, annoying power sounds, KABLAM bursts** (R2-9, R2-10)
 - [ ] **Phase 26 — Round 2 ship** — Codex final review, package, e2e, manual checks

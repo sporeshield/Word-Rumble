@@ -6,7 +6,7 @@ import star from '@art/notebook-doodles/star.webp'
 import stickTrophy from '@art/notebook-doodles/stick-trophy.webp'
 import type { Row, ScoreFilter } from '../../shared/api'
 import { sfx } from '../audio/sfx'
-import { formatNotebookDate, penaltyLabel, recentHeadline, recentPlayers, tallyGroups } from './notebook-format'
+import { dropNote, formatNotebookDate, placeLabel, penaltyLabel, recentHeadline, recentPlayers, tallyGroups } from './notebook-format'
 import './screens.css'
 import './notebook.css'
 
@@ -125,7 +125,7 @@ export function Notebook({ onClose }: NotebookProps) {
     return <li key={String(row.id ?? index)} className="wr-notebook__row wr-notebook__row--recent"><span className="wr-notebook__row-main">
       <strong>{recentHeadline(players)}</strong>
       <small>{modeLabel(row.mode, row.difficulty)} · {reasonLabel(row.endedReason)} · {formatNotebookDate(row.playedAt)}</small>
-      <span className="wr-notebook__recent-players">{players.map((player, playerIndex) => <span key={playerIndex}>{player.name} <b>{player.score}</b></span>)}</span>
+      <span className="wr-notebook__recent-players">{players.map((player, playerIndex) => <span key={playerIndex}>{players.length > 2 ? `${placeLabel(player.rank)} ` : ''}{player.name} <b>{player.score}</b>{players.length > 2 && dropNote(player) ? <small> {dropNote(player)}</small> : null}</span>)}</span>
     </span></li>
   })}</ol> : empty
   else {

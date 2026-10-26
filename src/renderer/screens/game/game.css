@@ -254,6 +254,36 @@
 .wr-dlg__stack .btn { width: 100%; }
 .wr-dlg .btn:disabled { opacity: .5; filter: grayscale(.7); cursor: not-allowed; animation: none; }
 
+.wr-recipients__plate {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 13px;
+  min-height: 67px;
+  padding: 9px 18px;
+  background: var(--plate);
+  color: var(--ink);
+  font-size: clamp(1.55rem, 2.5vw, 2.1rem);
+  text-shadow: 1px 1px 0 white, -1px -1px 0 white;
+  overflow-wrap: anywhere;
+}
+.wr-recipients__plate::before {
+  content: '';
+  flex: none;
+  width: 38px;
+  height: 38px;
+  background: url('@art/tile-back.webp') center / contain no-repeat;
+  filter: drop-shadow(2px 3px 0 var(--ink));
+}
+.wr-recipients__plate:hover { animation: none; translate: 0 -4px; background: color-mix(in srgb, var(--plate), white 16%); box-shadow: 0 9px 0 var(--ink), 0 13px 0 rgb(34 20 47 / 18%); }
+.wr-recipients__plate:active { animation: none; translate: 0 2px; box-shadow: 0 2px 0 var(--ink); }
+.wr-recipients__nobody { background: #e4dfe5; color: #5f5667; }
+.wr-recipients__nobody:hover { background: #efebef; }
+
+.wr-vote .wr-dlg__box { padding-top: clamp(32px, 3vw, 44px); box-shadow: inset 0 12px 0 var(--plate), 9px 11px 0 var(--ink); }
+.wr-vote__name { color: var(--plate); -webkit-text-stroke: .6px var(--ink); paint-order: stroke fill; text-shadow: 1px 1px 0 var(--ink); overflow-wrap: anywhere; }
+.wr-vote__count { color: #6d6373; font-size: .77em; font-weight: 500; white-space: nowrap; }
+
 .wr-dlg__letters { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 9px; width: min(100%, 540px); margin-inline: auto; }
 .wr-dlg__letter {
   min-width: 0;
@@ -292,5 +322,6 @@
 @media (prefers-reduced-motion: reduce) {
   .wr-play__status, .wr-play__toast, .wr-play__burst,
   .wr-play__settle-text, .wr-dlg__box, .wr-timer.is-low { animation: none !important; }
-  .wr-dlg__letter, .wr-dlg__tile, .wr-timer__ring { transition: none !important; }
+  .wr-dlg__letter, .wr-dlg__tile, .wr-recipients__plate, .wr-timer__ring { transition: none !important; }
+  .wr-recipients__plate:hover, .wr-recipients__plate:active { translate: none; }
 }

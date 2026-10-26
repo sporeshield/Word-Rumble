@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { createGame, type GameState, type Tile } from '../engine'
-import { Game } from './Game'
+import { Game, type Dialog } from './Game'
 
 vi.mock('../audio/sfx', () => ({ sfx: { play: () => undefined } }))
 
@@ -45,5 +45,42 @@ describe('play screen with four players', () => {
     const game = fourPlayers(0)
     const out = { ...game, players: game.players.map((p, i) => (i === 2 ? { ...p, out: true, rack: [] } : p)) }
     expect(render(out)).toMatch(/<strong>Mo<\/strong><span class="wr-play__plate-count">dropped out</)
+  })
+})
+
+describe('dialogs where someone else may look', () => {
+  const start = (dialog: Dialog) => {
+    const game = fourPlayers(1)
+    const [a, b] = game.players[1].rack
+    const pending = [{ row: 7, col: 7, tile: a, letter: 'Z' }, { row: 7, col: 8, tile: b, letter: 'Z' }]
+    return renderToStaticMarkup(
+      <Game game={game} colors={COLORS} muted={false} difficulty="medium" onToggleSound={() => undefined} onTurnDone={() => undefined} onSaveQuit={() => undefined} onQuitNoSave={() => undefined} testStart={{ pending, dialog }} />
+    )
+  }
+  const action = { type: 'play' as const, placements: [] }
+  const dialogs: [string, Dialog][] = [
+    ['recipient picker', { kind: 'recipient', action }],
+    ['voter cover', { kind: 'vote', action, word: 'zzz', voters: [0, 2, 3], votes: [] }],
+    ['drop-out picker', { kind: 'defeat' }]
+  ]
+
+  it.each(dialogs)('%s: no rack letters, scores, pending tiles, preview or Play points in the markup', (_name, dialog) => {
+    const markup = start(dialog)
+    expect(markup).not.toMatch(/wr-tile__letter/)
+    expect(markup).not.toMatch(/wr-tile--pending/)
+    for (const score of SECRET_SCORES) expect(markup).not.toContain(String(score))
+    expect(markup).not.toMatch(/\d+ points/)
+    expect(markup).not.toMatch(/Play \(/)
+  })
+
+  it('control: with no dialog the same state does show the pending tile and the Play points', () => {
+    const markup = start(null)
+    expect(markup).toMatch(/wr-tile--pending/)
+    expect(markup).toMatch(/Play \(/)
+  })
+
+  it('the recipient picker lists the other players without scores', () => {
+    const markup = start({ kind: 'recipient', action })
+    for (const name of ['Shane', 'Mo', 'Jo']) expect(markup).toContain(name)
   })
 })

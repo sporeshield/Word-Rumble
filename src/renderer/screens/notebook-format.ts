@@ -45,3 +45,13 @@ export function tallyGroups(value: number | null): number[] {
   const count = Math.max(0, Math.floor(Number(value) || 0))
   return [...Array.from({ length: Math.floor(count / 5) }, () => 5), ...(count % 5 ? [count % 5] : [])]
 }
+
+export function placeLabel(rank: number): string {
+  return rank === 1 ? '1st' : rank === 2 ? '2nd' : rank === 3 ? '3rd' : `${rank}th`
+}
+
+/** "dropped out — gave 42 to Dawn" for a player who left a 3–4 player game; empty otherwise. */
+export function dropNote(player: RecentGamePlayer): string {
+  if (!player.conceded) return ''
+  return player.givenAway > 0 && player.giftTo ? `dropped out — gave ${player.givenAway} to ${player.giftTo}` : 'dropped out'
+}

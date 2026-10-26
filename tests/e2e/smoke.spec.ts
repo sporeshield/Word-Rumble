@@ -76,3 +76,42 @@ test('play, hidden racks, save, relaunch, defeat, notebook', async () => {
   expect(existsSync(join(home, 'data', 'word-rumble.sqlite'))).toBe(true)
   await app.close()
 })
+
+test('three players: drop out with a gift, play carries on, ranking in the notebook', async () => {
+  const { app, page } = await launch()
+  await page.getByRole('button', { name: /No thanks|Not now/ }).click({ timeout: 8_000 }).catch(() => {})
+  // The previous test left a save behind; "New Game" starts afresh.
+  await page.getByRole('button', { name: 'New Game' }).dispatchEvent('click')
+  await page.getByRole('group', { name: 'Game mode' }).getByRole('button', { name: 'Friends' }).click()
+  await page.getByRole('group', { name: 'How many players' }).getByRole('button', { name: '3', exact: true }).click()
+  await page.getByRole('button', { name: 'Start!' }).click()
+  await page.getByRole('button', { name: 'Shake the tile bag' }).dispatchEvent('click')
+  await page.getByRole('button', { name: 'Deal the tiles' }).click({ timeout: 60_000 })
+  await page.getByRole('button', { name: 'Continue' }).click({ timeout: 60_000 })
+
+  // Hand-off: no letters in the DOM, then the first player's rack, and only two other plates.
+  await expect(page.getByRole('button', { name: "Let's go!" })).toBeVisible()
+  expect(await page.locator('.wr-tile__letter').count()).toBe(0)
+  await page.getByRole('button', { name: "Let's go!" }).dispatchEvent('click')
+  await expect(page.locator('.wr-play__plate')).toHaveCount(2)
+
+  // First player drops out and gives their points to the first other player.
+  await page.getByRole('button', { name: 'Drop out' }).click()
+  const picker = page.getByRole('alertdialog', { name: 'Drop out' })
+  await expect(picker).toBeVisible()
+  expect(await page.locator('.wr-tile__letter').count()).toBe(0)
+  await picker.locator('.wr-recipients__plate').first().click()
+
+  // Play carries on: next player's hand-off, with one plate marked as dropped out.
+  await page.getByRole('button', { name: "Let's go!" }).dispatchEvent('click', undefined, { timeout: 15_000 })
+  await expect(page.locator('.wr-play__plate--out')).toHaveCount(1)
+
+  // Second player drops out too: one left standing, Game over with a podium.
+  await page.getByRole('button', { name: 'Drop out' }).click()
+  await page.getByRole('alertdialog', { name: 'Drop out' }).getByRole('button', { name: 'Nobody' }).click()
+  await expect(page.getByText('Last player standing!')).toBeVisible({ timeout: 15_000 })
+  await expect(page.locator('.wr-gameover__place')).toHaveCount(3)
+  await page.getByRole('button', { name: 'Write it in the notebook' }).click()
+  await expect(page.getByText('Recent Games').first()).toBeVisible()
+  await app.close()
+})

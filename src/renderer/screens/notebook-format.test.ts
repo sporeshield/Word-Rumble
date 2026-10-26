@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatNotebookDate, penaltyLabel, recentHeadline, recentPlayers, tallyGroups } from './notebook-format'
+import { dropNote, formatNotebookDate, placeLabel, penaltyLabel, recentHeadline, recentPlayers, tallyGroups } from './notebook-format'
 
 describe('notebook formatting', () => {
   it('formats dates and handles missing dates', () => {
@@ -37,5 +37,13 @@ describe('notebook formatting', () => {
     expect(tallyGroups(5)).toEqual([5])
     expect(tallyGroups(0)).toEqual([])
     expect(tallyGroups(null)).toEqual([])
+  })
+
+  it('names places and drop-outs', () => {
+    expect([1, 2, 3, 4].map(placeLabel)).toEqual(['1st', '2nd', '3rd', '4th'])
+    const base = { name: 'Mo', isComputer: false, score: 0, rank: 4, winner: false, conceded: true, givenAway: 42, giftTo: 'Dawn' }
+    expect(dropNote(base)).toBe('dropped out — gave 42 to Dawn')
+    expect(dropNote({ ...base, givenAway: 0, giftTo: null })).toBe('dropped out')
+    expect(dropNote({ ...base, conceded: false })).toBe('')
   })
 })

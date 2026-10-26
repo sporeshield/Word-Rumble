@@ -3,6 +3,7 @@ import trophy from '@art/trophy.webp'
 import crown from '@art/notebook-doodles/crown.webp'
 import type { GameState } from '../engine/game'
 import { sfx } from '../audio/sfx'
+import { placeNumbers } from './record'
 import { ComicBurst, Confetti } from '../fx'
 import './screens.css'
 import './gameover.css'
@@ -53,15 +54,26 @@ export function GameOver({ game, colors, highScores, onNotebook, onTitle }: Game
 
   if (!result) return null
   const solo = game.players.length === 1
+  const many = game.players.length > 2
   const title = result.reason === 'out' ? 'Out of tiles!'
     : result.reason === 'scoreless' ? 'Nobody can move!'
       : result.reason === 'finished' ? 'Run finished'
-        : `${game.players[result.conceder ?? 0]?.name ?? 'Someone'} admits defeat`
-  const outcome = solo ? 'Final score' : result.winner === null ? "It's a draw!" : `${game.players[result.winner].name} wins!`
+        : many ? 'Last player standing!' : `${game.players[result.conceder ?? 0]?.name ?? 'Someone'} admits defeat`
+  const places = placeNumbers(result.ranking, game.players.length)
+  const order = result.ranking.flat()
+  const ordinal = (n: number) => (n === 1 ? '1st' : n === 2 ? '2nd' : n === 3 ? '3rd' : `${n}th`)
+  const dropLine = (index: number): string | null => {
+    const player = game.players[index]
+    if (!many || !player.out || !player.conceded) return null
+    const to = game.history.find((t) => t.kind === 'dropped' && t.player === index)?.giftTo
+    const toName = to === undefined ? undefined : game.players[to]?.name
+    return toName && (player.givenAway ?? 0) > 0 ? `dropped out — gave ${player.givenAway} to ${toName}` : 'dropped out'
+  }
+  const outcome = solo ? 'Final score' : result.winner === null ? (result.ranking[0].length === game.players.length ? "It's a draw!" : `${result.ranking[0].map((i) => game.players[i].name).join(' & ')} share first place!`) : `${game.players[result.winner].name} wins!`
 
   return (
     <main className="wr-screen wr-gameover halftone-1">
-      {result.winner !== null ? <Confetti pieces={90} /> : null}
+      {result.winner !== null || (!solo && result.ranking[0].length < game.players.length) ? <Confetti pieces={90} /> : null}
       {burst && result.winner !== null ? <ComicBurst text="WINNER!" tier="top" onDone={() => setBurst(false)} /> : null}
       <section className="wr-gameover__layout" aria-labelledby="wr-gameover-title">
         <header className="wr-gameover__header">
@@ -69,18 +81,22 @@ export function GameOver({ game, colors, highScores, onNotebook, onTitle }: Game
           <h1 id="wr-gameover-title" className="wr-screen-title">{title}</h1>
           <p className="wr-gameover__outcome">{outcome}</p>
         </header>
-        <div className={`wr-gameover__cards ${solo ? 'wr-gameover__cards--solo' : ''}`}>
-          {game.players.map((player, index) => {
+        <div className={`wr-gameover__cards ${solo ? 'wr-gameover__cards--solo' : ''} wr-gameover__cards--n${game.players.length}`}>
+          {order.map((index) => {
+            const player = game.players[index]
             const winner = result.winner === index
+            const drop = dropLine(index)
             const adjustments = result.adjustments.filter((adjustment) => adjustment.player === index)
             return (
               <article key={index} className={`wr-gameover__card ${winner ? 'wr-gameover__card--winner' : ''}`} style={{ '--card-color': colors[index] ?? (index ? 'var(--violet)' : 'var(--teal)'), '--card-delay': `${index * 170}ms` } as CSSProperties}>
                 {winner ? <><img className="wr-gameover__crown" src={crown} alt="" /><img className="wr-gameover__trophy" src={trophy} alt="" /></> : null}
                 {highScores[index] ? <span className="wr-gameover__stamp">NEW HIGH SCORE!</span> : null}
+                {many ? <span className={`wr-gameover__place wr-gameover__place--${places[index]}`}>{ordinal(places[index])}</span> : null}
                 <div className="wr-gameover__card-head">
                   <h2>{game.options.mode === 'computer' && index === 1 ? 'Computer' : player.name}</h2>
-                  {result.conceder === index && result.reason === 'conceded' ? <span className="wr-gameover__conceded">conceded</span> : null}
+                  {!many && result.conceder === index && result.reason === 'conceded' ? <span className="wr-gameover__conceded">conceded</span> : null}
                 </div>
+                {drop ? <p className="wr-gameover__dropped">{drop}</p> : null}
                 <div className="wr-gameover__score" aria-label={`Final score ${result.finalScores[index]}`}>
                   <strong aria-hidden="true">{displayScores[index] ?? result.finalScores[index]}</strong><span>points</span>
                 </div>
