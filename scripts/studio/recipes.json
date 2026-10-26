@@ -3,33 +3,992 @@
     "name": "burst-boom-1",
     "preset": "inktome/Presets/Big Stomp.vital",
     "length": 1.2,
-    "notes": [{ "t": 0, "len": 0.3, "pitch": 36, "vel": 120 }],
+    "notes": [
+      {
+        "t": 0,
+        "len": 0.3,
+        "pitch": 36,
+        "vel": 120
+      }
+    ],
     "variants": {
       "A": {},
-      "B": { "preset": "Glorkglunk/Presets/THUNK.vital" },
-      "C": { "preset": "Glorkglunk/Presets/Thumpus.vital" }
+      "B": {
+        "preset": "Glorkglunk/Presets/THUNK.vital"
+      },
+      "C": {
+        "preset": "Glorkglunk/Presets/Thumpus.vital"
+      }
     }
   },
   {
     "name": "burst-boom-2",
     "preset": "Yuli Yolo/Presets/Factory Presets/Destruction.vital",
     "length": 1.4,
-    "notes": [{ "t": 0, "len": 0.3, "pitch": 33, "vel": 120 }],
+    "notes": [
+      {
+        "t": 0,
+        "len": 0.3,
+        "pitch": 33,
+        "vel": 120
+      }
+    ],
     "variants": {
       "A": {},
-      "B": { "preset": "Afro/Presets/Kick Drum 1.vital" },
-      "C": { "preset": "Glorkglunk/Presets/THUNK.vital", "notes": [{ "t": 0, "len": 0.3, "pitch": 31, "vel": 120 }] }
+      "B": {
+        "preset": "Afro/Presets/Kick Drum 1.vital"
+      },
+      "C": {
+        "preset": "Glorkglunk/Presets/THUNK.vital",
+        "notes": [
+          {
+            "t": 0,
+            "len": 0.3,
+            "pitch": 31,
+            "vel": 120
+          }
+        ]
+      }
     }
   },
   {
     "name": "burst-boom-3",
     "preset": "Glorkglunk/Presets/Thumpus.vital",
     "length": 1.5,
-    "notes": [{ "t": 0, "len": 0.35, "pitch": 28, "vel": 127 }],
+    "notes": [
+      {
+        "t": 0,
+        "len": 0.35,
+        "pitch": 28,
+        "vel": 127
+      }
+    ],
     "variants": {
       "A": {},
-      "B": { "preset": "inktome/Presets/Big Stomp.vital", "notes": [{ "t": 0, "len": 0.35, "pitch": 29, "vel": 127 }] },
-      "C": { "preset": "Afro/Presets/Kick Drum 1.vital", "notes": [{ "t": 0, "len": 0.35, "pitch": 30, "vel": 127 }] }
+      "B": {
+        "preset": "inktome/Presets/Big Stomp.vital",
+        "notes": [
+          {
+            "t": 0,
+            "len": 0.35,
+            "pitch": 29,
+            "vel": 127
+          }
+        ]
+      },
+      "C": {
+        "preset": "Afro/Presets/Kick Drum 1.vital",
+        "notes": [
+          {
+            "t": 0,
+            "len": 0.35,
+            "pitch": 30,
+            "vel": 127
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "word-invalid",
+    "preset": "Mr Bill/Presets/Honk Wub.vital",
+    "length": 0.7,
+    "notes": [
+      {
+        "t": 0,
+        "len": 0.252,
+        "pitch": 52,
+        "vel": 110
+      },
+      {
+        "t": 0.28,
+        "len": 0.252,
+        "pitch": 46,
+        "vel": 110
+      }
+    ],
+    "variants": {
+      "A": {},
+      "B": {
+        "preset": "Factory/Presets/Touch Tone.vital"
+      }
+    }
+  },
+  {
+    "name": "buzzer",
+    "preset": "In The Mix/Presets/Growl Bass Sidechain.vital",
+    "length": 0.9,
+    "notes": [
+      {
+        "t": 0,
+        "len": 0.7,
+        "pitch": 36,
+        "vel": 120
+      }
+    ],
+    "variants": {
+      "A": {},
+      "B": {
+        "preset": "Mr Bill/Presets/Honk Wub.vital"
+      }
+    }
+  },
+  {
+    "name": "defeat-trombone",
+    "preset": "Level 8/Presets/Factory Presets/Damped Horn.vital",
+    "length": 2.2,
+    "notes": [
+      {
+        "t": 0,
+        "len": 0.288,
+        "pitch": 58,
+        "vel": 110
+      },
+      {
+        "t": 0.32,
+        "len": 0.288,
+        "pitch": 57,
+        "vel": 110
+      },
+      {
+        "t": 0.64,
+        "len": 0.288,
+        "pitch": 56,
+        "vel": 110
+      },
+      {
+        "t": 0.96,
+        "len": 1,
+        "pitch": 53,
+        "vel": 110
+      }
+    ],
+    "bend": [
+      {
+        "t": 1.1,
+        "v": 0
+      },
+      {
+        "t": 1.2,
+        "v": -0.125
+      },
+      {
+        "t": 1.3,
+        "v": -0.25
+      },
+      {
+        "t": 1.4,
+        "v": -0.375
+      },
+      {
+        "t": 1.5,
+        "v": -0.5
+      },
+      {
+        "t": 1.6,
+        "v": -0.625
+      },
+      {
+        "t": 1.7,
+        "v": -0.75
+      },
+      {
+        "t": 1.8,
+        "v": -0.875
+      },
+      {
+        "t": 1.9,
+        "v": -1
+      }
+    ],
+    "variants": {
+      "A": {},
+      "B": {
+        "preset": "In The Mix/Presets/Distant Majestic Lead.vital"
+      }
+    }
+  },
+  {
+    "name": "rumble-fanfare",
+    "preset": "Level 8/Presets/Factory Presets/Damped Horn.vital",
+    "length": 1.4,
+    "notes": [
+      {
+        "t": 0,
+        "len": 0.126,
+        "pitch": 60,
+        "vel": 110
+      },
+      {
+        "t": 0.14,
+        "len": 0.126,
+        "pitch": 64,
+        "vel": 110
+      },
+      {
+        "t": 0.28,
+        "len": 0.126,
+        "pitch": 67,
+        "vel": 110
+      },
+      {
+        "t": 0.42,
+        "len": 0.8,
+        "pitch": 72,
+        "vel": 115
+      }
+    ],
+    "variants": {
+      "A": {},
+      "B": {
+        "preset": "In The Mix/Presets/Strings Section.vital"
+      }
+    }
+  },
+  {
+    "name": "game-over-fanfare",
+    "preset": "In The Mix/Presets/Distant Majestic Lead.vital",
+    "length": 2,
+    "notes": [
+      {
+        "t": 0,
+        "len": 0.18,
+        "pitch": 60,
+        "vel": 110
+      },
+      {
+        "t": 0.2,
+        "len": 0.18,
+        "pitch": 64,
+        "vel": 110
+      },
+      {
+        "t": 0.4,
+        "len": 0.18,
+        "pitch": 67,
+        "vel": 110
+      },
+      {
+        "t": 0.6,
+        "len": 1.2,
+        "pitch": 72,
+        "vel": 115
+      },
+      {
+        "t": 0.6,
+        "len": 1.2,
+        "pitch": 64,
+        "vel": 100
+      }
+    ],
+    "variants": {
+      "A": {},
+      "B": {
+        "preset": "Level 8/Presets/Factory Presets/Damped Horn.vital"
+      }
+    }
+  },
+  {
+    "name": "high-score-ding",
+    "preset": "Billain/Presets/Factory Presets/Cinema Bells.vital",
+    "length": 1.4,
+    "notes": [
+      {
+        "t": 0,
+        "len": 0.15,
+        "pitch": 84,
+        "vel": 115
+      },
+      {
+        "t": 0.12,
+        "len": 0.9,
+        "pitch": 91,
+        "vel": 115
+      }
+    ],
+    "variants": {
+      "A": {},
+      "B": {
+        "preset": "Mr Bill/Presets/E4 One Note Metallophone.vital"
+      }
+    }
+  },
+  {
+    "name": "heartbeat",
+    "preset": "Afro/Presets/Kick Drum 1.vital",
+    "length": 0.7,
+    "notes": [
+      {
+        "t": 0,
+        "len": 0.12,
+        "pitch": 36,
+        "vel": 120
+      },
+      {
+        "t": 0.24,
+        "len": 0.1,
+        "pitch": 36,
+        "vel": 95
+      }
+    ],
+    "variants": {
+      "A": {},
+      "B": {
+        "preset": "Glorkglunk/Presets/Thumpus.vital"
+      }
+    }
+  },
+  {
+    "name": "power-annoy-1",
+    "preset": "Mr Bill/Presets/Honk Wub.vital",
+    "length": 1.6,
+    "notes": [
+      {
+        "t": 0,
+        "len": 1.2,
+        "pitch": 55,
+        "vel": 120
+      }
+    ],
+    "variants": {
+      "A": {},
+      "B": {
+        "preset": "In The Mix/Presets/Growl Bass Sidechain.vital"
+      }
+    }
+  },
+  {
+    "name": "power-annoy-2",
+    "preset": "Afro/Presets/Banana Wob.vital",
+    "length": 1,
+    "notes": [
+      {
+        "t": 0,
+        "len": 0.27,
+        "pitch": 60,
+        "vel": 110
+      },
+      {
+        "t": 0.3,
+        "len": 0.27,
+        "pitch": 63,
+        "vel": 110
+      }
+    ],
+    "variants": {
+      "A": {},
+      "B": {
+        "preset": "Mr Bill/Presets/Honk Wub.vital"
+      }
+    }
+  },
+  {
+    "name": "power-annoy-3",
+    "preset": "Factory/Presets/Ah Eh Ee Oh.vital",
+    "length": 1.6,
+    "notes": [
+      {
+        "t": 0,
+        "len": 0.18,
+        "pitch": 64,
+        "vel": 110
+      },
+      {
+        "t": 0.2,
+        "len": 0.18,
+        "pitch": 66,
+        "vel": 110
+      },
+      {
+        "t": 0.4,
+        "len": 0.18,
+        "pitch": 64,
+        "vel": 110
+      },
+      {
+        "t": 0.6,
+        "len": 0.18,
+        "pitch": 66,
+        "vel": 110
+      },
+      {
+        "t": 0.8,
+        "len": 0.18,
+        "pitch": 64,
+        "vel": 110
+      }
+    ],
+    "variants": {
+      "A": {},
+      "B": {
+        "preset": "Factory/Presets/Touch Tone.vital"
+      }
+    }
+  },
+  {
+    "name": "power-annoy-4",
+    "preset": "Halcyon Future Riddim Vol 1/Presets/Phonon/Simple Weoum.vital",
+    "length": 1.2,
+    "notes": [
+      {
+        "t": 0,
+        "len": 0.9,
+        "pitch": 60,
+        "vel": 110
+      }
+    ],
+    "bend": [
+      {
+        "t": 0,
+        "v": -1
+      },
+      {
+        "t": 0.113,
+        "v": -0.75
+      },
+      {
+        "t": 0.225,
+        "v": -0.5
+      },
+      {
+        "t": 0.338,
+        "v": -0.25
+      },
+      {
+        "t": 0.45,
+        "v": 0
+      },
+      {
+        "t": 0.563,
+        "v": 0.25
+      },
+      {
+        "t": 0.675,
+        "v": 0.5
+      },
+      {
+        "t": 0.787,
+        "v": 0.75
+      },
+      {
+        "t": 0.9,
+        "v": 1
+      }
+    ],
+    "variants": {
+      "A": {},
+      "B": {
+        "preset": "Unsystematic Fragmentation/Presets/Factory Presets/Fun Pulse.vital"
+      }
+    }
+  },
+  {
+    "name": "power-annoy-5",
+    "preset": "Glorkglunk/Presets/Squish Clicker.vital",
+    "length": 0.9,
+    "notes": [
+      {
+        "t": 0,
+        "len": 0.162,
+        "pitch": 52,
+        "vel": 110
+      },
+      {
+        "t": 0.18,
+        "len": 0.162,
+        "pitch": 50,
+        "vel": 110
+      },
+      {
+        "t": 0.36,
+        "len": 0.162,
+        "pitch": 52,
+        "vel": 110
+      }
+    ],
+    "variants": {
+      "A": {},
+      "B": {
+        "preset": "Afro/Presets/Banana Wob.vital"
+      }
+    }
+  },
+  {
+    "name": "power-annoy-6",
+    "preset": "Glorkglunk/Presets/Special Glitch Thing.vital",
+    "length": 1.2,
+    "notes": [
+      {
+        "t": 0,
+        "len": 0.09,
+        "pitch": 72,
+        "vel": 110
+      },
+      {
+        "t": 0.1,
+        "len": 0.09,
+        "pitch": 74,
+        "vel": 110
+      },
+      {
+        "t": 0.2,
+        "len": 0.09,
+        "pitch": 72,
+        "vel": 110
+      },
+      {
+        "t": 0.3,
+        "len": 0.09,
+        "pitch": 74,
+        "vel": 110
+      },
+      {
+        "t": 0.4,
+        "len": 0.09,
+        "pitch": 76,
+        "vel": 110
+      },
+      {
+        "t": 0.5,
+        "len": 0.09,
+        "pitch": 72,
+        "vel": 110
+      },
+      {
+        "t": 0.6,
+        "len": 0.09,
+        "pitch": 74,
+        "vel": 110
+      },
+      {
+        "t": 0.7,
+        "len": 0.09,
+        "pitch": 72,
+        "vel": 110
+      }
+    ],
+    "variants": {
+      "A": {},
+      "B": {
+        "preset": "Glorkglunk/Presets/Squish Clicker.vital"
+      }
+    }
+  },
+  {
+    "name": "power-annoy-7",
+    "preset": "Unsystematic Fragmentation/Presets/Factory Presets/Fun Pulse.vital",
+    "length": 1.8,
+    "notes": [
+      {
+        "t": 0,
+        "len": 1.6,
+        "pitch": 62,
+        "vel": 110
+      }
+    ],
+    "bend": [
+      {
+        "t": 0,
+        "v": -1
+      },
+      {
+        "t": 0.067,
+        "v": -0.833
+      },
+      {
+        "t": 0.133,
+        "v": -0.667
+      },
+      {
+        "t": 0.2,
+        "v": -0.5
+      },
+      {
+        "t": 0.267,
+        "v": -0.333
+      },
+      {
+        "t": 0.333,
+        "v": -0.167
+      },
+      {
+        "t": 0.4,
+        "v": 0
+      },
+      {
+        "t": 0.467,
+        "v": 0.167
+      },
+      {
+        "t": 0.533,
+        "v": 0.333
+      },
+      {
+        "t": 0.6,
+        "v": 0.5
+      },
+      {
+        "t": 0.667,
+        "v": 0.667
+      },
+      {
+        "t": 0.733,
+        "v": 0.833
+      },
+      {
+        "t": 0.8,
+        "v": 1
+      },
+      {
+        "t": 0.8,
+        "v": 1
+      },
+      {
+        "t": 0.867,
+        "v": 0.833
+      },
+      {
+        "t": 0.933,
+        "v": 0.667
+      },
+      {
+        "t": 1,
+        "v": 0.5
+      },
+      {
+        "t": 1.067,
+        "v": 0.333
+      },
+      {
+        "t": 1.133,
+        "v": 0.167
+      },
+      {
+        "t": 1.2,
+        "v": 0
+      },
+      {
+        "t": 1.267,
+        "v": -0.167
+      },
+      {
+        "t": 1.333,
+        "v": -0.333
+      },
+      {
+        "t": 1.4,
+        "v": -0.5
+      },
+      {
+        "t": 1.467,
+        "v": -0.667
+      },
+      {
+        "t": 1.533,
+        "v": -0.833
+      },
+      {
+        "t": 1.6,
+        "v": -1
+      }
+    ],
+    "variants": {
+      "A": {},
+      "B": {
+        "preset": "Halcyon Future Riddim Vol 1/Presets/Phonon/Simple Weoum.vital"
+      }
+    }
+  },
+  {
+    "name": "power-annoy-8",
+    "preset": "Mr Bill/Presets/Honk Wub.vital",
+    "length": 1.6,
+    "notes": [
+      {
+        "t": 0,
+        "len": 1.3,
+        "pitch": 46,
+        "vel": 120
+      }
+    ],
+    "variants": {
+      "A": {},
+      "B": {
+        "preset": "In The Mix/Presets/Growl Bass Sidechain.vital"
+      }
+    }
+  },
+  {
+    "name": "power-annoy-9",
+    "preset": "Halcyon Future Riddim Vol 1/Presets/Phonon/Simple Weoum.vital",
+    "length": 1.2,
+    "notes": [
+      {
+        "t": 0,
+        "len": 0.9,
+        "pitch": 64,
+        "vel": 110
+      }
+    ],
+    "bend": [
+      {
+        "t": 0,
+        "v": 1
+      },
+      {
+        "t": 0.05,
+        "v": 0.8
+      },
+      {
+        "t": 0.1,
+        "v": 0.6
+      },
+      {
+        "t": 0.15,
+        "v": 0.4
+      },
+      {
+        "t": 0.2,
+        "v": 0.2
+      },
+      {
+        "t": 0.25,
+        "v": 0
+      },
+      {
+        "t": 0.3,
+        "v": -0.2
+      },
+      {
+        "t": 0.35,
+        "v": -0.4
+      },
+      {
+        "t": 0.4,
+        "v": -0.6
+      },
+      {
+        "t": 0.45,
+        "v": -0.8
+      },
+      {
+        "t": 0.5,
+        "v": -1
+      }
+    ],
+    "variants": {
+      "A": {},
+      "B": {
+        "preset": "Afro/Presets/Banana Wob.vital"
+      }
+    }
+  },
+  {
+    "name": "power-annoy-10",
+    "preset": "Factory/Presets/Ah Eh Ee Oh.vital",
+    "length": 1.6,
+    "notes": [
+      {
+        "t": 0,
+        "len": 0.252,
+        "pitch": 67,
+        "vel": 110
+      },
+      {
+        "t": 0.28,
+        "len": 0.252,
+        "pitch": 64,
+        "vel": 110
+      },
+      {
+        "t": 0.56,
+        "len": 0.252,
+        "pitch": 67,
+        "vel": 110
+      },
+      {
+        "t": 0.84,
+        "len": 0.252,
+        "pitch": 64,
+        "vel": 110
+      },
+      {
+        "t": 1.12,
+        "len": 0.252,
+        "pitch": 67,
+        "vel": 110
+      }
+    ],
+    "variants": {
+      "A": {},
+      "B": {
+        "preset": "Afro/Presets/Banana Wob.vital"
+      }
+    }
+  },
+  {
+    "name": "power-annoy-11",
+    "preset": "Mr Bill/Presets/E4 One Note Metallophone.vital",
+    "length": 1.2,
+    "notes": [
+      {
+        "t": 0,
+        "len": 0.27,
+        "pitch": 79,
+        "vel": 110
+      },
+      {
+        "t": 0.3,
+        "len": 0.27,
+        "pitch": 79,
+        "vel": 110
+      }
+    ],
+    "variants": {
+      "A": {},
+      "B": {
+        "preset": "Level 8/Presets/Factory Presets/Crescendo Bells.vital"
+      }
+    }
+  },
+  {
+    "name": "power-annoy-12",
+    "preset": "Factory/Presets/Touch Tone.vital",
+    "length": 1.4,
+    "notes": [
+      {
+        "t": 0,
+        "len": 0.405,
+        "pitch": 79,
+        "vel": 110
+      },
+      {
+        "t": 0.45,
+        "len": 0.405,
+        "pitch": 72,
+        "vel": 110
+      },
+      {
+        "t": 0.9,
+        "len": 0.405,
+        "pitch": 79,
+        "vel": 110
+      },
+      {
+        "t": 1.35,
+        "len": 0.405,
+        "pitch": 72,
+        "vel": 110
+      }
+    ],
+    "variants": {
+      "A": {},
+      "B": {
+        "preset": "Billain/Presets/Factory Presets/Cinema Bells.vital"
+      }
+    }
+  },
+  {
+    "name": "power-annoy-13",
+    "preset": "Afro/Presets/Kick Drum 1.vital",
+    "length": 2,
+    "notes": [
+      {
+        "t": 0,
+        "len": 0.06,
+        "pitch": 40,
+        "vel": 70
+      },
+      {
+        "t": 0.124,
+        "len": 0.06,
+        "pitch": 40,
+        "vel": 73
+      },
+      {
+        "t": 0.239,
+        "len": 0.06,
+        "pitch": 40,
+        "vel": 76
+      },
+      {
+        "t": 0.344,
+        "len": 0.06,
+        "pitch": 40,
+        "vel": 79
+      },
+      {
+        "t": 0.441,
+        "len": 0.06,
+        "pitch": 40,
+        "vel": 82
+      },
+      {
+        "t": 0.528,
+        "len": 0.06,
+        "pitch": 40,
+        "vel": 85
+      },
+      {
+        "t": 0.606,
+        "len": 0.06,
+        "pitch": 40,
+        "vel": 88
+      },
+      {
+        "t": 0.675,
+        "len": 0.06,
+        "pitch": 40,
+        "vel": 91
+      },
+      {
+        "t": 0.735,
+        "len": 0.06,
+        "pitch": 40,
+        "vel": 94
+      },
+      {
+        "t": 0.785,
+        "len": 0.06,
+        "pitch": 40,
+        "vel": 97
+      },
+      {
+        "t": 0.827,
+        "len": 0.06,
+        "pitch": 40,
+        "vel": 100
+      },
+      {
+        "t": 0.859,
+        "len": 0.06,
+        "pitch": 40,
+        "vel": 103
+      },
+      {
+        "t": 0.882,
+        "len": 0.06,
+        "pitch": 40,
+        "vel": 106
+      },
+      {
+        "t": 0.895,
+        "len": 0.06,
+        "pitch": 40,
+        "vel": 109
+      },
+      {
+        "t": 1,
+        "len": 0.8,
+        "pitch": 33,
+        "vel": 127
+      }
+    ],
+    "variants": {
+      "A": {},
+      "B": {
+        "preset": "Glorkglunk/Presets/Thumpus.vital"
+      }
     }
   }
 ]

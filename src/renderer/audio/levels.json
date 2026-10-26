@@ -106,10 +106,10 @@
   },
   "buzzer": {
     "group": "big",
-    "seconds": 0.82,
-    "lufs": -8.9,
-    "peakDb": -0.1,
-    "gainDb": -5.1
+    "seconds": 0.9,
+    "lufs": -14.9,
+    "peakDb": -7.3,
+    "gainDb": 0.9
   },
   "count-1": {
     "group": "voice",
@@ -197,10 +197,10 @@
   },
   "defeat-trombone": {
     "group": "big",
-    "seconds": 1.72,
-    "lufs": -11.8,
-    "peakDb": -4.2,
-    "gainDb": -2.2
+    "seconds": 2.2,
+    "lufs": -22.1,
+    "peakDb": -6.5,
+    "gainDb": 5.5
   },
   "dice-roll": {
     "group": "tiles",
@@ -246,10 +246,10 @@
   },
   "game-over-fanfare": {
     "group": "big",
-    "seconds": 1.5,
-    "lufs": -11,
-    "peakDb": -3.9,
-    "gainDb": -3
+    "seconds": 2,
+    "lufs": -14,
+    "peakDb": -4.2,
+    "gainDb": 0
   },
   "gift-given": {
     "group": "big",
@@ -260,17 +260,17 @@
   },
   "heartbeat": {
     "group": "heartbeat",
-    "seconds": 0.62,
-    "lufs": -17.2,
-    "peakDb": -2.2,
-    "gainDb": -2.8
+    "seconds": 0.7,
+    "lufs": -14.3,
+    "peakDb": 0,
+    "gainDb": -5.7
   },
   "high-score-ding": {
     "group": "big",
-    "seconds": 1.2,
-    "lufs": -13.4,
-    "peakDb": -1.8,
-    "gainDb": -0.6
+    "seconds": 1.4,
+    "lufs": -20.9,
+    "peakDb": -2.6,
+    "gainDb": 1.6
   },
   "hint-ghost": {
     "group": "tiles",
@@ -407,94 +407,94 @@
   },
   "power-annoy-1": {
     "group": "silly",
-    "seconds": 1.5,
-    "lufs": -4.3,
-    "peakDb": -0.3,
-    "gainDb": -12.7
+    "seconds": 1.6,
+    "lufs": -19.1,
+    "peakDb": -2,
+    "gainDb": 1
   },
   "power-annoy-10": {
     "group": "silly",
-    "seconds": 1.45,
-    "lufs": -7.6,
-    "peakDb": -3.3,
-    "gainDb": -9.4
+    "seconds": 1.6,
+    "lufs": -13.9,
+    "peakDb": -6.6,
+    "gainDb": -3.1
   },
   "power-annoy-11": {
     "group": "silly",
-    "seconds": 1.6,
-    "lufs": -12.8,
-    "peakDb": -3.7,
-    "gainDb": -4.2
+    "seconds": 1.2,
+    "lufs": -11.4,
+    "peakDb": -3.6,
+    "gainDb": -5.6
   },
   "power-annoy-12": {
     "group": "silly",
-    "seconds": 1.2,
-    "lufs": -7.5,
-    "peakDb": -5.2,
-    "gainDb": -9.5
+    "seconds": 1.4,
+    "lufs": -7.4,
+    "peakDb": -3.6,
+    "gainDb": -9.6
   },
   "power-annoy-13": {
     "group": "silly",
-    "seconds": 1.7,
-    "lufs": -8,
+    "seconds": 2,
+    "lufs": -10.2,
     "peakDb": 0,
-    "gainDb": -9
+    "gainDb": -6.8
   },
   "power-annoy-2": {
     "group": "silly",
-    "seconds": 0.9,
-    "lufs": -5.7,
-    "peakDb": 0,
-    "gainDb": -11.3
+    "seconds": 1,
+    "lufs": -14.9,
+    "peakDb": -2.2,
+    "gainDb": -2.1
   },
   "power-annoy-3": {
     "group": "silly",
-    "seconds": 1.5,
-    "lufs": -8.4,
-    "peakDb": -5.3,
-    "gainDb": -8.6
+    "seconds": 1.6,
+    "lufs": -8.2,
+    "peakDb": -3.6,
+    "gainDb": -8.8
   },
   "power-annoy-4": {
     "group": "silly",
-    "seconds": 1.1,
-    "lufs": -5.4,
-    "peakDb": -6,
-    "gainDb": -11.6
+    "seconds": 1.2,
+    "lufs": -17.3,
+    "peakDb": -5.8,
+    "gainDb": 0.3
   },
   "power-annoy-5": {
     "group": "silly",
-    "seconds": 1,
-    "lufs": -12,
-    "peakDb": -2.1,
-    "gainDb": -5
+    "seconds": 0.9,
+    "lufs": -12.6,
+    "peakDb": -4.3,
+    "gainDb": -4.4
   },
   "power-annoy-6": {
     "group": "silly",
-    "seconds": 0.9,
-    "lufs": -5.5,
-    "peakDb": -1.1,
-    "gainDb": -11.5
+    "seconds": 1.2,
+    "lufs": -11.8,
+    "peakDb": -3.5,
+    "gainDb": -5.2
   },
   "power-annoy-7": {
     "group": "silly",
-    "seconds": 1.6,
-    "lufs": -4.9,
-    "peakDb": -3.7,
-    "gainDb": -12.1
+    "seconds": 1.8,
+    "lufs": -14.8,
+    "peakDb": -3.2,
+    "gainDb": -2.2
   },
   "power-annoy-8": {
     "group": "silly",
-    "seconds": 1.5,
-    "lufs": -8.4,
-    "peakDb": -0.9,
-    "gainDb": -8.6
+    "seconds": 1.6,
+    "lufs": -19.4,
+    "peakDb": -2.9,
+    "gainDb": 1.9
   },
   "power-annoy-9": {
     "group": "silly",
     "seconds": 1.2,
-    "lufs": -9.8,
-    "peakDb": -2.8,
-    "gainDb": -7.2
+    "lufs": -14.7,
+    "peakDb": -3.8,
+    "gainDb": -2.3
   },
   "power-preview": {
     "group": "tiles",
@@ -554,10 +554,10 @@
   },
   "rumble-fanfare": {
     "group": "big",
-    "seconds": 1.14,
-    "lufs": -11.2,
-    "peakDb": -4.3,
-    "gainDb": -2.8
+    "seconds": 1.4,
+    "lufs": -18.3,
+    "peakDb": -7.5,
+    "gainDb": 4.3
   },
   "tile-drag-tick": {
     "group": "ui",
@@ -638,10 +638,10 @@
   },
   "word-invalid": {
     "group": "tiles",
-    "seconds": 0.68,
-    "lufs": -12.5,
-    "peakDb": -3.7,
-    "gainDb": -5.5
+    "seconds": 0.7,
+    "lufs": -8.6,
+    "peakDb": -3.8,
+    "gainDb": -9.4
   },
   "word-valid": {
     "group": "tiles",
