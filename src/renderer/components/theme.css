@@ -203,7 +203,7 @@ button:focus-visible, [role='button']:focus-visible { outline: 3px solid var(--g
 }
 .wr-rack__slots {
   position: absolute;
-  inset: 5% 7% 21%;
+  inset: 13% 7% 13%;
   display: grid;
   grid-template-columns: repeat(var(--rack-slots, 7), minmax(0, 1fr));
   align-items: start;
