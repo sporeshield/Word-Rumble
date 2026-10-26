@@ -38,6 +38,12 @@ export interface PlayerState {
   madeUpCount: number
   penaltyCount: number
   conceded: boolean
+  /** Dropped out (or conceded): skipped from then on. Absent in old saves = false. */
+  out?: boolean
+  /** Order of dropping out (1 = first); later drops rank higher. */
+  outAt?: number
+  /** Points handed to another player when dropping out. Absent = 0. */
+  givenAway?: number
   /** Set by the "skip your next turn" slice; consumed when the turn would come round. */
   skipNext: boolean
 }
@@ -47,7 +53,7 @@ export interface FirstDrawStep {
   tile: Tile
 }
 
-export type TurnKind = 'play' | 'exchange' | 'pass' | 'timeout' | 'skipped'
+export type TurnKind = 'play' | 'exchange' | 'pass' | 'timeout' | 'skipped' | 'dropped'
 
 export interface TurnRecord {
   turn: number
@@ -63,8 +69,10 @@ export interface TurnRecord {
   penalty: PenaltyOutcome | null
   /** Extra points the penalty took off the mover's total (negative or 0). */
   penaltyDelta: number
-  /** Points handed to the other player by the Gift slice. */
+  /** Points handed to another player by the Gift slice (or by dropping out). */
   gifted: number
+  /** Who received those points. Absent in old saves. */
+  giftTo?: number
 }
 
 export type EndReason = 'out' | 'scoreless' | 'conceded' | 'finished'
@@ -77,9 +85,11 @@ export interface Adjustment {
 
 export interface GameResult {
   reason: EndReason
-  /** Winning player index, or null for a draw (and for a solo run). */
+  /** Sole winner (`ranking[0]` when single), or null for a shared first place and for a solo run. */
   winner: number | null
   conceder: number | null
+  /** Places, best first; players who tie share a place. Dropped players come last (latest drop first). */
+  ranking: number[][]
   /** Scores before end-of-game adjustments (the tie-break). */
   preAdjust: number[]
   adjustments: Adjustment[]
@@ -121,6 +131,7 @@ export type GameError =
   | 'penalty-missing'
   | 'invalid-penalty'
   | 'vote-missing'
+  | 'bad-recipient'
   | 'hints-off'
   | 'hint-not-offered'
   | 'not-solo'
@@ -131,12 +142,20 @@ export type GameError =
   | 'bad-swap-cost'
 
 export type GameAction =
-  | { type: 'play'; placements: Placement[]; madeUp?: boolean; penalty?: PenaltyOutcome; vote?: 'keep' | 'zero' }
+  /**
+   * `recipient` (Gift) is required with 3+ players. `votes` (Convince) holds one vote from every other
+   * active player; `vote` is the two-player shorthand for a single vote.
+   */
+  | {
+      type: 'play'; placements: Placement[]; madeUp?: boolean; penalty?: PenaltyOutcome
+      vote?: Vote; votes?: Vote[]; recipient?: number
+    }
   /** `cost` is the quoted swap price; a locked quote wins, and the computer passes a freshly rolled one. */
   | { type: 'exchange'; tileIds: number[]; cost?: number }
   | { type: 'pass' }
   | { type: 'timeout' }
-  | { type: 'concede' }
+  /** Drop out. With 3+ players `recipient` gets the dropper's score (null/absent = nobody); two players ignore it. */
+  | { type: 'concede'; recipient?: number | null }
   /** Solo only: end the run and subtract the leftover rack. */
   | { type: 'finish' }
   /** Price quote for a hint (the UI passes `rollHintCost()`); ignored if one is already locked this turn. */
@@ -147,13 +166,18 @@ export type GameAction =
   | { type: 'shuffle-accept' }
   | { type: 'swap-offer'; cost: number }
 
+export type Vote = 'keep' | 'zero'
+
 export type ReduceResult = { ok: true; state: GameState } | { ok: false; error: GameError }
 
 const fail = (error: GameError): ReduceResult => ({ ok: false, error })
 const succeed = (state: GameState): ReduceResult => ({ ok: true, state })
 
-/** Consecutive scoreless turns that end the game: 6 for two players, 3 for a solo run. */
-export const scorelessLimit = (playerCount: number): number => (playerCount === 1 ? 3 : 6)
+/** Consecutive scoreless turns that end the game: 6 for two players, 3 each for 3–4, 3 for a solo run. */
+export const scorelessLimit = (playerCount: number): number => (playerCount === 1 ? 3 : playerCount === 2 ? 6 : 3 * playerCount)
+
+const isActive = (p: PlayerState): boolean => !p.out
+const activeCount = (state: GameState): number => state.players.filter(isActive).length
 
 // ---------------------------------------------------------------- first-turn draw
 
@@ -177,11 +201,12 @@ export function drawForFirstTurn(playerCount: number): { rounds: FirstDrawStep[]
 
 // ---------------------------------------------------------------- setup
 
-const expectedPlayers = (mode: GameMode): number => (mode === 'solo' ? 1 : 2)
+const validPlayerCount = (mode: GameMode, count: number): boolean =>
+  mode === 'solo' ? count === 1 : mode === 'computer' ? count === 2 : count >= 2 && count <= 4
 
 /** Start a game: first-turn draw, then the full set is reshuffled and 7 tiles dealt to each player. */
 export function createGame(options: GameOptions): GameState {
-  if (options.names.length !== expectedPlayers(options.mode)) throw new Error('names does not match mode')
+  if (!validPlayerCount(options.mode, options.names.length)) throw new Error('names does not match mode')
   const { rounds, starter } = drawForFirstTurn(options.names.length)
   let bag = createBag(createTileSet())
   const players: PlayerState[] = options.names.map((name) => {
@@ -190,7 +215,7 @@ export function createGame(options: GameOptions): GameState {
     return {
       name, rack: dealt.drawn, score: 0, rumbles: 0, hintsUsed: 0, hintPointsLost: 0,
       shufflePointsLost: 0, swapPointsLost: 0,
-      madeUpCount: 0, penaltyCount: 0, conceded: false, skipNext: false
+      madeUpCount: 0, penaltyCount: 0, conceded: false, out: false, givenAway: 0, skipNext: false
     }
   })
   return {
@@ -219,7 +244,23 @@ const record = (state: GameState, partial: Partial<TurnRecord> & Pick<TurnRecord
   }]
 })
 
-/** Settle the game: apply end-of-game adjustments and decide the winner. */
+/** Places best first: active players by final score (pre-adjust breaks ties), then dropped players, latest drop first. */
+function rankPlayers(players: PlayerState[], finalScores: number[], preAdjust: number[]): number[][] {
+  const active = players.map((_, i) => i).filter((i) => isActive(players[i]))
+  active.sort((a, b) => finalScores[b] - finalScores[a] || preAdjust[b] - preAdjust[a])
+  const ranking: number[][] = []
+  for (const i of active) {
+    const last = ranking[ranking.length - 1]
+    if (last && finalScores[last[0]] === finalScores[i] && preAdjust[last[0]] === preAdjust[i]) last.push(i)
+    else ranking.push([i])
+  }
+  const dropped = players.map((_, i) => i).filter((i) => !isActive(players[i]))
+  dropped.sort((a, b) => (players[b].outAt ?? 0) - (players[a].outAt ?? 0))
+  for (const i of dropped) ranking.push([i])
+  return ranking
+}
+
+/** Settle the game: apply end-of-game adjustments and decide the places. */
 function endGame(state: GameState, reason: EndReason, opts: { out?: number; conceder?: number } = {}): GameState {
   const preAdjust = state.players.map((p) => p.score)
   const adjustments: Adjustment[] = []
@@ -228,41 +269,44 @@ function endGame(state: GameState, reason: EndReason, opts: { out?: number; conc
     const out = opts.out!
     let gain = 0
     state.players.forEach((p, i) => {
-      if (i === out) return
+      if (i === out || !isActive(p)) return
       const value = rackValue(p.rack)
       gain += value
       adjustments.push({ player: i, delta: -value, label: 'Tiles left on rack' })
     })
     adjustments.unshift({ player: out, delta: gain, label: 'Went out — got the leftover tiles' })
   } else if (reason !== 'conceded') {
-    state.players.forEach((p, i) => adjustments.push({ player: i, delta: -rackValue(p.rack), label: 'Tiles left on rack' }))
+    state.players.forEach((p, i) => {
+      if (isActive(p)) adjustments.push({ player: i, delta: -rackValue(p.rack), label: 'Tiles left on rack' })
+    })
   }
   const finalScores = preAdjust.map((s, i) => s + adjustments.filter((a) => a.player === i).reduce((t, a) => t + a.delta, 0))
-  let winner: number | null = null
-  if (n > 1) {
-    if (reason === 'conceded') winner = 1 - opts.conceder!
-    else if (finalScores[0] !== finalScores[1]) winner = finalScores[0] > finalScores[1] ? 0 : 1
-    else if (preAdjust[0] !== preAdjust[1]) winner = preAdjust[0] > preAdjust[1] ? 0 : 1
-  }
+  const ranking = rankPlayers(state.players, finalScores, preAdjust)
+  const winner = n > 1 && ranking[0].length === 1 ? ranking[0][0] : null
   const players = state.players.map((p, i) => ({
     ...p, score: finalScores[i], conceded: p.conceded || opts.conceder === i
   }))
   return {
     ...state, players, phase: 'over', hint: null, shuffle: null, swap: null,
-    result: { reason, winner, conceder: opts.conceder ?? null, preAdjust, adjustments, finalScores }
+    result: { reason, winner, conceder: opts.conceder ?? null, ranking, preAdjust, adjustments, finalScores }
   }
 }
 
 /** Move to the next player (honouring "skip your next turn") and clear the per-turn hint lock. */
 function advance(state: GameState): GameState {
   const n = state.players.length
-  let next: GameState = { ...state, turn: state.turn + 1, current: (state.current + 1) % n, hint: null, shuffle: null, swap: null }
+  const following = (from: number): number => {
+    let i = (from + 1) % n
+    while (state.players[i].out && i !== from) i = (i + 1) % n
+    return i
+  }
+  let next: GameState = { ...state, turn: state.turn + 1, current: following(state.current), hint: null, shuffle: null, swap: null }
   while (n > 1 && next.players[next.current].skipNext) {
     next = record({ ...next, players: patchPlayer(next, next.current, { skipNext: false }) }, { kind: 'skipped' })
     // A skipped turn is a scoreless turn too.
     next = { ...next, consecutiveScoreless: next.consecutiveScoreless + 1 }
-    if (next.consecutiveScoreless >= scorelessLimit(n)) return endGame(next, 'scoreless')
-    next = { ...next, turn: next.turn + 1, current: (next.current + 1) % n }
+    if (next.consecutiveScoreless >= scorelessLimit(activeCount(next))) return endGame(next, 'scoreless')
+    next = { ...next, turn: next.turn + 1, current: following(next.current) }
   }
   return next
 }
@@ -271,7 +315,7 @@ function advance(state: GameState): GameState {
 function finishTurn(state: GameState, scoreless: boolean): GameState {
   const consecutiveScoreless = scoreless ? state.consecutiveScoreless + 1 : 0
   const next = { ...state, consecutiveScoreless }
-  if (consecutiveScoreless >= scorelessLimit(next.players.length)) return endGame(next, 'scoreless')
+  if (consecutiveScoreless >= scorelessLimit(activeCount(next))) return endGame(next, 'scoreless')
   return advance(next)
 }
 
@@ -302,7 +346,19 @@ function doPlay(state: GameState, action: Extract<GameAction, { type: 'play' }>)
     const soloOnly = penalty === 'minus20'
     const duoOnly = penalty === 'gift' || penalty === 'convince'
     if ((solo && duoOnly) || (!solo && soloOnly)) return fail('invalid-penalty')
-    if (penalty === 'convince' && !action.vote) return fail('vote-missing')
+  }
+  const others = state.players.map((_, i) => i).filter((i) => i !== state.current && isActive(state.players[i]))
+  let giftTo: number | undefined
+  let voteResult: Vote | undefined
+  if (penalty === 'gift') {
+    giftTo = action.recipient ?? (others.length === 1 ? others[0] : undefined)
+    if (giftTo === undefined || !others.includes(giftTo)) return fail('bad-recipient')
+  }
+  if (penalty === 'convince') {
+    const votes = action.votes ?? (action.vote ? [action.vote] : [])
+    if (votes.length !== others.length) return fail('vote-missing')
+    // A majority of "zero" wipes the play; a tie keeps it.
+    voteResult = votes.filter((v) => v === 'zero').length > votes.length / 2 ? 'zero' : 'keep'
   }
 
   const rackById = new Map(player.rack.map((t) => [t.id, t]))
@@ -332,7 +388,7 @@ function doPlay(state: GameState, action: Extract<GameAction, { type: 'play' }>)
     case 'minus20': penaltyDelta = -20; break
     case 'gift': gifted = score.total; awarded = 0; break
     case 'skip': skipNext = !solo; break // nobody to skip past in a solo run
-    case 'convince': if (action.vote === 'zero') awarded = 0; break
+    case 'convince': if (voteResult === 'zero') awarded = 0; break
     case 'rackwipe':
       if (bag.length >= EXCHANGE_MIN_BAG) {
         // Forced exchange of the whole rack.
@@ -345,7 +401,7 @@ function doPlay(state: GameState, action: Extract<GameAction, { type: 'play' }>)
   }
 
   const players = state.players.map((p, i) => {
-    if (i !== state.current) return gifted ? { ...p, score: p.score + gifted } : p
+    if (i !== state.current) return gifted && i === giftTo ? { ...p, score: p.score + gifted } : p
     return {
       ...p, rack, score: p.score + awarded + penaltyDelta,
       rumbles: p.rumbles + (score.rumble ? 1 : 0),
@@ -360,7 +416,7 @@ function doPlay(state: GameState, action: Extract<GameAction, { type: 'play' }>)
   let next: GameState = { ...state, board, owners, bag, players }
   next = record(next, {
     kind: 'play', words: score.words, rawScore: score.total, awarded, rumble: score.rumble,
-    madeUp, penalty, penaltyDelta, gifted
+    madeUp, penalty, penaltyDelta, gifted, ...(giftTo !== undefined ? { giftTo } : {})
   })
   next = withBurst(next, madeUp ? 'fibber' : burstTierForPlay(score.total, score.rumble, score.premiumsHit))
 
@@ -448,6 +504,49 @@ function doHint(state: GameState, action: GameAction): ReduceResult {
   return succeed(withBurst(next, 'hint'))
 }
 
+/** Drop out. Two players: the other wins as before. 3–4: score goes to the chosen player, rack to the bag, play carries on. */
+function doConcede(state: GameState, recipient: number | null): ReduceResult {
+  const conceder = state.current
+  const n = state.players.length
+  const base = { ...state, lastBurst: null }
+  if (n === 1) return succeed(endGame(base, 'finished', { conceder }))
+  const outAt = state.players.filter((p) => p.out).length + 1
+  if (n === 2) {
+    return succeed(endGame({ ...base, players: patchPlayer(base, conceder, { out: true, outAt }) }, 'conceded', { conceder }))
+  }
+  const dropper = state.players[conceder]
+  if (recipient !== null && (recipient === conceder || !state.players[recipient] || state.players[recipient].out)) {
+    return fail('bad-recipient')
+  }
+  const given = recipient !== null ? dropper.score : 0
+  const players = state.players.map((p, i) => {
+    if (i === conceder) return { ...p, rack: [], out: true, outAt, conceded: true, givenAway: given, score: p.score - given }
+    return i === recipient ? { ...p, score: p.score + given } : p
+  })
+  let next: GameState = { ...base, players, bag: returnTiles(state.bag, dropper.rack) }
+  next = record(next, { kind: 'dropped', gifted: given, ...(recipient !== null ? { giftTo: recipient } : {}) })
+  if (activeCount(next) === 1) return succeed(endGame(next, 'conceded', { conceder }))
+  // The limit shrinks with the table: the existing silent turns may already be enough.
+  if (next.consecutiveScoreless >= scorelessLimit(activeCount(next))) return succeed(endGame(next, 'scoreless'))
+  return succeed(advance(next))
+}
+
+/** Fill in the fields older saves lack (drop-outs, ranking) so a saved game can continue. */
+export function normaliseGame(state: GameState): GameState {
+  const players = state.players.map((p) => ({
+    ...p, out: p.out ?? false, givenAway: p.givenAway ?? 0,
+    shufflePointsLost: p.shufflePointsLost ?? 0, swapPointsLost: p.swapPointsLost ?? 0
+  }))
+  let result = state.result
+  if (result && !result.ranking) {
+    // Old results: the conceder of a conceded game ranks last.
+    const c = result.reason === 'conceded' ? result.conceder : null
+    const ranked = players.map((p, i) => (i === c ? { ...p, out: true, outAt: p.outAt ?? 1 } : p))
+    result = { ...result, ranking: rankPlayers(ranked, result.finalScores, result.preAdjust) }
+  }
+  return { ...state, players, shuffle: state.shuffle ?? null, swap: state.swap ?? null, result }
+}
+
 /** The one entry point for every game action. Pure apart from crypto shuffles of the bag. */
 export function reduce(state: GameState, action: GameAction): ReduceResult {
   if (state.phase === 'over') return fail('game-over')
@@ -458,11 +557,7 @@ export function reduce(state: GameState, action: GameAction): ReduceResult {
       return succeed(finishTurn(withBurst(record(state, { kind: 'pass' }), null), true))
     case 'timeout':
       return succeed(finishTurn(withBurst(record(state, { kind: 'timeout' }), 'timeout'), true))
-    case 'concede': {
-      const conceder = state.current
-      const next = { ...state, lastBurst: null }
-      return succeed(endGame(next, state.players.length === 1 ? 'finished' : 'conceded', { conceder }))
-    }
+    case 'concede': return doConcede(state, action.recipient ?? null)
     case 'finish':
       if (state.players.length !== 1) return fail('not-solo')
       return succeed(endGame({ ...state, lastBurst: null }, 'finished'))

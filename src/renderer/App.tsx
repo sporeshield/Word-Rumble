@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { createGame, type GameState } from './engine/game'
+import { createGame, normaliseGame, type GameState } from './engine/game'
 import type { ShortcutStatus } from '../shared/api'
 import { sfx, type Voice } from './audio/sfx'
 import { Deal } from './screens/Deal'
@@ -31,7 +31,7 @@ function parseSaved(json: string | null): SavedGame | null {
   if (!json) return null
   try {
     const data = JSON.parse(json) as Partial<SavedGame>
-    if (data.game && data.game.phase === 'playing' && data.setup) return { game: data.game, setup: loadSetup(data.setup), turnSecondsLeft: typeof data.turnSecondsLeft === 'number' && data.turnSecondsLeft > 0 ? data.turnSecondsLeft : undefined }
+    if (data.game && data.game.phase === 'playing' && data.setup) return { game: normaliseGame(data.game), setup: loadSetup(data.setup), turnSecondsLeft: typeof data.turnSecondsLeft === 'number' && data.turnSecondsLeft > 0 ? data.turnSecondsLeft : undefined }
   } catch { /* corrupt autosave: treat as none */ }
   return null
 }
