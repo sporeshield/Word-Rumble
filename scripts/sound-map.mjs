@@ -106,4 +106,9 @@ export const STUDIO_SOUNDS = [
   'power-annoy-11',
   'power-annoy-12',
   'power-annoy-13',
+  'kablam-1',
+  'kablam-2',
+  'kablam-3',
+  'burst-pop-1',
+  'burst-pop-2',
 ];

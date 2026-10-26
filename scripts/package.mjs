@@ -33,4 +33,6 @@ for (const name of readdirSync(target)) {
 cpSync(built, target, { recursive: true })
 mkdirSync(join(target, 'data'), { recursive: true })
 mkdirSync(join(target, 'sounds', 'custom'), { recursive: true })
+const soundNames = readdirSync(join(root, 'resources', 'sounds')).filter((f) => /\.(ogg|wav|mp3)$/i.test(f)).map((f) => f.replace(/\.[^.]+$/, '')).sort()
+writeFileSync(join(target, 'sounds', 'custom', 'README.txt'), `Drop your own sound here (.ogg, .mp3 or .wav) named exactly like one of these to replace it:\r\n\r\n${soundNames.join('\r\n')}\r\n`)
 console.log(`\nPackaged: ${target}`)

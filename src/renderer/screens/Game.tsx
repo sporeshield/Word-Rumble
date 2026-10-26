@@ -187,7 +187,10 @@ export function Game({ game: initialGame, colors, muted, difficulty, rackSide = 
     }
     // A play on power squares gets loud random pool sounds instead of the normal burst sound — never the type.
     const annoy = record?.kind === 'play' ? next.lastAnnoy ?? [] : []
-    if (annoy.length) annoy.forEach((name, i) => window.setTimeout(() => sfx.play(name, { varyPitch: false }), i * 450))
+    if (annoy.length) {
+      sfx.play('kablam')
+      annoy.forEach((name, i) => window.setTimeout(() => sfx.play(name, { varyPitch: false }), 250 + i * 450))
+    }
     else if (next.lastBurst) sfx.play('burst')
     setGhost([])
     if (record?.rumble) sfx.play('rumble-fanfare')

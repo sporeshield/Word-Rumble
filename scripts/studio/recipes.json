@@ -990,5 +990,106 @@
         "preset": "Glorkglunk/Presets/Thumpus.vital"
       }
     }
+  },
+  {
+    "name": "kablam-1",
+    "preset": "Billain/Presets/Factory Presets/Railgun.vital",
+    "length": 1,
+    "notes": [
+      {
+        "t": 0,
+        "len": 0.2,
+        "pitch": 36,
+        "vel": 125
+      }
+    ],
+    "variants": {
+      "A": {},
+      "B": {
+        "preset": "Halcyon Future Riddim Vol 1/Presets/Voltra/VLT Future Gun.vital"
+      }
+    }
+  },
+  {
+    "name": "kablam-2",
+    "preset": "Halcyon Future Riddim Vol 1/Presets/Voltra/VLT Future Gun.vital",
+    "length": 1,
+    "notes": [
+      {
+        "t": 0,
+        "len": 0.2,
+        "pitch": 40,
+        "vel": 125
+      }
+    ],
+    "variants": {
+      "A": {},
+      "B": {
+        "preset": "Databroth/Presets/Factory Presets/Disrupt.vital"
+      }
+    }
+  },
+  {
+    "name": "kablam-3",
+    "preset": "Databroth/Presets/Factory Presets/Disrupt.vital",
+    "length": 0.9,
+    "notes": [
+      {
+        "t": 0,
+        "len": 0.15,
+        "pitch": 52,
+        "vel": 125
+      }
+    ],
+    "variants": {
+      "A": {},
+      "B": {
+        "preset": "Databroth/Presets/Factory Presets/Feeder.vital"
+      }
+    }
+  },
+  {
+    "name": "burst-pop-1",
+    "preset": "Databroth/Presets/Factory Presets/Feeder.vital",
+    "length": 0.8,
+    "notes": [
+      {
+        "t": 0,
+        "len": 0.15,
+        "pitch": 60,
+        "vel": 115
+      }
+    ],
+    "variants": {
+      "A": {},
+      "B": {
+        "preset": "Glorkglunk/Presets/Squish Clicker.vital"
+      }
+    }
+  },
+  {
+    "name": "burst-pop-2",
+    "preset": "Mr Bill/Presets/E4 One Note Metallophone.vital",
+    "length": 0.9,
+    "notes": [
+      {
+        "t": 0,
+        "len": 0.12,
+        "pitch": 72,
+        "vel": 115
+      },
+      {
+        "t": 0.12,
+        "len": 0.2,
+        "pitch": 79,
+        "vel": 115
+      }
+    ],
+    "variants": {
+      "A": {},
+      "B": {
+        "preset": "Level 8/Presets/Factory Presets/Crescendo Bells.vital"
+      }
+    }
   }
 ]

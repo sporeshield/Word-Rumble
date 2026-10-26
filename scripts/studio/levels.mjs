@@ -23,7 +23,7 @@ export const GROUPS = [
   { group: 'voice', target: -16, match: /^(male-)?(count-|voice-)/ },
   { group: 'heartbeat', target: -20, match: /^heartbeat/ },
   { group: 'silly', target: -17, match: /^power-annoy-/ },
-  { group: 'big', target: -14, match: /^(burst-|countdown-boom|power-reveal|rumble-fanfare|game-over-fanfare|high-score-ding|defeat-trombone|drop-out|gift-given|quit-nosave|buzzer)/ },
+  { group: 'big', target: -14, match: /^(burst-|kablam-|countdown-boom|power-reveal|rumble-fanfare|game-over-fanfare|high-score-ding|defeat-trombone|drop-out|gift-given|quit-nosave|buzzer)/ },
 ]
 export const groupOf = (name) => GROUPS.find((g) => g.match.test(name)) ?? { group: 'tiles', target: -18 }
 
