@@ -191,16 +191,17 @@ export function Game({ game: initialGame, colors, muted, difficulty, onToggleSou
   }, [remaining, idle, recall, applyAction])
 
   const pause = useCallback(() => { sfx.play('pause'); setOverlay('pause') }, [])
-  const resume = () => {
+  const resume = (viaKeyboard = false) => {
     sfx.play('resume')
     // Two players: the laptop may have changed hands, so back through "Let's go!".
-    setOverlay(game.options.mode === 'two' ? 'handoff' : null)
+    // Escape-Escape is the same person at the keyboard, so it goes straight back.
+    setOverlay(game.options.mode === 'two' && !viaKeyboard ? 'handoff' : null)
   }
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (event.key !== 'Escape') return
-      if (overlay === 'pause') resume()
+      if (overlay === 'pause') resume(true)
       else if (idle) pause()
       else if (dialog && dialog.kind !== 'blank') setDialog(null)
     }
@@ -507,7 +508,7 @@ export function Game({ game: initialGame, colors, muted, difficulty, onToggleSou
       ) : null}
 
       {overlay === 'pause' ? (
-        <PauseMenu muted={muted} onResume={resume} onToggleSound={onToggleSound} onSaveQuit={() => onSaveQuit(game)} />
+        <PauseMenu muted={muted} onResume={() => resume()} onToggleSound={onToggleSound} onSaveQuit={() => onSaveQuit(game)} />
       ) : null}
       {overlay === 'handoff' ? <Handoff name={me.name} color={myColor} onGo={() => { setOverlay(null); sfx.play('flip-see') }} /> : null}
     </div>
