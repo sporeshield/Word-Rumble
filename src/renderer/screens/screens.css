@@ -284,3 +284,4 @@
   .wr-setup__board .wr-setup__surprise { margin-left: 0; }
 }
 .wr-setup__board p { display: none; }
+@media (max-height: 800px) { .wr-setup__players--4 { gap: 6px; } }
