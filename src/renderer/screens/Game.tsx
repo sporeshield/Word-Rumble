@@ -14,9 +14,11 @@ import { Handoff } from './Handoff'
 import { BlankPicker, DefeatDialog, ExchangeDialog, PauseMenu, WordCheckDialog } from './game/Dialogs'
 import { CostQuoteDialog } from './game/CostDialog'
 import { HintOfferDialog, NoHintDialog } from './game/HintDialog'
+import { countdownStage } from './game/countdown'
 import { PenaltyWheel } from './game/PenaltyWheel'
 import { VoteDialog } from './game/VoteDialog'
 import './game/game.css'
+import './game/countdown.css'
 
 export interface GameProps {
   game: GameState
@@ -28,7 +30,9 @@ export interface GameProps {
   onToggleSound(): void
   /** The turn is over (after the short result banner). App decides who sees the screen next. */
   onTurnDone(next: GameState): void
-  onSaveQuit(game: GameState): void
+  /** Seconds left on this turn's timer when the game was saved (Continue resumes from it). */
+  resumeSeconds?: number
+  onSaveQuit(game: GameState, secondsLeft: number | null): void
   onQuitNoSave(): void
 }
 
@@ -48,6 +52,7 @@ type Dialog =
 type PlayAction = Extract<GameAction, { type: 'play' }>
 
 const SETTLE_MS = 1500
+const BOOM_MS = 1600
 
 const ERRORS: Partial<Record<GameError, string>> = {
   'exchange-not-allowed': 'The bag is too low to swap tiles.',
@@ -63,8 +68,15 @@ function TurnTimer({ seconds, total }: { seconds: number; total: number }) {
   const fraction = Math.max(0, Math.min(1, seconds / total))
   const radius = 44
   const circumference = 2 * Math.PI * radius
+  const stage = countdownStage(seconds)
+  const level = stage.kind === 'nervous' ? stage.level : stage.kind === 'boom' ? 10 : 0
   return (
-    <div className={`wr-timer${seconds <= 10 ? ' is-low' : ''}`} role="timer" aria-label={`${seconds} seconds left`}>
+    <div
+      className={`wr-timer${level ? ' is-low is-nervous' : ''}`}
+      style={level ? ({ '--wr-level': level } as CSSProperties) : undefined}
+      role="timer"
+      aria-label={`${seconds} seconds left`}
+    >
       <svg viewBox="0 0 100 100" aria-hidden="true">
         <circle className="wr-timer__track" cx="50" cy="50" r={radius} />
         <circle
@@ -75,12 +87,12 @@ function TurnTimer({ seconds, total }: { seconds: number; total: number }) {
           transform="rotate(-90 50 50)"
         />
       </svg>
-      <span className="wr-timer__text">{seconds}</span>
+      <span key={seconds} className="wr-timer__text">{seconds}</span>
     </div>
   )
 }
 
-export function Game({ game: initialGame, colors, muted, difficulty, onToggleSound, onTurnDone, onSaveQuit, onQuitNoSave }: GameProps) {
+export function Game({ game: initialGame, colors, muted, difficulty, onToggleSound, onTurnDone, resumeSeconds, onSaveQuit, onQuitNoSave }: GameProps) {
   // Local copy: hint quotes and costs change the game state mid-turn, before the turn ends.
   const [game, setGame] = useState(initialGame)
   const solo = game.players.length === 1
@@ -100,7 +112,11 @@ export function Game({ game: initialGame, colors, muted, difficulty, onToggleSou
   const [ghost, setGhost] = useState<Placement[]>([])
   const [fxBurst, setFxBurst] = useState<{ text: string; tier: BurstTier } | null>(null)
   const hintCount = useRef(0)
-  const [remaining, setRemaining] = useState<number | null>(computerTurn ? null : timerTotal)
+  const [remaining, setRemaining] = useState<number | null>(computerTurn ? null : resumeSeconds ?? timerTotal)
+  const [boom, setBoom] = useState(false)
+  // Nervous level 1–10 while the last ten seconds run on a human turn (drives the vignette).
+  const stageNow = remaining !== null && !computerTurn ? countdownStage(remaining) : null
+  const nervous = stageNow?.kind === 'nervous' && overlay === null ? stageNow.level : 0
 
   const flash = useCallback((text: string) => {
     setToast(text)
@@ -116,7 +132,7 @@ export function Game({ game: initialGame, colors, muted, difficulty, onToggleSou
   const preview = useMemo(() => previewPlay(game.board, pending), [game.board, pending])
   // Letters are visible only to the player whose turn it is, and only while nothing covers the screen.
   const hidden = overlay !== null || settle !== null || computerTurn || dialog?.kind === 'wheel' || dialog?.kind === 'vote'
-  const idle = dialog === null && overlay === null && settle === null && !busy
+  const idle = dialog === null && overlay === null && settle === null && !busy && !boom
 
   // ------------------------------------------------------------------ actions
   const applyAction = useCallback((action: GameAction, text: string) => {
@@ -180,22 +196,39 @@ export function Game({ game: initialGame, colors, muted, difficulty, onToggleSou
     setSelectedId(undefined)
   }, [])
 
-  // Speed timer: runs only while the player can actually play.
+  // Speed timer: runs only while the player can actually play. The last 10 seconds are the nervous countdown.
   useEffect(() => {
     if (remaining === null || !idle) return
     if (remaining <= 0) {
-      sfx.play('buzzer')
-      setDialog(null)
-      recall(true)
-      applyAction({ type: 'timeout' }, 'Too slow!')
+      // BOOM!!: shake and flash, then the usual timeout once the bang has landed.
+      setBoom(true)
+      sfx.play('countdown-boom')
+      sfx.play('burst-boom-1')
+      sfx.play('count-time-over')
       return
     }
     const id = window.setTimeout(() => {
-      if (remaining <= 11) sfx.play('timer-tick')
-      setRemaining(remaining - 1)
+      const next = remaining - 1
+      const stage = countdownStage(next)
+      if (stage.kind === 'nervous') {
+        sfx.play('heartbeat', { rate: stage.heartbeatRate })
+        sfx.play(stage.voiceSound)
+      }
+      setRemaining(next)
     }, 1000)
     return () => window.clearTimeout(id)
-  }, [remaining, idle, recall, applyAction])
+  }, [remaining, idle, recall])
+
+  useEffect(() => {
+    if (!boom) return
+    const id = window.setTimeout(() => {
+      setBoom(false)
+      setDialog(null)
+      recall(true)
+      applyRef.current({ type: 'timeout' }, 'Too slow!')
+    }, BOOM_MS)
+    return () => window.clearTimeout(id)
+  }, [boom, recall])
 
   const pause = useCallback(() => { sfx.play('pause'); setOverlay('pause') }, [])
   const resume = (viaKeyboard = false) => {
@@ -393,7 +426,7 @@ export function Game({ game: initialGame, colors, muted, difficulty, onToggleSou
   const style = { '--player': myColor } as CSSProperties
 
   return (
-    <div className="wr-play halftone-2" style={style}>
+    <div className={`wr-play halftone-2${boom ? ' is-booming' : ''}`} style={style}>
       <div className="wr-play__board">
         <Board
           board={game.board}
@@ -493,6 +526,8 @@ export function Game({ game: initialGame, colors, muted, difficulty, onToggleSou
       ) : null}
 
       {settle?.burst ? <ComicBurst text={settle.burst.text} tier={settle.burst.tier} /> : null}
+      {nervous ? <div className="wr-vignette" style={{ '--wr-level': nervous } as CSSProperties} aria-hidden="true" /> : null}
+      {boom ? <div className="wr-boom" aria-hidden="true"><div className="wr-boom__flash" /><span className="wr-boom__text">BOOM!!</span></div> : null}
       {fxBurst ? <ComicBurst text={fxBurst.text} tier={fxBurst.tier} onDone={() => setFxBurst(null)} /> : null}
 
       {dialog?.kind === 'hint' ? (
@@ -550,7 +585,7 @@ export function Game({ game: initialGame, colors, muted, difficulty, onToggleSou
       ) : null}
 
       {overlay === 'pause' ? (
-        <PauseMenu muted={muted} onResume={() => resume()} onToggleSound={onToggleSound} onSaveQuit={() => onSaveQuit(game)} onQuitNoSave={onQuitNoSave} />
+        <PauseMenu muted={muted} onResume={() => resume()} onToggleSound={onToggleSound} onSaveQuit={() => onSaveQuit(game, remaining)} onQuitNoSave={onQuitNoSave} />
       ) : null}
       {overlay === 'handoff' ? <Handoff name={me.name} color={myColor} onGo={() => { setOverlay(null); sfx.play('flip-see') }} /> : null}
     </div>

@@ -23,13 +23,15 @@ type Screen = 'title' | 'setup' | 'shuffle' | 'draw' | 'deal' | 'handoff' | 'gam
 interface SavedGame {
   game: GameState
   setup: SetupConfig
+  /** Seconds left on the current turn's timer when saved by Save & quit (timer games). */
+  turnSecondsLeft?: number
 }
 
 function parseSaved(json: string | null): SavedGame | null {
   if (!json) return null
   try {
     const data = JSON.parse(json) as Partial<SavedGame>
-    if (data.game && data.game.phase === 'playing' && data.setup) return { game: data.game, setup: loadSetup(data.setup) }
+    if (data.game && data.game.phase === 'playing' && data.setup) return { game: data.game, setup: loadSetup(data.setup), turnSecondsLeft: typeof data.turnSecondsLeft === 'number' && data.turnSecondsLeft > 0 ? data.turnSecondsLeft : undefined }
   } catch { /* corrupt autosave: treat as none */ }
   return null
 }
@@ -54,6 +56,8 @@ export function App() {
   /** Autosave save/clear calls run strictly one after another so a late save can never bring a quit game back. */
   const saveQueue = useRef<Promise<unknown>>(Promise.resolve())
   const recorded = useRef<GameState | null>(null)
+  /** Timer seconds to resume with after Continue; used by the first turn only. */
+  const [resumeSeconds, setResumeSeconds] = useState<number | undefined>()
   /** Desktop-shortcut offer: shown once on launch when missing, or when it points at another folder. */
   const [shortcut, setShortcut] = useState<ShortcutStatus | null>(null)
   const [offerShortcut, setOfferShortcut] = useState(false)
@@ -121,6 +125,7 @@ export function App() {
   }, [screen, game, setup])
 
   const startGame = (config: SetupConfig) => {
+    setResumeSeconds(undefined)
     setSetup(config)
     void window.wordRumble.settings.set('setup', config)
     setGame(createGame({
@@ -139,12 +144,14 @@ export function App() {
     if (!saved) return
     setSetup(saved.setup)
     setGame(saved.game)
+    setResumeSeconds(saved.turnSecondsLeft)
     // Two players: back to the "take the laptop" screen so nobody sees a rack by accident.
     setScreen('handoff')
   }
 
   /** A turn finished: game over, the next player's "take the laptop" screen (two players), or straight on. */
   const turnDone = useCallback((next: GameState) => {
+    setResumeSeconds(undefined)
     setGame(next)
     autosave(next, setup)
     if (next.phase === 'over') { setHighScores(null); setScreen('over'); return }
@@ -152,8 +159,9 @@ export function App() {
   }, [autosave, setup])
 
   // Save & quit from the pause menu.
-  const saveQuit = (current: GameState) => {
-    writeSave(JSON.stringify({ game: current, setup } satisfies SavedGame))
+  const saveQuit = (current: GameState, secondsLeft: number | null) => {
+    writeSave(JSON.stringify({ game: current, setup, turnSecondsLeft: secondsLeft ?? undefined } satisfies SavedGame))
+    setResumeSeconds(undefined)
     setScreen('title')
   }
 
@@ -268,6 +276,7 @@ export function App() {
             muted={muted}
             difficulty={setup.difficulty}
             onToggleSound={() => changeMuted(!muted)}
+            resumeSeconds={resumeSeconds}
             onTurnDone={turnDone}
             onSaveQuit={saveQuit}
             onQuitNoSave={quitNoSave}
