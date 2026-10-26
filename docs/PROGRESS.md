@@ -69,3 +69,16 @@ After each phase: `/clear`, then `/next-phase`.
   - `pnpm test:e2e` (`tests/e2e/smoke.spec.ts`): runs the packaged exe from a temp COPY (the move check), covers hidden racks, pause/save, relaunch + Continue, admit defeat, notebook; nothing lands in AppData. Run `pnpm package` first.
   - Play screen: board now fills the screen height; Codex drew `board-frame-thin.webp` (opening 92%, grid inset 4%); the old `board-frame.webp` is unused (gallery still uses the Board component).
   - Not done: Codex final review, a live Wi-Fi-off play-through, vs-Computer runs on each level — please try these by hand from `Word Rumble/Word Rumble.exe`.
+
+## Round 2 — family requests (planned 2026-10-26; details in PLAN.md "Round 2", R2-1 … R2-10)
+- [ ] **Phase 15 — Quit without saving, default names, Start afresh** (R2-1, R2-2)
+- [ ] **Phase 16 — Sound pack 2** (R2-3) — voiceover + jingles zips already downloaded to `.cache/` during planning
+- [ ] **Phase 17 — Nervous countdown + BOOM!!** (R2-4)
+- [ ] **Phase 18 — Bigger tiles/racks, name plates, ×2/×3 labels** (R2-5, R2-6)
+- [ ] **Phase 19 — Engine: 2–4 players** (R2-7) — Codex review
+- [ ] **Phase 20 — 2–4 players: DB migration, records, Notebook data** (R2-8a) — test migration on a COPY of the real DB
+- [ ] **Phase 21 — 2–4 players: Setup, opening flow, handoff, racks** (R2-8b)
+- [ ] **Phase 22 — 2–4 players: dialogs, Game over, Notebook, e2e** (R2-8c)
+- [ ] **Phase 23 — Engine: Wild power squares** (R2-9) — Codex review
+- [ ] **Phase 24 — Wild power squares UI, power sounds, KABLAM bursts** (R2-9, R2-10)
+- [ ] **Phase 25 — Round 2 ship** — Codex final review, package, e2e, manual checks

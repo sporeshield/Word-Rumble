@@ -5,7 +5,7 @@ Our own cartoon crossword-tile word game in the Scrabble style for Shane & Dawn:
 ## Every session = one phase
 1. Read `docs/PROGRESS.md` first. Work on the **first phase not marked ✅** — that phase only.
 2. Open only the sections of `docs/PLAN.md` that phase needs (Phases table + the sections it touches). Don't re-read the whole plan.
-3. **Codex first**: give all image creation, visual components, CSS and animation to Codex through the Codex plugin (`codex:rescue` skill / `codex:codex-rescue` agent). Claude writes a tight brief (files, props, palette, art paths), reviews the result, integrates and tests. Ask Codex for a review pass on phases 4, 5, 6 and 14.
+3. **Codex first**: give all image creation, visual components, CSS and animation to Codex through the Codex plugin (`codex:rescue` skill / `codex:codex-rescue` agent). Claude writes a tight brief (files, props, palette, art paths), reviews the result, integrates and tests. Ask Codex for a review pass on phases 4, 5, 6, 14, 19, 23 and 25.
 4. Before finishing: run `pnpm test` and `pnpm typecheck` once they exist, and fix failures.
 5. Update `docs/PROGRESS.md`: tick the phase ✅ and add 2–5 hand-off notes (files created, decisions, anything left over).
 6. Commit locally (`git add -A` + `git commit`; no remote, never push).
