@@ -1,5 +1,5 @@
 import { applyPlacements, BOARD_SIZE, CENTER, inBounds, isBoardEmpty, scorePlay, validatePlacement } from '../engine'
-import type { Board, FormedWord, Placement, PlayScore, Tile } from '../engine'
+import type { Board, FormedWord, Placement, PlayScore, Premium, Tile } from '../engine'
 import type { Trie } from './trie'
 
 export interface Move {
@@ -21,7 +21,7 @@ interface Placed {
  * Words are checked against `trie`; geometry, words and scores come from the engine so
  * a generated move is always one the game would accept. Sorted best score first.
  */
-export function generateMoves(board: Board, rack: Tile[], trie: Trie): Move[] {
+export function generateMoves(board: Board, rack: Tile[], trie: Trie, layout?: Premium[][]): Move[] {
   const empty = isBoardEmpty(board)
   const found = new Map<string, Move>()
 
@@ -79,7 +79,7 @@ export function generateMoves(board: Board, rack: Tile[], trie: Trie): Move[] {
           if (found.has(key)) return
           const result = validatePlacement(board, placements)
           if (!result.ok) return
-          found.set(key, { placements, words: result.words, score: scorePlay(board, placements, result.words) })
+          found.set(key, { placements, words: result.words, score: scorePlay(board, placements, result.words, layout) })
         }
 
         const used = new Array<boolean>(rack.length).fill(false)

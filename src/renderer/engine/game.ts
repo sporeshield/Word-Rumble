@@ -1,10 +1,11 @@
-import { createBurstDecks, drawBurst, type Burst, type BurstDecks, type BurstTier } from '../fx/bursts'
+import { createBurstDecks, drawBurst, upgradeBurstDecks, type Burst, type BurstDecks, type BurstTier } from '../fx/bursts'
 import { createBag, drawTiles, returnTiles } from './bag'
-import { createBoard } from './board'
+import { createBoard, PREMIUM_LAYOUT } from './board'
+import { buildLayout, normalisePower, powerTotal, type PowerCounts } from './power'
 import { validatePlacement } from './rules'
 import { applyPlacements, scorePlay } from './scoring'
 import { createTileSet, rackValue } from './tiles'
-import { EXCHANGE_MIN_BAG, RACK_SIZE, type Board, type Placement, type PlacementError, type Tile, type WordScore } from './types'
+import { EXCHANGE_MIN_BAG, RACK_SIZE, type Board, type Placement, type PlacementError, type Premium, type Tile, type WordScore } from './types'
 import { HINT_COST_MAX, HINT_COST_MIN, type PenaltyOutcome } from './penalties'
 
 export type GameMode = 'solo' | 'two' | 'computer'
@@ -23,6 +24,8 @@ export interface GameOptions {
   madeUp: MadeUpMode
   shuffle?: CostMode
   swap?: CostMode
+  /** Wild board: how many of each power square. Absent or all 0 = Classic board. */
+  power?: PowerCounts
 }
 
 export interface PlayerState {
@@ -99,6 +102,8 @@ export interface GameResult {
 export interface GameState {
   options: GameOptions
   board: Board
+  /** Square layout of this game (Classic, or Classic plus the power squares). Old saves lack it = Classic. */
+  layout: Premium[][]
   /** Who laid each tile on the board, keyed `row,col` → player index (for the coloured underline). */
   owners: Record<string, number>
   bag: Tile[]
@@ -219,7 +224,8 @@ export function createGame(options: GameOptions): GameState {
     }
   })
   return {
-    options, board: createBoard(), owners: {}, bag, players, current: starter, turn: 1, phase: 'playing',
+    options, board: createBoard(), layout: options.power && powerTotal(options.power) > 0 ? buildLayout(options.power) : PREMIUM_LAYOUT,
+    owners: {}, bag, players, current: starter, turn: 1, phase: 'playing',
     consecutiveScoreless: 0, hint: null, shuffle: null, swap: null, bursts: createBurstDecks(), lastBurst: null,
     firstDraw: rounds, history: [], result: null
   }
@@ -320,6 +326,11 @@ function finishTurn(state: GameState, scoreless: boolean): GameState {
 }
 
 function burstTierForPlay(total: number, rumble: boolean, premiums: string[]): BurstTier | null {
+  if (premiums.includes('PW10')) return 'powerword10'
+  if (premiums.includes('PL10')) return 'power10'
+  if (premiums.includes('PW5')) return 'powerword5'
+  if (premiums.includes('QW')) return 'quad'
+  if (premiums.includes('PL5')) return 'power5'
   const wordPremiums = premiums.filter((p) => p === 'TW' || p === 'DW' || p === 'START').length
   if (rumble || wordPremiums >= 2 || total >= 80) return 'top'
   if (premiums.includes('TW')) return 'tw'
@@ -370,7 +381,7 @@ function doPlay(state: GameState, action: Extract<GameAction, { type: 'play' }>)
   const placed = validatePlacement(state.board, placements)
   if (!placed.ok) return fail(placed.error)
 
-  const score = scorePlay(state.board, placements, placed.words)
+  const score = scorePlay(state.board, placements, placed.words, state.layout)
   const usedIds = new Set(placements.map((p) => p.tile.id))
   const board = applyPlacements(state.board, placements)
   const drawn = drawTiles(state.bag, usedIds.size)
@@ -544,7 +555,11 @@ export function normaliseGame(state: GameState): GameState {
     const ranked = players.map((p, i) => (i === c ? { ...p, out: true, outAt: p.outAt ?? 1 } : p))
     result = { ...result, ranking: rankPlayers(ranked, result.finalScores, result.preAdjust) }
   }
-  return { ...state, players, shuffle: state.shuffle ?? null, swap: state.swap ?? null, result }
+  return {
+    ...state, players, shuffle: state.shuffle ?? null, swap: state.swap ?? null, result,
+    layout: state.layout ?? PREMIUM_LAYOUT, bursts: upgradeBurstDecks(state.bursts),
+    options: state.options.power ? { ...state.options, power: normalisePower(state.options.power) } : state.options
+  }
 }
 
 /** The one entry point for every game action. Pure apart from crypto shuffles of the bag. */

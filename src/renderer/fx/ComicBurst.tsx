@@ -5,7 +5,7 @@ import burst3 from '@art/burst-3.webp'
 import burst4 from '@art/burst-4.webp'
 import './fx.css'
 
-export type ComicBurstTier = 'dl' | 'tl' | 'dw' | 'tw' | 'top' | 'fibber' | 'hint' | 'timeout'
+export type ComicBurstTier = 'dl' | 'tl' | 'dw' | 'tw' | 'top' | 'fibber' | 'hint' | 'timeout' | 'power5' | 'power10' | 'quad' | 'powerword5' | 'powerword10'
 
 export interface ComicBurstProps {
   text: string
@@ -15,7 +15,8 @@ export interface ComicBurstProps {
 
 const art: Record<ComicBurstTier, string> = {
   dl: burst4, hint: burst4, tl: burst2, dw: burst1,
-  tw: burst3, top: burst3, fibber: burst3, timeout: burst2
+  tw: burst3, top: burst3, fibber: burst3, timeout: burst2,
+  power5: burst1, power10: burst3, quad: burst3, powerword5: burst3, powerword10: burst3
 }
 
 export function ComicBurst({ text, tier, onDone }: ComicBurstProps) {

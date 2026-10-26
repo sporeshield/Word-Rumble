@@ -17,6 +17,11 @@ const premiumLabel: Record<Premium, { main: string; tag?: string; aria: string }
   DW: { main: '×2', tag: 'WORD', aria: 'double word' },
   TL: { main: '×3', aria: 'triple letter' },
   DL: { main: '×2', aria: 'double letter' },
+  PL5: { main: '×5', tag: 'POWER', aria: 'power letter times five' },
+  PL10: { main: '×10', tag: 'POWER', aria: 'power letter times ten' },
+  QW: { main: '×4', tag: 'WORD', aria: 'quadruple word' },
+  PW5: { main: '×5', tag: 'WORD', aria: 'power word times five' },
+  PW10: { main: '×10', tag: 'WORD', aria: 'power word times ten' },
   START: { main: '★', aria: 'start' },
   NONE: { main: '', aria: '' }
 }

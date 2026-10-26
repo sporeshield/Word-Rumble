@@ -1,7 +1,7 @@
 import { shuffle } from './bag'
 import { validatePlacement } from './rules'
 import { scorePlay } from './scoring'
-import type { Board, FormedWord, Placement, PlacementError, PlayScore, Tile } from './types'
+import type { Board, FormedWord, Placement, PlacementError, PlayScore, Premium, Tile } from './types'
 
 export type PlayPreview =
   | { kind: 'empty' }
@@ -9,11 +9,11 @@ export type PlayPreview =
   | { kind: 'ok'; words: FormedWord[]; score: PlayScore }
 
 /** Live preview of the tiles laid so far this turn: legal shape + score, or why it is not legal yet. */
-export function previewPlay(board: Board, pending: Placement[]): PlayPreview {
+export function previewPlay(board: Board, pending: Placement[], layout?: Premium[][]): PlayPreview {
   if (pending.length === 0) return { kind: 'empty' }
   const placed = validatePlacement(board, pending)
   if (!placed.ok) return { kind: 'invalid', error: placed.error }
-  return { kind: 'ok', words: placed.words, score: scorePlay(board, pending, placed.words) }
+  return { kind: 'ok', words: placed.words, score: scorePlay(board, pending, placed.words, layout) }
 }
 
 /** Short plain-English hint for a placement error, shown under the board while a play is being built. */

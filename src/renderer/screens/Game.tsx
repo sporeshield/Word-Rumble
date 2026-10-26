@@ -144,7 +144,7 @@ export function Game({ game: initialGame, colors, muted, difficulty, rackSide = 
     () => orderRack(order, me.rack.filter((t) => !pendingIds.has(t.id))),
     [order, me.rack, pendingIds]
   )
-  const preview = useMemo(() => previewPlay(game.board, pending), [game.board, pending])
+  const preview = useMemo(() => previewPlay(game.board, pending, game.layout), [game.board, pending, game.layout])
   // Letters are visible only to the player whose turn it is, and only while nothing covers the screen.
   // `secret` covers the dialogs another player may be looking at (wheel, recipient, drop-out, each voter's turn):
   // there the pending tiles, the live preview and the Play button's points leave the DOM too.
@@ -198,7 +198,7 @@ export function Game({ game: initialGame, colors, muted, difficulty, rackSide = 
       timer = window.setTimeout(() => applyRef.current(final, text), Math.max(0, 1200 - (Date.now() - started)))
     }
     getFinder()
-      .then((finder) => finder.find(game.board, me.rack))
+      .then((finder) => finder.find(game.board, me.rack, undefined, game.layout))
       .then((moves) => act(computerAction(game, moves, difficulty)))
       .catch(() => act({ type: 'pass' }))
     return () => { cancelled = true; window.clearTimeout(timer) }
@@ -416,7 +416,7 @@ export function Game({ game: initialGame, colors, muted, difficulty, rackSide = 
     setDialog(null)
     setBusy(true)
     try {
-      const moves = await (await getFinder()).find(game.board, me.rack)
+      const moves = await (await getFinder()).find(game.board, me.rack, undefined, game.layout)
       if (moves.length === 0) { setDialog({ kind: 'nohint' }); return }
       const taken = reduce(game, { type: 'hint-accept' })
       if (!taken.ok) { flash('That hint was not available.'); return }
@@ -471,6 +471,7 @@ export function Game({ game: initialGame, colors, muted, difficulty, rackSide = 
       <div className="wr-play__board">
         <Board
           board={game.board}
+          layout={game.layout}
           pending={secret ? [] : pending}
           hoverSquare={drag.hoverSquare}
           onSquareClick={(row, col) => {

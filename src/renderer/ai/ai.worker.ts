@@ -1,4 +1,4 @@
-import type { Board, Tile } from '../engine'
+import type { Board, Premium, Tile } from '../engine'
 import { generateMoves, type Move } from './movegen'
 import { Trie } from './trie'
 
@@ -6,7 +6,7 @@ import { Trie } from './trie'
 export type WorkerRequest =
   | { type: 'load'; words: string[] }
   | { type: 'add-words'; words: string[] }
-  | { type: 'moves'; id: number; board: Board; rack: Tile[]; limit?: number }
+  | { type: 'moves'; id: number; board: Board; rack: Tile[]; limit?: number; layout?: Premium[][] }
 
 export type WorkerResponse =
   | { type: 'loaded'; count: number }
@@ -29,7 +29,7 @@ scope.onmessage = ({ data }) => {
     } else if (data.type === 'add-words') {
       for (const w of data.words) trie.insert(w)
     } else {
-      const moves = generateMoves(data.board, data.rack, trie)
+      const moves = generateMoves(data.board, data.rack, trie, data.layout)
       scope.postMessage({ type: 'moves', id: data.id, moves: data.limit !== undefined ? moves.slice(0, data.limit) : moves })
     }
   } catch (err) {

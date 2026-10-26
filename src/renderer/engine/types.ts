@@ -13,7 +13,8 @@ export interface Tile {
 
 export const isBlank = (tile: Tile): boolean => tile.letter === '?'
 
-export type Premium = 'START' | 'TW' | 'DW' | 'TL' | 'DL' | 'NONE'
+/** Classic squares plus the Wild power squares (PL = power letter, QW = x4 word, PW = power word). */
+export type Premium = 'START' | 'TW' | 'DW' | 'TL' | 'DL' | 'PL5' | 'PL10' | 'QW' | 'PW5' | 'PW10' | 'NONE'
 
 /** A tile fixed on the board; `letter` is the effective A-Z (the chosen one for a blank). */
 export interface BoardCell {

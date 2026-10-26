@@ -1,6 +1,7 @@
 export * from './types'
 export * from './tiles'
 export * from './board'
+export * from './power'
 export * from './bag'
 export * from './rules'
 export * from './scoring'

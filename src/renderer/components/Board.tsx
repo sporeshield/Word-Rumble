@@ -1,11 +1,13 @@
 import { useMemo, type PointerEvent, type ReactNode } from 'react'
-import { BOARD_SIZE, PREMIUM_LAYOUT, type Board as GameBoard, type Placement } from '../engine'
+import { BOARD_SIZE, PREMIUM_LAYOUT, type Board as GameBoard, type Placement, type Premium } from '../engine'
 import boardFrame from '@art/board-frame-thin.webp'
 import { Square } from './Square'
 import { Tile } from './Tile'
 
 export interface BoardProps {
   board: GameBoard
+  /** Square layout of this game; Classic when omitted. */
+  layout?: Premium[][]
   pending: Placement[]
   hoverSquare?: { row: number; col: number } | null
   onSquarePointerUp?: (row: number, col: number) => void
@@ -18,6 +20,7 @@ export interface BoardProps {
 
 export function Board({
   board,
+  layout = PREMIUM_LAYOUT,
   pending,
   hoverSquare,
   onSquarePointerUp,
@@ -35,7 +38,7 @@ export function Board({
   return (
     <div className="wr-board" style={{ backgroundImage: `url('${boardFrame}')` }} role="grid" aria-label="Word Rumble board">
       <div className="wr-board__grid">
-        {PREMIUM_LAYOUT.map((premiumRow, row) => premiumRow.map((premium, col) => {
+        {layout.map((premiumRow, row) => premiumRow.map((premium, col) => {
           const cell = board[row]?.[col]
           const placement = pendingBySquare.get(row * BOARD_SIZE + col)
           return (

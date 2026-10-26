@@ -1,4 +1,4 @@
-import type { Board, Tile } from '../engine'
+import type { Board, Premium, Tile } from '../engine'
 import type { WorkerRequest, WorkerResponse } from './ai.worker'
 import type { Move } from './movegen'
 
@@ -40,12 +40,12 @@ export class MoveFinder {
   }
 
   /** All legal moves for the rack, best first (optionally only the top `limit`). */
-  async find(board: Board, rack: Tile[], limit?: number): Promise<Move[]> {
+  async find(board: Board, rack: Tile[], limit?: number, layout?: Premium[][]): Promise<Move[]> {
     await this.ready
     const id = this.nextId++
     return new Promise((resolve, reject) => {
       this.pending.set(id, { resolve, reject })
-      this.post({ type: 'moves', id, board, rack, limit })
+      this.post({ type: 'moves', id, board, rack, limit, layout })
     })
   }
 
