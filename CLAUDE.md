@@ -1,4 +1,4 @@
-# Word Rumble (folder: `Scrabble`)
+# Word Rumble (folder: `Word-Rumble`)
 
 Our own cartoon crossword-tile word game in the Scrabble style for Shane & Dawn: Electron + electron-vite + React + TypeScript, pnpm, sql.js. The game itself is **Word Rumble** — never use Scrabble's name, branding, board layout or tile values in the game; use ours from `docs/PLAN.md`.
 
@@ -8,7 +8,7 @@ Our own cartoon crossword-tile word game in the Scrabble style for Shane & Dawn:
 3. **Codex first**: give all image creation, visual components, CSS and animation to Codex through the Codex plugin (`codex:rescue` skill / `codex:codex-rescue` agent). Claude writes a tight brief (files, props, palette, art paths), reviews the result, integrates and tests. Ask Codex for a review pass on phases 4, 5, 6, 14, 20, 24 and 26.
 4. Before finishing: run `pnpm test` and `pnpm typecheck` once they exist, and fix failures.
 5. Update `docs/PROGRESS.md`: tick the phase ✅ and add 2–5 hand-off notes (files created, decisions, anything left over).
-6. Commit locally (`git add -A` + `git commit`; no remote, never push).
+6. Commit locally (`git add -A` + `git commit`). The GitHub remote `origin` (private repo Word-Rumble, account sporeshield) exists; push only when the user asks. Commit author name is **Sparky**.
 7. Stop and tell the user: **"Phase N done — type `/clear`, then `/next-phase`."**
 
 ## Rules that always apply

@@ -17,11 +17,11 @@ Decisions made with the user: Electron desktop app; solo = high-score run **and*
 - Window opens `fullscreen`, menu bar hidden, F11 toggles, Esc = pause.
 
 ## Portable folder (can move to an external hard drive)
-- `pnpm package` (electron-builder `--dir`) produces a **self-contained playable folder `Scrabble/Word Rumble/`** with `Word Rumble.exe` + the Electron runtime — no Node, pnpm or internet needed to play, works on any Windows PC and any drive letter.
+- `pnpm package` (electron-builder `--dir`) produces a **self-contained playable folder `Word-Rumble/Word Rumble/`** with `Word Rumble.exe` + the Electron runtime — no Node, pnpm or internet needed to play, works on any Windows PC and any drive letter.
 - **Everything the game saves lives inside that folder**: `Word Rumble/data/word-rumble.sqlite` (scores, autosave, settings, custom words), `Word Rumble/data/electron/` (Electron's own cache — `app.setPath('userData', …)` so nothing goes to AppData), and `Word Rumble/sounds/custom/`. All paths are worked out at runtime from the exe's own location; no absolute path is ever stored.
 - Re-packaging after code changes only replaces the app files — `data/` and `sounds/custom/` are never touched, so scores survive updates.
 - Desktop shortcut: on first launch (and in Settings) the game offers **"Create desktop shortcut"** (`shell.writeShortcutLink` to the current exe, tile icon). If it's launched from a new location (e.g. the external drive) and the existing shortcut points somewhere else, it offers to fix it.
-- Dev project is movable too: `.npmrc` `node-linker=hoisted` (no pnpm junctions with absolute paths); dev runs use a separate `Scrabble/dev-data/` so testing never pollutes real scores. After a move, only development needs `pnpm install` — playing doesn't.
+- Dev project is movable too: `.npmrc` `node-linker=hoisted` (no pnpm junctions with absolute paths); dev runs use a separate `Word-Rumble/dev-data/` so testing never pollutes real scores. After a move, only development needs `pnpm install` — playing doesn't.
 
 ## Rules implemented (researched)
 - Bag shuffled; **draw for first turn**: each player draws a tile, closest to A starts, blank beats all, ties redraw; tiles returned, bag reshuffled, 7 dealt each.
@@ -74,7 +74,7 @@ UI hover tick & click pop · toggles/checkboxes · tile pick-up · tile drag ove
 
 ## Project layout
 ```
-Scrabble/
+Word-Rumble/
   CLAUDE.md                     per-session rules (one phase at a time, Codex for visuals)
   docs/PLAN.md, docs/PROGRESS.md
   .claude/settings.json         Sonnet 5.5, medium effort
@@ -108,13 +108,13 @@ Scrabble/
 DB tables: `players`, `games` (mode, timer, options, ended_reason incl. `conceded`), `game_players` (final score, pre-adjust score, rumbles, hints used, hint points lost, made-up count, conceded), `plays` (words, score, rumble, made_up, penalty), `custom_words`, `saved_game` (JSON), `settings`.
 
 ## How we'll work (small sessions, Sonnet 5.5 medium, Codex-heavy)
-- Phase 0 was done in the planning session (Opus); all later phases run on Sonnet 5.5 medium from inside the `Scrabble` folder.
+- Phase 0 was done in the planning session (Opus); all later phases run on Sonnet 5.5 medium from inside the `Word-Rumble` folder.
 - **Phase 0** sets up the hand-off so every later session starts cold and cheap:
-  - `Scrabble/.claude/settings.json` → `"model": "claude-sonnet-5-5"`, `"effortLevel": "medium"` (project setting overrides the user-level Opus default; the user settings already map Sonnet 5.5 → medium).
-  - `Scrabble/docs/PLAN.md` — this plan, copied into the project.
-  - `Scrabble/docs/PROGRESS.md` — phase checklist; each finished phase gets ✅ plus 2–5 lines of hand-off notes (files made, decisions, anything left).
-  - `Scrabble/CLAUDE.md` — short project rules: read PROGRESS.md first, open only the PLAN.md sections the current phase needs, do **one phase only**, delegate images/visuals to Codex, run tests, update PROGRESS.md, git commit, then stop and say "Phase N done — type `/clear`, then `/next-phase`".
-  - `Scrabble/.claude/commands/next-phase.md` — the `/next-phase` slash command that kicks off the next unchecked phase.
+  - `Word-Rumble/.claude/settings.json` → `"model": "claude-sonnet-5-5"`, `"effortLevel": "medium"` (project setting overrides the user-level Opus default; the user settings already map Sonnet 5.5 → medium).
+  - `Word-Rumble/docs/PLAN.md` — this plan, copied into the project.
+  - `Word-Rumble/docs/PROGRESS.md` — phase checklist; each finished phase gets ✅ plus 2–5 lines of hand-off notes (files made, decisions, anything left).
+  - `Word-Rumble/CLAUDE.md` — short project rules: read PROGRESS.md first, open only the PLAN.md sections the current phase needs, do **one phase only**, delegate images/visuals to Codex, run tests, update PROGRESS.md, git commit, then stop and say "Phase N done — type `/clear`, then `/next-phase`".
+  - `Word-Rumble/.claude/commands/next-phase.md` — the `/next-phase` slash command that kicks off the next unchecked phase.
   - `git init` (local only, no remote) so each phase ends with a checkpoint commit.
   - Save memory notes about these working preferences.
 - **From Phase 1 on**: start Claude Code **inside `C:\NextJS_Projects\Scrabble`** (`cd C:\NextJS_Projects\Scrabble` then `claude`) so the Sonnet 5.5 medium project default applies; between phases type `/clear` then `/next-phase`.
