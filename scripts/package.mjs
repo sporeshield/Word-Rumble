@@ -1,7 +1,7 @@
 // Builds the portable game folder `Word Rumble/` next to this project.
 // Re-running replaces the app files only: `data/` (scores, autosave) and `sounds/custom/` are never touched.
 import { spawnSync } from 'node:child_process'
-import { cpSync, existsSync, mkdirSync, readdirSync, rmSync } from 'node:fs'
+import { cpSync, existsSync, mkdirSync, readdirSync, rmSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 

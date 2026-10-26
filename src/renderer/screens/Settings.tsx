@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { sfx } from '../audio/sfx'
+import { sfx, type Voice } from '../audio/sfx'
 import { FACTORY_NAMES, loadDefaultNames } from './types'
 import './screens.css'
 
@@ -8,6 +8,8 @@ export interface SettingsProps {
   muted: boolean
   onVolume(value: number): void
   onMuted(muted: boolean): void
+  voice: Voice
+  onVoice(voice: Voice): void
   /** The four default player names (Settings → Players). */
   defaultNames: readonly string[]
   onDefaultNames(names: string[]): void
@@ -18,7 +20,7 @@ export interface SettingsProps {
   onClose(): void
 }
 
-export function Settings({ volume, muted, onVolume, onMuted, defaultNames, onDefaultNames, onResetScores, onStartAfresh, onShortcut, onClose }: SettingsProps) {
+export function Settings({ volume, muted, onVolume, onMuted, voice, onVoice, defaultNames, onDefaultNames, onResetScores, onStartAfresh, onShortcut, onClose }: SettingsProps) {
   const [names, setNames] = useState<string[]>(() => [...defaultNames])
   const edit = (index: number, value: string) => {
     const next = names.map((n, i) => (i === index ? value : n))
@@ -62,6 +64,20 @@ export function Settings({ volume, muted, onVolume, onMuted, defaultNames, onDef
           onClick={() => click(() => onMuted(!muted), true)}
         >
           <span>Mute sound</span><span className="wr-settings__switch" aria-hidden="true"><span /></span>
+        </button>
+        <button
+          className="btn"
+          type="button"
+          onMouseEnter={() => sfx.play('ui-hover')}
+          onClick={() => {
+            const next: Voice = voice === 'female' ? 'male' : voice === 'male' ? 'off' : 'female'
+            onVoice(next)
+            sfx.play('ui-click')
+            sfx.setVoice(next)
+            sfx.play('count-3', { varyPitch: false })
+          }}
+        >
+          Countdown voice: {voice === 'female' ? 'Female' : voice === 'male' ? 'Male' : 'Off'}
         </button>
         <div className="wr-settings__volume">
           <div className="wr-settings__volume-head"><span>Players</span></div>

@@ -140,7 +140,7 @@ export function PauseMenu({ muted, onResume, onToggleSound, onSaveQuit, onQuitNo
         <p className="wr-dlg__text">This game will be lost — nobody's score is recorded.</p>
         <div className="wr-dlg__row">
           <button type="button" className="btn btn--aqua" onClick={() => { click(); setConfirming(false) }}>Keep playing</button>
-          <button type="button" className="btn btn--pink" onClick={() => { sfx.play('burst-whoosh-1'); /* stand-in until Phase 17 adds quit-nosave */ onQuitNoSave() }}>Quit without saving</button>
+          <button type="button" className="btn btn--pink" onClick={() => { sfx.play('quit-nosave'); onQuitNoSave() }}>Quit without saving</button>
         </div>
       </Dialog>
     )

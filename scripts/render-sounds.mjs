@@ -79,7 +79,98 @@ function boom(name) {
   } };
 }
 
+
+// Round 2: heartbeat and the deliberately silly "annoying power-play" pool.
+const tri = (phase) => 4 * Math.abs(phase - Math.floor(phase + 0.5)) - 1;
+const square = (phase) => (phase - Math.floor(phase) < 0.5 ? 1 : -1);
+// Phase accumulator for a time-varying frequency (closed form is awkward for sweeps).
+function sweep(f0, f1, duration) {
+  return (t) => f0 * t + (f1 - f0) * t * t / (2 * duration);
+}
+
+function annoyPatch(n) {
+  switch (n) {
+    case 1: return { duration: 1.5, sample(t) { // air horn: three stacked square-ish tones
+      const wob = 1 + 0.004 * sine(6 * t);
+      return (square(415 * wob * t) + square(523 * wob * t) * 0.8 + square(622 * wob * t) * 0.7) * 0.3 * envelope(t, 1.5, 0.02, 0.25);
+    } };
+    case 2: return { duration: 0.9, sample(t) { // clown honk x2
+      const local = t % 0.45;
+      return (saw(250 * local - 60 * local * local) * 0.6 + square(125 * local) * 0.3) * envelope(local, 0.4, 0.01, 0.1) * (t < 0.9 ? 1 : 0);
+    } };
+    case 3: { const notes = [523, 659, 784, 659, 784, 1047]; return { duration: 1.5, sample(t) { // kazoo fanfare
+      const i = Math.min(notes.length - 1, Math.floor(t / 0.22));
+      const local = t - i * 0.22;
+      const f = notes[i] * (1 + 0.012 * sine(26 * t));
+      return (saw(f * t) * 0.5 + square(f * 2 * t) * 0.18) * envelope(local, i === 5 ? 0.6 : 0.2, 0.01, 0.04) * (t < 0.22 * 5 + 0.7 ? 1 : 0);
+    } }; }
+    case 4: { const up = sweep(300, 1900, 0.7); const top = up(0.7); return { duration: 1.1, sample(t) { // slide whistle: swoop up, wobble down
+      const phase = t < 0.7 ? up(t) : top + 1900 * (t - 0.7) - 2300 * (t - 0.7) ** 2 / (2 * 0.4);
+      return sine(phase) * 0.5 * envelope(t, 1.1, 0.03, 0.12);
+    } }; }
+    case 5: return { duration: 1.0, sample(t, noise) { // duck quacks
+      const local = t % 0.34;
+      if (t > 0.9) return 0;
+      const f = 480 - 140 * local / 0.34;
+      return (saw(f * local) * 0.55 + noise() * 0.12) * (0.6 + 0.4 * sine(70 * local)) * envelope(local, 0.26, 0.012, 0.06);
+    } };
+    case 6: return { duration: 0.9, sample(t, noise) { // rubber chicken squawk
+      const f = 300 + 700 * Math.exp(-4 * t) + 90 * sine(20 * t);
+      return (saw(f * t) * 0.5 + noise() * 0.22 * Math.exp(-3 * t)) * envelope(t, 0.9, 0.01, 0.2);
+    } };
+    case 7: return { duration: 1.6, sample(t) { // siren whoop
+      const f = 700 + 500 * sine(1.7 * t);
+      const phase = 700 * t - (500 / (tau * 1.7)) * Math.cos(tau * 1.7 * t);
+      void f;
+      return (sine(phase) * 0.55 + sine(2 * phase) * 0.2) * envelope(t, 1.6, 0.05, 0.2);
+    } };
+    case 8: return { duration: 1.5, sample(t, noise) { // vuvuzela blast
+      return (saw(233 * t) * 0.5 + saw(466.4 * t) * 0.25 + noise() * 0.1) * (0.85 + 0.15 * sine(28 * t)) * envelope(t, 1.5, 0.05, 0.25);
+    } };
+    case 9: return { duration: 1.2, sample(t) { // boing-boing
+      const local = t % 0.6;
+      const f = 140 + 520 * Math.exp(-5 * local) + 40 * sine(34 * local);
+      return (sine(f * local) * 0.6 + sine(2.01 * f * local) * 0.2) * Math.exp(-3.2 * local) * envelope(local, 0.6, 0.004, 0.05);
+    } };
+    case 10: { const notes = [784, 659, 784, 659, 523]; const len = [0.18, 0.18, 0.18, 0.18, 0.5]; return { duration: 1.45, sample(t) { // "nyah-nyah" taunt
+      let start = 0;
+      for (let i = 0; i < 5; i++) {
+        if (t < start + len[i] + 0.05 || i === 4) {
+          const local = t - start;
+          return (square(notes[i] * t) * 0.3 + tri(notes[i] * t) * 0.3) * envelope(local, len[i], 0.01, 0.05) * (local < len[i] ? 1 : 0);
+        }
+        start += len[i] + 0.05;
+      }
+      return 0;
+    } }; }
+    case 11: return { duration: 1.6, sample(t, noise) { // cowbell frenzy
+      const local = t % 0.2;
+      const ring = (square(562 * local) + square(845 * local)) * 0.26;
+      return (ring + noise() * 0.03) * Math.exp(-14 * local) * envelope(t, 1.6, 0.004, 0.12);
+    } };
+    case 12: return { duration: 1.2, sample(t) { // cuckoo x3: high note then low note
+      const local = t % 0.4;
+      const f = local < 0.2 ? 880 : 698;
+      return sine(f * t) * 0.55 * envelope(local % 0.2, 0.16, 0.01, 0.04) * (local % 0.2 < 0.16 ? 1 : 0);
+    } };
+    case 13: return { duration: 1.7, sample(t, noise) { // drum roll + crash
+      if (t < 1.1) {
+        const roll = noise() * (0.35 + 0.35 * t) * (0.7 + 0.3 * sine(30 * t)) * 0.9;
+        return roll * envelope(t, 1.1, 0.01, 0.01);
+      }
+      const local = t - 1.1;
+      return (noise() * 0.6 + sine(300 * local) * 0.2) * Math.exp(-5 * local) * envelope(local, 0.6, 0.002, 0.1);
+    } };
+    default: throw new Error(`No annoying patch ${n}`);
+  }
+}
+
 function ownPatch(name) {
+  if (name.startsWith('power-annoy-')) return annoyPatch(Number(name.slice(12)));
+  if (name === 'heartbeat') return { duration: 0.62, sample(t) { // two soft thumps, lub-dub
+    const thump = (local, f) => sine(f * local) * Math.exp(-22 * local) * Math.min(1, local * 400);
+    return 0.9 * thump(t, 58) + (t >= 0.2 ? 0.7 * thump(t - 0.2, 70) : 0);
+  } };
   if (name.startsWith('burst-boom-')) return boom(name);
   if (name === 'word-invalid') return { duration: 0.68, sample(t) {
     const index = t < 0.33 ? 0 : 1;

@@ -161,6 +161,8 @@ async function fetchSounds() {
     'Kenney audio: Creative Commons CC0 (public domain). Attribution is optional; thank you, Kenney.',
     'Pack pages and the ZIP URLs used by the fetch script:', '',
     ...Object.entries(PACKS).map(([slug, url]) => `- [${slug}](https://kenney.nl/assets/${slug}) — ${url}`),
+    '', 'Voiceover Pack performers (from the pack Credits.txt): male voice Jeffrey M. Smith (http://fiverr.com/jeffreymsmith), female voice Giselle (http://fiverr.com/easymedia).',
+    'Music Jingles (8-bit, hit, pizzicato, sax, steel) are also Kenney CC0.',
     '', 'Selected Kenney clips:', '',
     ...[...used].map(([name, [slug, file]]) => `- \`${name}.ogg\` — ${slug}: \`${file}\``),
     '',

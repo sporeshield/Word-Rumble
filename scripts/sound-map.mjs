@@ -7,9 +7,23 @@ export const PACKS = {
   'ui-audio': 'https://kenney.nl/media/pages/assets/ui-audio/490d233f68-1677590494/kenney_ui-audio.zip',
   'digital-audio': 'https://kenney.nl/media/pages/assets/digital-audio/216eac4753-1677590265/kenney_digital-audio.zip',
   'sci-fi-sounds': 'https://kenney.nl/media/pages/assets/sci-fi-sounds/6b296f9ecf-1677589334/kenney_sci-fi-sounds.zip',
+  'voiceover-pack': 'https://kenney.nl/media/pages/assets/voiceover-pack/3f7f168698-1677589897/kenney_voiceover-pack.zip',
+  'music-jingles': 'https://kenney.nl/media/pages/assets/music-jingles/f37e530b9e-1677590399/kenney_music-jingles.zip',
 };
 
 const source = (pack, file) => [pack, `Audio/${file}.ogg`];
+const voice = (gender, file) => ['voiceover-pack', `${gender}/${file}.ogg`];
+const jingle = (kind, number) => ['music-jingles', `Audio/${kind} jingles/jingles_${kind === '8-Bit' ? 'NES' : kind.toUpperCase().replace('PIZZICATO', 'PIZZI')}${number}.ogg`];
+
+// Round 2 sound pack: Kenney voiceover (female default, `male-` set), jingles and a few more picks.
+// Voiced names are listed in VOICED so the Settings voice choice can swap or silence them.
+const countVoices = {};
+for (const n of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]) {
+  countVoices[`count-${n}`] = [voice('Female', String(n))];
+  countVoices[`male-count-${n}`] = [voice('Male', String(n))];
+}
+export const VOICED = [...Array.from({ length: 10 }, (_, i) => `count-${i + 1}`), 'count-time-over', 'voice-power-up'];
+const maleVoices = Object.fromEntries(VOICED.map((name) => [`male-${name}`, [voice('Male', name === 'count-time-over' ? 'time_over' : 'power_up')]]));
 
 export const SOUND_SOURCES = {
   'ui-hover': [source('ui-audio', 'rollover1'), source('interface-sounds', 'select_001')],
@@ -49,10 +63,27 @@ export const SOUND_SOURCES = {
   'burst-whoosh-2': [source('digital-audio', 'phaserUp2'), source('sci-fi-sounds', 'thrusterFire_001')],
   'burst-crash-1': [source('sci-fi-sounds', 'explosionCrunch_000'), source('impact-sounds', 'impactWood_heavy_000')],
   'burst-crash-2': [source('sci-fi-sounds', 'explosionCrunch_001'), source('impact-sounds', 'impactWood_heavy_001')],
+  ...countVoices,
+  'count-time-over': [voice('Female', 'time_over')],
+  'voice-power-up': [voice('Female', 'power_up')],
+  ...Object.fromEntries(Object.entries(maleVoices).filter(([name]) => !(name in countVoices))),
+  'countdown-boom': [source('sci-fi-sounds', 'lowFrequency_explosion_000'), source('sci-fi-sounds', 'lowFrequency_explosion_001')],
+  'penalty-cost': [source('casino-audio', 'chips-collide-2'), source('impact-sounds', 'impactBell_heavy_000')],
+  'power-reveal': [source('sci-fi-sounds', 'forceField_000'), source('sci-fi-sounds', 'forceField_001')],
+  'power-preview': [source('impact-sounds', 'impactBell_heavy_001'), source('interface-sounds', 'confirmation_003')],
+  'drop-out': [jingle('Sax', '05'), jingle('Sax', '01')],
+  'gift-given': [jingle('Pizzicato', '03'), jingle('Pizzicato', '01')],
+  'quit-nosave': [source('digital-audio', 'phaserDown1'), source('sci-fi-sounds', 'thrusterFire_002')],
+  'player-joins': [source('interface-sounds', 'bong_001'), source('ui-audio', 'click4')],
+  'rank-reveal': [source('impact-sounds', 'impactPlate_light_000'), source('interface-sounds', 'select_002')],
 };
 
 export const OWN_SOUNDS = [
   'word-invalid', 'burst-boom-1', 'burst-boom-2', 'burst-boom-3',
   'rumble-fanfare', 'buzzer', 'defeat-trombone', 'game-over-fanfare',
-  'high-score-ding',
+  'high-score-ding', 'heartbeat',
+  'power-annoy-1', 'power-annoy-2', 'power-annoy-3', 'power-annoy-4',
+  'power-annoy-5', 'power-annoy-6', 'power-annoy-7', 'power-annoy-8',
+  'power-annoy-9', 'power-annoy-10', 'power-annoy-11', 'power-annoy-12',
+  'power-annoy-13',
 ];

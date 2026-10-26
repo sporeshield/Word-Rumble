@@ -35,7 +35,7 @@ export function CostQuoteDialog({ kind, cost, rolling, onAccept, onDecline }: Co
     setRevealed(false)
     sfx.play('dice-roll')
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    const timer = window.setTimeout(() => { setRevealed(true); sfx.play('wheel-land') /* stand-in until Phase 17 adds penalty-cost */ }, reduced ? 0 : 1200)
+    const timer = window.setTimeout(() => { setRevealed(true); sfx.play('penalty-cost') }, reduced ? 0 : 1200)
     return () => window.clearTimeout(timer)
   }, [rolling])
 

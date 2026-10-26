@@ -7,6 +7,22 @@ export interface PlayOptions {
   gain?: number
   /** Set false for sounds that should always play at their natural pitch. */
   varyPitch?: boolean
+  /** Fixed playback rate (no random pitch), e.g. for a speeding heartbeat. */
+  rate?: number
+}
+
+export type Voice = 'female' | 'male' | 'off'
+
+/** Spoken sounds: the Settings voice choice picks the `male-` set or silences them. */
+export const VOICED_SOUNDS: readonly string[] = [
+  ...Array.from({ length: 10 }, (_, i) => `count-${i + 1}`), 'count-time-over', 'voice-power-up',
+]
+
+/** The sound name to play for `name` under the chosen voice; null means stay silent. */
+export function voicedName(name: string, voice: Voice, names: ReadonlySet<string>): string | null {
+  if (!VOICED_SOUNDS.includes(name)) return name
+  if (voice === 'off') return null
+  return voice === 'male' && names.has(`male-${name}`) ? `male-${name}` : name
 }
 
 /** Names matching `name` exactly, or `name-<something>` (a group such as 'burst-zap'). */
@@ -30,6 +46,7 @@ class Sfx {
   private loading: Promise<void> | null = null
   private volume = 0.8
   private muted = false
+  private voice: Voice = 'female'
 
   /** Preload everything. Safe to call more than once. */
   init(): Promise<void> {
@@ -73,18 +90,23 @@ class Sfx {
 
   setVolume(v: number): void { this.volume = Math.min(1, Math.max(0, v)); this.applyVolume() }
   setMuted(m: boolean): void { this.muted = m; this.applyVolume() }
+  setVoice(v: Voice): void { this.voice = v }
+  getVoice(): Voice { return this.voice }
   getVolume(): number { return this.volume }
   isMuted(): boolean { return this.muted }
 
   play(name: string, options: PlayOptions = {}): void {
     if (!this.ctx || !this.master || this.muted) return
-    const chosen = pickSound([...this.buffers.keys()], name)
+    const heard = voicedName(name, this.voice, new Set(this.buffers.keys()))
+    if (!heard) return
+    const chosen = pickSound([...this.buffers.keys()], heard)
     if (!chosen) return
     // The audio context starts suspended until the first user gesture.
     if (this.ctx.state === 'suspended') void this.ctx.resume()
     const source = this.ctx.createBufferSource()
     source.buffer = this.buffers.get(chosen)!
-    if (options.varyPitch !== false) source.playbackRate.value = 0.94 + Math.random() * 0.12
+    if (options.rate !== undefined) source.playbackRate.value = options.rate
+    else if (options.varyPitch !== false) source.playbackRate.value = 0.94 + Math.random() * 0.12
     const gain = this.ctx.createGain()
     gain.gain.value = options.gain ?? 1
     source.connect(gain).connect(this.master)

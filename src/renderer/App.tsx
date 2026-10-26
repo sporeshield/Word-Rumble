@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { createGame, type GameState } from './engine/game'
 import type { ShortcutStatus } from '../shared/api'
-import { sfx } from './audio/sfx'
+import { sfx, type Voice } from './audio/sfx'
 import { Deal } from './screens/Deal'
 import { Game } from './screens/Game'
 import { GameOver } from './screens/GameOver'
@@ -43,6 +43,7 @@ export function App() {
   const [confirmReset, setConfirmReset] = useState(false)
   const [volume, setVolume] = useState(sfx.getVolume())
   const [muted, setMuted] = useState(sfx.isMuted())
+  const [voice, setVoice] = useState<Voice>(sfx.getVoice())
   const [defaultNames, setDefaultNames] = useState<string[]>([...FACTORY_NAMES])
   const [confirmAfresh, setConfirmAfresh] = useState(false)
   const [forgetWords, setForgetWords] = useState(false)
@@ -61,6 +62,7 @@ export function App() {
     void (async () => {
       const [settings, savedJson] = await Promise.all([window.wordRumble.settings.get(), window.wordRumble.savedGame.load()])
       if (typeof settings.volume === 'number') { sfx.setVolume(settings.volume); setVolume(settings.volume) }
+      if (settings.voice === 'female' || settings.voice === 'male' || settings.voice === 'off') { sfx.setVoice(settings.voice); setVoice(settings.voice) }
       if (typeof settings.muted === 'boolean') { sfx.setMuted(settings.muted); setMuted(settings.muted) }
       const names = loadDefaultNames(settings.defaultNames)
       setDefaultNames(names)
@@ -202,6 +204,7 @@ export function App() {
   }
 
   const changeVolume = (v: number) => { setVolume(v); sfx.setVolume(v); void window.wordRumble.settings.set('volume', v) }
+  const changeVoice = (v: Voice) => { setVoice(v); sfx.setVoice(v); void window.wordRumble.settings.set('voice', v) }
   const changeMuted = (m: boolean) => { setMuted(m); sfx.setMuted(m); void window.wordRumble.settings.set('muted', m) }
 
   const names = game?.players.map((p) => p.name) ?? []
@@ -297,6 +300,8 @@ export function App() {
         <Settings
           volume={volume}
           muted={muted}
+          voice={voice}
+          onVoice={changeVoice}
           onVolume={changeVolume}
           onMuted={changeMuted}
           defaultNames={defaultNames}
