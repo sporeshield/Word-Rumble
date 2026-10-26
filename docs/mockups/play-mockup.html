@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Word Rumble — Play screen mockup</title>
+  <style>
+    @font-face { font-family: Bangers; src: url('../../resources/fonts/Bangers-Regular.ttf') format('truetype'); font-display: swap; }
+    @font-face { font-family: Fredoka; src: url('../../resources/fonts/Fredoka-Variable.ttf') format('truetype'); font-weight: 300 700; font-display: swap; }
+    :root {
+      font-family: Fredoka, sans-serif;
+      color: #22142f;
+      --ink: #22142f; --cream: #fff5d6; --mint: #a6efc5; --aqua: #5de6e2;
+      --blue: #3772ff; --pink: #ff81ba; --orange: #ff8a2a; --gold: #ffd64a;
+      --teal: #1cc5b4; --violet: #9361e9; --magenta: #df1592;
+      --player: var(--violet);
+      --outer-gap: clamp(8px, 1.1vh, 12px);
+      --column-gap: clamp(9px, 1.1vw, 18px);
+      --board-size: calc(100vh - var(--outer-gap) - var(--outer-gap));
+      --square-size: calc(var(--board-size) * .92 / 15);
+      --rack-tile: clamp(85px, calc(7.4vh + 30px), 112px);
+      --tile-size: var(--square-size);
+    }
+    * { box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
+    body { background: #0dbcef url('../../resources/art/halftone-2.webp') repeat; background-size: 384px; }
+    body[data-variant="b"] { --player: var(--orange); }
+    .variant-b, body[data-variant="b"] .variant-a { display: none !important; }
+    body[data-variant="b"] .variant-b { display: inline !important; }
+    body[data-variant="b"] .variant-b.premium { display: flex !important; }
+    body[data-variant="b"] .variant-b.rack-slot { display: grid !important; }
+    body[data-variant="b"] .variant-b.rack-name { display: block !important; }
+    body[data-variant="b"] .variant-b.other-players, body[data-variant="b"] .variant-b.legend-item { display: flex !important; }
+    .play-screen { display: flex; align-items: center; gap: var(--column-gap); width: 100vw; height: 100vh; padding: var(--outer-gap); overflow: hidden; }
+    .board-frame { position: relative; flex: 0 0 var(--board-size); width: var(--board-size); height: var(--board-size); background: url('../../resources/art/board-frame-thin.webp') center / 100% 100% no-repeat; filter: drop-shadow(0 7px 1px #22142f55); }
+    .board-grid { position: absolute; inset: 4%; display: grid; grid-template-columns: repeat(15, minmax(0, 1fr)); grid-template-rows: repeat(15, minmax(0, 1fr)); box-shadow: inset 0 0 0 2px var(--ink); background-color: var(--mint); background-image: linear-gradient(to right, var(--ink) 1px, transparent 1px), linear-gradient(to bottom, var(--ink) 1px, transparent 1px); background-size: calc(100% / 15) 100%, 100% calc(100% / 15); }
+    .premium, .board-grid > .tile { grid-row: var(--r); grid-column: var(--c); min-width: 0; min-height: 0; }
+    .premium { z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid var(--ink); font-family: Bangers, sans-serif; font-size: calc(var(--square-size) * .42); line-height: .83; letter-spacing: .015em; text-shadow: 1px 1px 0 #ffffff88; }
+    .premium small { display: block; margin-top: .14em; font-family: Fredoka, sans-serif; font-size: clamp(7px, calc(var(--square-size) * .15), 11px); font-weight: 700; letter-spacing: .03em; line-height: 1; text-shadow: none; }
+    .premium.dl { background: var(--aqua); } .premium.tl { background: var(--blue); color: white; text-shadow: 1px 1px 0 var(--ink); }
+    .premium.dw { background: var(--pink); } .premium.tw { background: var(--orange); }
+    .premium.start { background: var(--gold); font-size: calc(var(--square-size) * .66); text-shadow: none; }
+    .premium.power-square { position: relative; isolation: isolate; text-shadow: 1px 1px 0 #ffffff88; animation: power-shimmer 3.8s ease-in-out infinite; }
+    .premium.power-square .multiplier { position: relative; z-index: 1; }
+    .premium.power-square small { position: relative; z-index: 1; }
+    .premium.p5l { background: radial-gradient(circle at 42% 32%, #fffcb9, #ffe637 58%, #ffad17); box-shadow: inset 0 0 0 2px #fff9bd, 0 0 10px 3px #ffe442; }
+    .premium.p10l { background: radial-gradient(circle at 45% 28%, #fff, #fff8c2 30%, #ffd94b 70%, #cc8313); box-shadow: inset 0 0 0 2px white, 0 0 8px 4px #fff, 0 0 17px 6px #ffd331; animation: power-shimmer 2.6s ease-in-out infinite, power-pulse 1.7s ease-in-out infinite; }
+    .premium.p5l::before, .premium.p10l::before { content: '⚡'; position: absolute; top: 7%; left: 7%; color: #fff; font: 700 .5em Fredoka, sans-serif; text-shadow: 0 0 4px #e76400, 1px 1px 0 var(--ink); transform: rotate(-14deg); }
+    .premium.p10l::after { content: '⚡'; position: absolute; right: 6%; bottom: 9%; color: #fff; font: 700 .4em Fredoka, sans-serif; text-shadow: 0 0 5px #b86600; transform: rotate(20deg); }
+    .premium.p4w { background: radial-gradient(circle at 30% 18%, #9d57db, #482071 55%, #1b0c30); color: white; text-shadow: 1px 1px 0 #130723; box-shadow: inset 0 0 0 2px #cfa8ff, 0 0 11px 2px #aa68fa; }
+    .premium.p4w::before, .premium.p4w::after { content: '✦'; position: absolute; color: #fff2ab; font: 700 .3em Fredoka, sans-serif; text-shadow: 0 0 5px white; }
+    .premium.p4w::before { top: 9%; left: 12%; } .premium.p4w::after { right: 9%; bottom: 14%; }
+    .premium.p5w { background: radial-gradient(circle at center, #f34955 0 22%, #7b102a 58%, #180b18 100%); color: white; text-shadow: 1px 1px 0 #25050d; box-shadow: inset 0 0 0 2px #ff9b8d, 0 0 12px 3px #ff3347; }
+    .premium.p5w::before { content: '✷'; position: absolute; inset: 0; display: grid; place-items: center; color: #ffb05c; font: calc(var(--square-size) * 1.15)/1 Fredoka, sans-serif; opacity: .58; }
+    .premium.p10w { border: 3px solid transparent; background: radial-gradient(circle at center, #191225 0 46%, #020106 70%) padding-box, conic-gradient(#ff264f, #ffac1b, #ffe95b, #55ecbf, #426cff, #c143f8, #ff264f) border-box; color: white; text-shadow: 0 0 6px #fff, 1px 2px 0 #000; box-shadow: 0 0 7px 3px #ff3d59, 0 0 14px 5px #ffaa20; }
+    .premium.p10w::after { content: '✦'; position: absolute; top: 5%; right: 8%; color: #ffe56d; font: 700 .36em Fredoka, sans-serif; text-shadow: 0 0 5px #fff; }
+    @keyframes power-shimmer { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.16); } }
+    @keyframes power-pulse { 0%, 100% { box-shadow: inset 0 0 0 2px white, 0 0 8px 4px #fff, 0 0 17px 6px #ffd331; } 50% { box-shadow: inset 0 0 0 2px white, 0 0 12px 6px #fff, 0 0 23px 10px #ffd331; } }
+    .tile { position: relative; z-index: 2; display: grid; place-items: center; width: var(--tile-size); height: var(--tile-size); flex: none; background: url('../../resources/art/tile-face.webp') center / 100% 100% no-repeat; filter: drop-shadow(1px 3px 1px #1e0f2455); line-height: 1; }
+    .board-grid > .tile { width: 100%; height: 100%; }
+    .tile-letter { margin-top: -.07em; font-family: Bangers, sans-serif; font-size: calc(var(--tile-size) * .59); color: #291a3c; -webkit-text-stroke: calc(var(--tile-size) * .014) #130d23; text-shadow: 1px 2px 0 #fff9; }
+    .tile-points { position: absolute; right: 18%; bottom: 17%; font-size: calc(var(--tile-size) * .19); font-weight: 700; color: #241936; }
+    .tile-owner { position: absolute; bottom: 10%; left: 28%; right: 28%; height: max(2px, calc(var(--tile-size) * .06)); border-radius: 99px; background: var(--owner, var(--player)); box-shadow: 0 1px 0 var(--ink); }
+    .tile.pending { z-index: 3; filter: drop-shadow(0 0 6px var(--gold)) drop-shadow(1px 3px 1px #1e0f2455); transform: rotate(-3deg) scale(1.04); }
+    .rack-column { position: relative; order: 1; flex: 0 0 calc(var(--rack-tile) + 17px); width: calc(var(--rack-tile) + 17px); height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: clamp(4px, .55vh, 6px); padding: 11px 4px 5px; isolation: isolate; }
+    .board-frame { order: 0; } .side-panel { order: 2; }
+    body[data-side="left"] .rack-column { order: 0; } body[data-side="left"] .board-frame { order: 1; }
+    .rack-column::before { content: ''; position: absolute; z-index: -2; inset: 0 0 29px; border: 4px solid var(--ink); border-radius: 19px; background: linear-gradient(90deg, #28203e 0 7%, color-mix(in srgb, var(--player), white 55%) 9% 15%, var(--player) 24% 72%, color-mix(in srgb, var(--player), black 28%) 91%, #30213c 100%); box-shadow: 5px 8px 0 var(--ink), inset 0 0 0 3px #ffffff6e; }
+    .rack-column::after { content: ''; position: absolute; z-index: -1; inset: 8px 5px 38px; border-radius: 12px; background: url('../../resources/art/rack-holder-tint.webp') center / 100% 100% no-repeat; opacity: .18; pointer-events: none; }
+    .rack-slot { position: relative; display: grid; place-items: center; width: calc(var(--rack-tile) + 6px); height: var(--rack-tile); }
+    .rack-slot::before { content: ''; position: absolute; inset: 1px -2px 0; border: 3px solid var(--ink); border-radius: 13px; background: #432a53a0; box-shadow: inset 0 3px 4px #170b2a99; }
+    .rack-column .tile { --tile-size: var(--rack-tile); transform: rotate(-2deg); }
+    .rack-column .rack-slot:nth-of-type(2n) .tile { transform: rotate(2deg); }
+    .rack-foot { width: 115%; height: 32px; margin-top: 2px; border: 3px solid var(--ink); border-radius: 11px; background: var(--player) url('../../resources/art/rack-holder.webp') center / 100% 100% no-repeat; box-shadow: 3px 5px 0 var(--ink); }
+    .rack-name { position: relative; z-index: 4; min-width: 91%; margin-top: -20px; padding: 2px 5px 3px; border: 3px solid var(--ink); border-radius: 10px; background: var(--player); color: white; box-shadow: 3px 4px 0 var(--ink); font: clamp(18px, 2.7vh, 29px)/1 Bangers, sans-serif; letter-spacing: .045em; text-align: center; text-shadow: 1px 2px 0 var(--ink); transform: rotate(-3deg); }
+    .rack-name::before { content: '▶'; position: absolute; left: 4px; top: 50%; font: 700 .55em Fredoka, sans-serif; transform: translateY(-50%); }
+    .side-panel { display: flex; flex: 1 1 auto; flex-direction: column; justify-content: center; gap: clamp(8px, 1.15vh, 14px); min-width: 0; min-height: 0; height: 100%; padding: 0 1px 5px 0; }
+    .status-card, .players-card, .key-card, .preview-card { border: 3px solid var(--ink); border-radius: 20px; box-shadow: 4px 6px 0 var(--ink); }
+    .status-card { position: relative; flex: none; min-height: clamp(108px, 14vh, 151px); padding: clamp(11px, 1.7vh, 20px) clamp(100px, 9.9vh, 125px) 10px clamp(14px, 1.5vw, 24px); background: var(--orange) url('../../resources/art/halftone-1.webp') center / 384px repeat; }
+    .now-playing { display: inline-flex; align-items: center; gap: 5px; margin: 0 0 2px; padding: 2px 8px; border: 2px solid var(--ink); border-radius: 20px; background: var(--player); color: white; font-size: clamp(10px, 1.25vh, 13px); font-weight: 700; line-height: 1; text-shadow: 1px 1px 0 var(--ink); }
+    h1 { margin: 0; font: clamp(32px, 4.7vh, 54px)/.89 Bangers, sans-serif; letter-spacing: .035em; white-space: nowrap; text-shadow: 2px 3px 0 var(--cream); }
+    .score-bag { display: flex; align-items: center; flex-wrap: wrap; gap: 5px 11px; margin-top: clamp(5px, .9vh, 9px); }
+    .own-score { display: inline-flex; align-items: center; gap: 4px; padding: 2px 7px; border: 2px solid var(--ink); border-radius: 8px; background: var(--cream); box-shadow: 2px 2px 0 var(--ink); color: var(--ink); font-size: clamp(13px, 1.55vh, 17px); font-weight: 700; white-space: nowrap; }
+    .own-score strong { margin-left: 2px; color: var(--ink); font: clamp(22px, 2.6vh, 30px)/1 Bangers, sans-serif; text-shadow: 1px 1px 0 var(--gold); }
+    .bag-chip { display: inline-block; padding: 4px 10px 5px; border: 2px solid var(--ink); border-radius: 999px; background: var(--cream); box-shadow: 2px 3px 0 var(--ink); font-size: clamp(11px, 1.35vh, 15px); font-weight: 700; white-space: nowrap; }
+    .timer { position: absolute; top: 50%; right: 13px; display: grid; place-items: center; width: clamp(78px, 9.3vh, 101px); aspect-ratio: 1; border: 3px solid var(--ink); border-radius: 50%; background: var(--cream); box-shadow: 3px 4px 0 var(--ink); transform: translateY(-50%); }
+    .timer svg { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
+    .timer circle { fill: none; stroke-width: 8; } .timer .track { stroke: #d8cbdb; } .timer .progress { stroke: var(--player); stroke-linecap: round; stroke-dasharray: 220; stroke-dashoffset: 66; }
+    .timer span { z-index: 1; padding-top: 3px; font: clamp(30px, 4.5vh, 48px)/1 Bangers, sans-serif; }
+    body[data-variant="b"] .timer { background: #ffe1dd; animation: timer-nerves .55s ease-in-out infinite; }
+    body[data-variant="b"] .timer .progress { stroke: #ec3655; stroke-dashoffset: 194; } body[data-variant="b"] .timer span { color: #d51b42; }
+    .players-card { flex: none; padding: 8px 11px 10px; background: #c698fa url('../../resources/art/halftone-3.webp') center / 384px repeat; }
+    .section-title { margin: 0 0 6px; font: clamp(19px, 2.5vh, 26px)/1 Bangers, sans-serif; letter-spacing: .05em; }
+    .section-subtitle { display: inline-block; vertical-align: middle; margin-left: 5px; padding: 3px 7px; border: 1.5px solid var(--ink); border-radius: 99px; background: var(--cream); color: var(--ink); font: 700 clamp(10px, 1.2vh, 13px)/1 Fredoka, sans-serif; letter-spacing: 0; box-shadow: 1px 2px 0 var(--ink); }
+    .other-players { display: flex; flex-wrap: wrap; gap: 6px; }
+    .player-plate { display: flex; align-items: center; gap: 6px; min-width: 0; padding: 3px 7px 3px 4px; border: 2px solid var(--ink); border-radius: 11px; background: var(--plate); box-shadow: 2px 3px 0 var(--ink); color: var(--ink); font-size: clamp(12px, 1.55vh, 16px); font-weight: 700; white-space: nowrap; }
+    .player-plate .tile-back { width: clamp(25px, 3.3vh, 35px); aspect-ratio: 1; flex: none; background: url('../../resources/art/tile-back.webp') center / contain no-repeat; }
+    .player-plate strong { font-family: Bangers, sans-serif; font-size: 1.3em; letter-spacing: .04em; }
+    .player-plate .count { padding-left: 4px; border-left: 2px solid #22142f88; font-size: .85em; }
+    .key-card { flex: none; padding: 8px 10px 11px; background: var(--cream); }
+    .legend { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(4px, .6vh, 7px); }
+    body[data-variant="b"] .legend { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    body[data-variant="b"] .legend-item:nth-child(5) { grid-column: 1 / -1; }
+    .legend-item { display: flex; align-items: center; gap: 5px; min-width: 0; padding: 3px 5px; border: 2px solid var(--ink); border-radius: 9px; background: #fffdf4; font-size: clamp(10px, 1.22vh, 13px); font-weight: 700; line-height: 1.05; white-space: nowrap; }
+    .legend-item .legend-label { min-width: 0; }
+    .legend-item .count-badge { flex: none; margin-left: auto; padding: 2px 3px; border: 1px solid var(--ink); border-radius: 5px; background: white; font: 700 clamp(8px, 1vh, 11px)/1 Fredoka, sans-serif; }
+    .legend-swatch { position: relative; display: grid; place-items: center; width: clamp(23px, 3.1vh, 31px); aspect-ratio: 1; flex: none; border: 1.5px solid var(--ink); border-radius: 4px; background: var(--swatch); color: var(--ink); font: 15px/1 Bangers, sans-serif; }
+    .legend-item.tl .legend-swatch { color: white; }
+    .legend-item.power-key { background: #fff0b6; }
+    .legend-item.p5l .legend-swatch { background: linear-gradient(135deg, #fffcb9, #ffcb16); box-shadow: 0 0 4px 1px #ffd53b; }
+    .legend-item.p10l .legend-swatch { background: linear-gradient(135deg, white, #ffd34e); box-shadow: 0 0 5px 2px #ffdc51; }
+    .legend-item.p4w .legend-swatch { background: #482071; color: white; box-shadow: 0 0 4px 1px #a263ee; }
+    .legend-item.p5w .legend-swatch { background: radial-gradient(circle, #e93c4f, #1b0815); color: white; box-shadow: 0 0 4px 1px #ff384f; }
+    .legend-item.p10w .legend-swatch { border: 2px solid transparent; background: linear-gradient(#130e19, #130e19) padding-box, conic-gradient(#ff264f, #ffe95b, #55ecbf, #426cff, #c143f8, #ff264f) border-box; color: white; box-shadow: 0 0 5px 2px #ffcb49; }
+    .legend-item.p5l .legend-swatch::after, .legend-item.p10l .legend-swatch::after { content: '⚡'; position: absolute; top: 0; left: 1px; color: white; font: 10px/1 Fredoka, sans-serif; text-shadow: 1px 1px 0 #a75c00; }
+    .legend-item.p4w .legend-swatch::after { content: '✦'; position: absolute; top: 1px; right: 1px; color: #ffe88c; font: 10px/1 Fredoka, sans-serif; }
+    .legend-item.p5w .legend-swatch::after { content: '✷'; position: absolute; top: 0; right: 1px; color: #ffbd73; font: 10px/1 Fredoka, sans-serif; }
+    .preview-card { flex: none; display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: clamp(66px, 9vh, 96px); padding: 8px clamp(12px, 1.3vw, 20px); background: var(--cream); }
+    .preview-heading { margin: 0 0 2px; font-size: clamp(11px, 1.25vh, 14px); font-weight: 700; color: #6e6373; }
+    .preview-word { margin: 0; font: clamp(24px, 3.2vh, 35px)/1 Bangers, sans-serif; letter-spacing: .05em; }
+    .preview-points { flex: none; color: #b96300; font: clamp(28px, 3.6vh, 42px)/1 Bangers, sans-serif; text-shadow: 1px 2px 0 var(--gold); white-space: nowrap; }
+    .actions { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: clamp(6px, .8vh, 9px); flex: none; }
+    .action { min-width: 0; min-height: clamp(42px, 5.3vh, 58px); padding: 4px 3px 2px; border: 3px solid var(--ink); border-radius: 12px; background: var(--aqua); box-shadow: 0 5px 0 var(--ink); color: var(--ink); font: clamp(16px, 2.05vh, 23px)/1 Bangers, sans-serif; letter-spacing: .025em; text-align: center; white-space: nowrap; cursor: default; }
+    .action.play { grid-column: 1 / -1; min-height: clamp(58px, 8vh, 86px); background: var(--pink); font-size: clamp(29px, 4.2vh, 46px); }
+    .action.hint { grid-column: 1 / 2; } .action.pause { grid-column: 2 / 3; background: var(--gold); }
+    .action.defeat { grid-column: 3 / 5; background: #ffe2dc; color: #8d2942; font-size: clamp(15px, 1.75vh, 19px); }
+    .action:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+    .dialog-overlay { position: fixed; z-index: 20; inset: 0; display: none; place-items: center; padding: 12px; background: #160d2a9c; }
+    body[data-variant="c"] .dialog-overlay { display: grid; }
+    .dialog-stack { display: grid; gap: clamp(12px, 2vh, 20px); width: min(460px, 96vw); }
+    .warning-card { position: relative; border: 4px solid var(--ink); border-radius: 22px; background: var(--cream); box-shadow: 8px 9px 0 var(--ink); overflow: hidden; }
+    .warning-card::before { content: ''; position: absolute; inset: 0 0 auto; height: 10px; background: repeating-linear-gradient(45deg, var(--gold) 0 14px, var(--ink) 14px 28px); }
+    .warning-main { padding: clamp(18px, 3vh, 26px); }
+    .warning-top { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+    .warning-eyebrow { display: inline-block; padding: 3px 9px; border: 2px solid var(--ink); border-radius: 99px; background: var(--gold); font-size: 11px; font-weight: 700; }
+    .warning-card h2 { margin: 5px 0 0; font: clamp(40px, 6vh, 62px)/.9 Bangers, sans-serif; letter-spacing: .04em; }
+    .warning-card p { margin: 12px 0 18px; font-size: clamp(17px, 2.2vh, 22px); font-weight: 700; line-height: 1.2; }
+    .roll-area { display: grid; justify-items: center; gap: 4px; flex: none; padding: 8px; border: 2px solid var(--ink); border-radius: 13px; background: #ffdf83; box-shadow: 3px 4px 0 var(--ink); font: 700 11px/1 Fredoka, sans-serif; }
+    .die { position: relative; display: block; width: clamp(42px, 6vh, 56px); aspect-ratio: 1; border: 3px solid var(--ink); border-radius: 10px; background: white; transform: rotate(10deg); box-shadow: 2px 3px 0 #a96e1e; }
+    .die i { position: absolute; width: 8px; aspect-ratio: 1; border-radius: 50%; background: var(--ink); }
+    .die i:nth-child(1) { top: 20%; left: 20%; } .die i:nth-child(2) { top: 20%; right: 20%; } .die i:nth-child(3) { bottom: 20%; left: 20%; } .die i:nth-child(4) { bottom: 20%; right: 20%; }
+    .warning-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+    .warning-buttons button { min-height: 49px; border: 3px solid var(--ink); border-radius: 11px; background: var(--pink); box-shadow: 0 4px 0 var(--ink); color: var(--ink); font: clamp(19px, 2.5vh, 25px)/1 Bangers, sans-serif; letter-spacing: .035em; }
+    .warning-buttons button:last-child { background: var(--aqua); }
+    .warning-example { padding: 17px 21px 20px; background: #f4dcff; }
+    .warning-example h2 { font-size: clamp(32px, 4.5vh, 44px); }
+    .warning-example p { margin: 8px 0 13px; font-size: clamp(15px, 1.9vh, 18px); }
+    .warning-example .warning-buttons button { min-height: 42px; }
+    .setup-screen { display: none; width: 100vw; height: 100vh; padding: clamp(10px, 1.5vh, 19px); overflow: hidden; }
+    body[data-variant="setup"] .play-screen { display: none; }
+    body[data-variant="setup"] .setup-screen { display: grid; grid-template-rows: auto minmax(0, 1fr); gap: clamp(9px, 1.3vh, 15px); }
+    .setup-wrap { width: min(1180px, 100%); min-height: 0; margin: 0 auto; }
+    .setup-banner { display: flex; align-items: center; justify-content: space-between; min-height: clamp(65px, 10vh, 100px); padding: 10px 22px; border: 4px solid var(--ink); border-radius: 19px; background: var(--orange) url('../../resources/art/halftone-1.webp') center / 384px repeat; box-shadow: 5px 6px 0 var(--ink); }
+    .setup-banner h1 { font-size: clamp(40px, 6.5vh, 68px); }
+    .setup-banner .banner-chip { padding: 7px 13px; border: 2px solid var(--ink); border-radius: 99px; background: var(--cream); box-shadow: 3px 3px 0 var(--ink); font-weight: 700; }
+    .setup-content { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr); gap: clamp(10px, 1.5vw, 22px); align-items: stretch; }
+    .setup-card { min-height: 0; padding: clamp(11px, 1.7vh, 19px); border: 4px solid var(--ink); border-radius: 20px; background: var(--cream); box-shadow: 5px 6px 0 var(--ink); }
+    .setup-card h2 { margin: 0; font: clamp(30px, 4.4vh, 48px)/.9 Bangers, sans-serif; letter-spacing: .05em; }
+    .setup-card h3 { margin: 0; font: clamp(23px, 3vh, 31px)/1 Bangers, sans-serif; letter-spacing: .04em; }
+    .setup-intro { margin: 4px 0 10px; font-size: clamp(12px, 1.6vh, 16px); font-weight: 700; }
+    .setup-board { display: flex; flex-direction: column; }
+    .board-mode { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin: 0 0 10px; }
+    .mode-button { min-height: clamp(42px, 5.9vh, 60px); border: 3px solid var(--ink); border-radius: 10px; background: #e1d9d8; box-shadow: 0 4px 0 var(--ink); color: var(--ink); font: clamp(23px, 3vh, 32px)/1 Bangers, sans-serif; letter-spacing: .06em; }
+    .mode-button[aria-pressed="true"] { background: var(--pink); }
+    .mode-button.wild[aria-pressed="true"] { background: var(--gold); }
+    .rack-placement { display: grid; grid-template-columns: auto 1fr 1fr; align-items: center; gap: 7px; margin: 0 0 10px; }
+    .rack-placement-label { padding-right: 3px; font: clamp(21px, 2.8vh, 29px)/1 Bangers, sans-serif; letter-spacing: .04em; }
+    .rack-side-choice { display: flex; align-items: center; justify-content: center; gap: 9px; min-height: clamp(40px, 5.5vh, 53px); border: 3px solid var(--ink); border-radius: 10px; background: #e1d9d8; box-shadow: 0 3px 0 var(--ink); color: var(--ink); font: clamp(20px, 2.6vh, 27px)/1 Bangers, sans-serif; letter-spacing: .04em; }
+    .rack-side-choice[aria-pressed="true"] { background: var(--aqua); }
+    .layout-picto { display: flex; align-items: center; gap: 2px; padding: 3px 4px; border: 2px solid var(--ink); border-radius: 5px; background: #fffdf6; }
+    .layout-picto i { display: block; height: 20px; border: 1px solid var(--ink); border-radius: 2px; }
+    .layout-picto .mini-rack { width: 6px; background: var(--violet); }
+    .layout-picto .mini-board { width: 20px; background-color: var(--mint); background-image: linear-gradient(to right, #22142f88 1px, transparent 1px), linear-gradient(to bottom, #22142f88 1px, transparent 1px); background-size: 6px 100%, 100% 6px; }
+    .layout-picto .mini-panel { width: 9px; background: var(--orange); }
+    .power-settings { display: grid; gap: clamp(4px, .8vh, 8px); }
+    .power-setting { display: flex; align-items: center; gap: 9px; min-height: clamp(50px, 7.4vh, 72px); padding: 4px 9px; border: 2px solid var(--ink); border-radius: 11px; background: #fffdf6; box-shadow: 2px 3px 0 #22142f; }
+    .power-setting .legend-swatch { width: clamp(36px, 5.5vh, 52px); font-size: clamp(19px, 2.7vh, 27px); }
+    .power-setting .setting-name { flex: 1; min-width: 0; font-weight: 700; font-size: clamp(14px, 1.85vh, 19px); }
+    .stepper { display: flex; align-items: center; flex: none; border: 2px solid var(--ink); border-radius: 9px; overflow: hidden; background: white; box-shadow: 2px 3px 0 var(--ink); }
+    .stepper button { width: clamp(31px, 4.5vh, 43px); height: clamp(29px, 4.5vh, 43px); border: 0; background: var(--aqua); color: var(--ink); font: 31px/1 Bangers, sans-serif; }
+    .stepper output { display: grid; place-items: center; width: clamp(28px, 4.3vh, 41px); height: clamp(29px, 4.5vh, 43px); border-inline: 2px solid var(--ink); font: clamp(23px, 3vh, 31px)/1 Bangers, sans-serif; }
+    .board-footer { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: auto; padding-top: clamp(9px, 1.5vh, 15px); font-weight: 700; font-size: clamp(14px, 1.8vh, 19px); }
+    .board-footer strong { font: clamp(25px, 3.3vh, 34px)/1 Bangers, sans-serif; }
+    .surprise-button { flex: none; min-height: 43px; padding: 3px 14px; border: 3px solid var(--ink); border-radius: 10px; background: var(--gold); box-shadow: 0 4px 0 var(--ink); color: var(--ink); font: clamp(20px, 2.6vh, 27px)/1 Bangers, sans-serif; }
+    .setup-side { display: grid; grid-template-rows: auto 1fr; gap: clamp(10px, 1.5vh, 17px); min-height: 0; }
+    .setup-players { background: #f2d6ff url('../../resources/art/halftone-3.webp') center / 384px repeat; }
+    .setup-player-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .penalties-card { background: #fff1cc; }
+    .penalty-row { margin-top: clamp(9px, 1.6vh, 17px); padding: 8px; border: 2px solid var(--ink); border-radius: 11px; background: white; box-shadow: 2px 3px 0 var(--ink); }
+    .penalty-row h3 { margin-bottom: 7px; }
+    .penalty-controls { display: flex; align-items: center; gap: 6px; }
+    .penalty-choice { min-height: 32px; padding: 3px 8px; border: 2px solid var(--ink); border-radius: 8px; background: #e9e2dc; color: var(--ink); font: 700 clamp(11px, 1.45vh, 15px)/1 Fredoka, sans-serif; white-space: nowrap; }
+    .penalty-choice[aria-pressed="true"] { background: var(--aqua); box-shadow: 1px 2px 0 var(--ink); }
+    .cost-control { display: inline-flex; align-items: center; gap: 3px; }
+    .cost-control input { width: 38px; min-height: 31px; border: 2px solid var(--ink); border-radius: 7px; background: var(--cream); color: var(--ink); font: 700 15px/1 Fredoka, sans-serif; text-align: center; }
+    .cost-control.inactive { opacity: .45; }
+    .cost-control.inactive input { pointer-events: none; }
+    .classic-note { display: none; padding: 18px; border: 2px solid var(--ink); border-radius: 11px; background: #fffdf6; font-weight: 700; }
+    body[data-board-mode="classic"] .power-settings, body[data-board-mode="classic"] .board-footer { display: none; }
+    body[data-board-mode="classic"] .classic-note { display: block; }
+    button { font-family: inherit; }
+    @keyframes timer-nerves { 0%, 100% { transform: translateY(-50%) scale(1); } 25% { transform: translate(-2px, -50%) scale(1.055); } 75% { transform: translate(2px, -50%) scale(1.055); } }
+    @media (max-height: 800px) {
+      .side-panel { gap: 8px; }
+      .status-card { padding-left: 13px; border-radius: 16px; }
+      .players-card, .key-card { padding-top: 6px; padding-bottom: 7px; border-radius: 15px; }
+      .section-title { margin-bottom: 4px; }
+      .legend-item { padding: 2px 4px; }
+      .action { box-shadow: 0 4px 0 var(--ink); }
+    }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; } }
+  </style>
+</head>
+<body data-variant="a" data-side="right" data-board-mode="wild">
+  <main class="play-screen" aria-label="Word Rumble play screen layout mockup">
+    <section class="board-frame" aria-label="15 by 15 game board">
+      <div class="board-grid">
+        <!-- Premium coordinates match src/renderer/engine/board.ts; row and column are 1-based here. -->
+        <div class="premium dl" style="--r:1;--c:1">×2</div>
+        <div class="premium tw" style="--r:1;--c:4">×3<small>WORD</small></div>
+        <div class="premium dl" style="--r:1;--c:8">×2</div>
+        <div class="premium tw" style="--r:1;--c:12">×3<small>WORD</small></div>
+        <div class="premium dl" style="--r:1;--c:15">×2</div>
+        <div class="premium tl" style="--r:2;--c:2">×3</div>
+        <div class="premium tl" style="--r:2;--c:7">×3</div>
+        <div class="premium dw" style="--r:2;--c:8">×2<small>WORD</small></div>
+        <div class="premium tl" style="--r:2;--c:9">×3</div>
+        <div class="premium tl" style="--r:2;--c:14">×3</div>
+        <div class="premium dw" style="--r:3;--c:6">×2<small>WORD</small></div>
+        <div class="premium dw" style="--r:3;--c:10">×2<small>WORD</small></div>
+        <div class="premium tw" style="--r:4;--c:1">×3<small>WORD</small></div>
+        <div class="premium dw" style="--r:4;--c:4">×2<small>WORD</small></div>
+        <div class="premium tl" style="--r:4;--c:8">×3</div>
+        <div class="premium dw" style="--r:4;--c:12">×2<small>WORD</small></div>
+        <div class="premium tw" style="--r:4;--c:15">×3<small>WORD</small></div>
+        <div class="premium dl" style="--r:5;--c:7">×2</div>
+        <div class="premium dl" style="--r:5;--c:9">×2</div>
+        <div class="premium dw" style="--r:6;--c:3">×2<small>WORD</small></div>
+        <div class="premium dl" style="--r:6;--c:6">×2</div>
+        <div class="premium dl" style="--r:6;--c:8">×2</div>
+        <div class="premium dl" style="--r:6;--c:10">×2</div>
+        <div class="premium dw" style="--r:6;--c:13">×2<small>WORD</small></div>
+        <div class="premium tl" style="--r:7;--c:2">×3</div>
+        <div class="premium dl" style="--r:7;--c:5">×2</div>
+        <div class="premium dl" style="--r:7;--c:11">×2</div>
+        <div class="premium tl" style="--r:7;--c:14">×3</div>
+        <div class="premium dl" style="--r:8;--c:1">×2</div>
+        <div class="premium dw" style="--r:8;--c:2">×2<small>WORD</small></div>
+        <div class="premium tl" style="--r:8;--c:4">×3</div>
+        <div class="premium dl" style="--r:8;--c:6">×2</div>
+        <div class="premium start" style="--r:8;--c:8">★</div>
+        <div class="premium dl" style="--r:8;--c:10">×2</div>
+        <div class="premium tl" style="--r:8;--c:12">×3</div>
+        <div class="premium dw" style="--r:8;--c:14">×2<small>WORD</small></div>
+        <div class="premium dl" style="--r:8;--c:15">×2</div>
+        <div class="premium tl" style="--r:9;--c:2">×3</div>
+        <div class="premium dl" style="--r:9;--c:5">×2</div>
+        <div class="premium dl" style="--r:9;--c:11">×2</div>
+        <div class="premium tl" style="--r:9;--c:14">×3</div>
+        <div class="premium dw" style="--r:10;--c:3">×2<small>WORD</small></div>
+        <div class="premium dl" style="--r:10;--c:6">×2</div>
+        <div class="premium dl" style="--r:10;--c:8">×2</div>
+        <div class="premium dl" style="--r:10;--c:10">×2</div>
+        <div class="premium dw" style="--r:10;--c:13">×2<small>WORD</small></div>
+        <div class="premium dl" style="--r:11;--c:7">×2</div>
+        <div class="premium dl" style="--r:11;--c:9">×2</div>
+        <div class="premium tw" style="--r:12;--c:1">×3<small>WORD</small></div>
+        <div class="premium dw" style="--r:12;--c:4">×2<small>WORD</small></div>
+        <div class="premium tl" style="--r:12;--c:8">×3</div>
+        <div class="premium dw" style="--r:12;--c:12">×2<small>WORD</small></div>
+        <div class="premium tw" style="--r:12;--c:15">×3<small>WORD</small></div>
+        <div class="premium dw" style="--r:13;--c:6">×2<small>WORD</small></div>
+        <div class="premium dw" style="--r:13;--c:10">×2<small>WORD</small></div>
+        <div class="premium tl" style="--r:14;--c:2">×3</div>
+        <div class="premium tl" style="--r:14;--c:7">×3</div>
+        <div class="premium dw" style="--r:14;--c:8">×2<small>WORD</small></div>
+        <div class="premium tl" style="--r:14;--c:9">×3</div>
+        <div class="premium tl" style="--r:14;--c:14">×3</div>
+        <div class="premium dl" style="--r:15;--c:1">×2</div>
+        <div class="premium tw" style="--r:15;--c:4">×3<small>WORD</small></div>
+        <div class="premium dl" style="--r:15;--c:8">×2</div>
+        <div class="premium tw" style="--r:15;--c:12">×3<small>WORD</small></div>
+        <div class="premium dl" style="--r:15;--c:15">×2</div>
+        <div class="premium power-square p5l variant-b" style="--r:3;--c:3"><span class="multiplier">×5</span><small>POWER</small></div>
+        <div class="premium power-square p10l variant-b" style="--r:5;--c:6"><span class="multiplier">×10</span><small>POWER</small></div>
+        <div class="premium power-square p5w variant-b" style="--r:3;--c:12"><span class="multiplier">×5</span><small>WORD</small></div>
+        <div class="premium power-square p10w variant-b" style="--r:5;--c:14"><span class="multiplier">×10</span><small>WORD</small></div>
+        <div class="premium power-square p5w variant-b" style="--r:11;--c:2"><span class="multiplier">×5</span><small>WORD</small></div>
+        <div class="premium power-square p10l variant-b" style="--r:13;--c:5"><span class="multiplier">×10</span><small>POWER</small></div>
+        <div class="premium power-square p4w variant-b" style="--r:10;--c:11"><span class="multiplier">×4</span><small>WORD</small></div>
+        <div class="premium power-square p5l variant-b" style="--r:12;--c:9"><span class="multiplier">×5</span><small>POWER</small></div>
+        <div class="premium power-square p10w variant-b" style="--r:13;--c:14"><span class="multiplier">×10</span><small>WORD</small></div>
+        <div class="tile" style="--r:8;--c:6;--owner:var(--teal)"><span class="tile-letter">R</span><span class="tile-points">1</span><span class="tile-owner"></span></div>
+        <div class="tile" style="--r:8;--c:7;--owner:var(--teal)"><span class="tile-letter">U</span><span class="tile-points">2</span><span class="tile-owner"></span></div>
+        <div class="tile" style="--r:8;--c:8;--owner:var(--teal)"><span class="tile-letter">M</span><span class="tile-points">3</span><span class="tile-owner"></span></div>
+        <div class="tile" style="--r:8;--c:9;--owner:var(--teal)"><span class="tile-letter">B</span><span class="tile-points">4</span><span class="tile-owner"></span></div>
+        <div class="tile" style="--r:8;--c:10;--owner:var(--teal)"><span class="tile-letter">L</span><span class="tile-points">1</span><span class="tile-owner"></span></div>
+        <div class="tile" style="--r:8;--c:11;--owner:var(--teal)"><span class="tile-letter">E</span><span class="tile-points">1</span><span class="tile-owner"></span></div>
+        <div class="tile" style="--r:5;--c:11;--owner:var(--violet)"><span class="tile-letter">J</span><span class="tile-points">8</span><span class="tile-owner"></span></div>
+        <div class="tile" style="--r:6;--c:11;--owner:var(--violet)"><span class="tile-letter">O</span><span class="tile-points">1</span><span class="tile-owner"></span></div>
+        <div class="tile" style="--r:7;--c:11;--owner:var(--violet)"><span class="tile-letter">K</span><span class="tile-points">5</span><span class="tile-owner"></span></div>
+        <div class="tile pending" style="--r:9;--c:8"><span class="tile-letter">E</span><span class="tile-points">1</span><span class="tile-owner"></span></div>
+        <div class="tile pending" style="--r:10;--c:8"><span class="tile-letter">T</span><span class="tile-points">1</span><span class="tile-owner"></span></div>
+      </div>
+    </section>
+
+    <section class="rack-column" aria-label="Current player's seven tiles">
+      <div class="variant-a rack-slot"><div class="tile"><span class="tile-letter">H</span><span class="tile-points">3</span></div></div>
+      <div class="variant-a rack-slot"><div class="tile"><span class="tile-letter">E</span><span class="tile-points">1</span></div></div>
+      <div class="variant-a rack-slot"><div class="tile"><span class="tile-letter">O</span><span class="tile-points">1</span></div></div>
+      <div class="variant-a rack-slot"><div class="tile"><span class="tile-letter">J</span><span class="tile-points">8</span></div></div>
+      <div class="variant-a rack-slot"><div class="tile"><span class="tile-letter">B</span><span class="tile-points">4</span></div></div>
+      <div class="variant-a rack-slot"><div class="tile"><span class="tile-letter">E</span><span class="tile-points">1</span></div></div>
+      <div class="variant-a rack-slot"><div class="tile"><span class="tile-letter">E</span><span class="tile-points">1</span></div></div>
+      <div class="variant-b rack-slot"><div class="tile"><span class="tile-letter">P</span><span class="tile-points">3</span></div></div>
+      <div class="variant-b rack-slot"><div class="tile"><span class="tile-letter">O</span><span class="tile-points">1</span></div></div>
+      <div class="variant-b rack-slot"><div class="tile"><span class="tile-letter">P</span><span class="tile-points">3</span></div></div>
+      <div class="variant-b rack-slot"><div class="tile"><span class="tile-letter">C</span><span class="tile-points">3</span></div></div>
+      <div class="variant-b rack-slot"><div class="tile"><span class="tile-letter">O</span><span class="tile-points">1</span></div></div>
+      <div class="variant-b rack-slot"><div class="tile"><span class="tile-letter">R</span><span class="tile-points">1</span></div></div>
+      <div class="variant-b rack-slot"><div class="tile"><span class="tile-letter">N</span><span class="tile-points">1</span></div></div>
+      <div class="rack-foot" aria-hidden="true"></div>
+      <div class="rack-name variant-a">DAWN</div><div class="rack-name variant-b">PIP</div>
+    </section>
+
+    <aside class="side-panel" aria-label="Turn information and actions">
+      <header class="status-card">
+        <div class="now-playing">▶ PLAYING NOW</div>
+        <h1><span class="variant-a">DAWN'S TURN</span><span class="variant-b">PIP'S TURN</span></h1>
+        <div class="score-bag"><span class="own-score">Your score <strong class="variant-a">112</strong><strong class="variant-b">86</strong></span><span class="bag-chip"><span class="variant-a">94</span><span class="variant-b">70</span> tiles in the bag</span></div>
+        <div class="timer" aria-label="Turn countdown"><svg viewBox="0 0 100 100" aria-hidden="true"><circle class="track" cx="50" cy="50" r="35"></circle><circle class="progress" cx="50" cy="50" r="35"></circle></svg><span class="variant-a">42</span><span class="variant-b">7</span></div>
+      </header>
+
+      <section class="players-card" aria-label="Other players">
+        <h2 class="section-title">PLAYERS <span class="section-subtitle">· other racks</span></h2>
+        <div class="other-players variant-a"><div class="player-plate" style="--plate:var(--teal)"><span class="tile-back" aria-hidden="true"></span><strong>SHANE</strong><span class="count">7 tiles</span></div></div>
+        <div class="other-players variant-b"><div class="player-plate" style="--plate:var(--teal)"><span class="tile-back" aria-hidden="true"></span><strong>SHANE</strong><span class="count">7 tiles</span></div><div class="player-plate" style="--plate:var(--violet)"><span class="tile-back" aria-hidden="true"></span><strong>DAWN</strong><span class="count">7 tiles</span></div><div class="player-plate" style="--plate:var(--pink)"><span class="tile-back" aria-hidden="true"></span><strong>GRAN</strong><span class="count">7 tiles</span></div></div>
+      </section>
+
+      <section class="key-card" aria-label="Square colour key">
+        <h2 class="section-title">SQUARE KEY</h2>
+        <div class="legend">
+          <div class="legend-item" style="--swatch:var(--aqua)"><span class="legend-swatch">×2</span><span>letter</span></div>
+          <div class="legend-item tl" style="--swatch:var(--blue)"><span class="legend-swatch">×3</span><span>letter</span></div>
+          <div class="legend-item" style="--swatch:var(--pink)"><span class="legend-swatch">×2</span><span>WORD</span></div>
+          <div class="legend-item" style="--swatch:var(--orange)"><span class="legend-swatch">×3</span><span>WORD</span></div>
+          <div class="legend-item" style="--swatch:var(--gold)"><span class="legend-swatch">★</span><span>start</span></div>
+          <div class="legend-item variant-b power-key p5l"><span class="legend-swatch">×5</span><span class="legend-label">POWER letter</span><span class="count-badge">2 on board</span></div>
+          <div class="legend-item variant-b power-key p10l"><span class="legend-swatch">×10</span><span class="legend-label">POWER letter</span><span class="count-badge">2 on board</span></div>
+          <div class="legend-item variant-b power-key p4w"><span class="legend-swatch">×4</span><span class="legend-label">WORD</span><span class="count-badge">1 on board</span></div>
+          <div class="legend-item variant-b power-key p5w"><span class="legend-swatch">×5</span><span class="legend-label">POWER WORD</span><span class="count-badge">2 on board</span></div>
+          <div class="legend-item variant-b power-key p10w"><span class="legend-swatch">×10</span><span class="legend-label">POWER WORD</span><span class="count-badge">2 on board</span></div>
+        </div>
+      </section>
+
+      <section class="preview-card" aria-label="Live play preview"><div><p class="preview-heading">LIVE PLAY PREVIEW</p><p class="preview-word">MET <span style="font:600 .55em Fredoka,sans-serif">· 2 tiles placed</span></p></div><strong class="preview-points">+12 pts</strong></section>
+      <div class="actions" aria-label="Game actions">
+        <button class="action play" type="button">PLAY</button>
+        <button class="action" type="button">RECALL</button><button class="action" type="button">SHUFFLE</button><button class="action" type="button">SWAP</button><button class="action" type="button">PASS</button>
+        <button class="action hint" type="button">HINT</button><button class="action pause" type="button">PAUSE</button><button class="action defeat" type="button">ADMIT DEFEAT</button>
+      </div>
+    </aside>
+  </main>
+  <div class="dialog-overlay" aria-label="Action warning examples">
+    <div class="dialog-stack">
+      <section class="warning-card warning-main" role="dialog" aria-modal="true" aria-labelledby="shuffle-title">
+        <div class="warning-top"><div><span class="warning-eyebrow">⚠ POINTS WARNING</span><h2 id="shuffle-title">SHUFFLE?</h2></div><div class="roll-area" aria-label="Dice rolled 4"><span class="die" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span>ROLLED 4</span></div></div>
+        <p>Shuffling your rack will cost you 7 points.</p>
+        <div class="warning-buttons"><button type="button">Shuffle (−7)</button><button type="button">No thanks</button></div>
+      </section>
+      <section class="warning-card warning-example" aria-labelledby="swap-title">
+        <h2 id="swap-title">SWAP?</h2>
+        <p>Swapping 3 tiles costs 4 points and ends your turn.</p>
+        <div class="warning-buttons"><button type="button">Swap (−4)</button><button type="button">No thanks</button></div>
+      </section>
+    </div>
+  </div>
+  <main class="setup-screen" aria-label="Word Rumble setup screen layout mockup">
+    <header class="setup-banner setup-wrap"><div><span class="now-playing">★ NEW GAME</span><h1>SET UP YOUR GAME</h1></div><span class="banner-chip">READY TO RUMBLE?</span></header>
+    <div class="setup-content setup-wrap">
+      <section class="setup-card setup-board" aria-labelledby="board-title">
+        <h2 id="board-title">BOARD</h2><p class="setup-intro">Pick your square mix for this match.</p>
+        <div class="board-mode" role="group" aria-label="Board mode"><button class="mode-button" data-mode="classic" type="button" aria-pressed="false">CLASSIC</button><button class="mode-button wild" data-mode="wild" type="button" aria-pressed="true">⚡ WILD</button></div>
+        <div class="rack-placement" role="group" aria-label="Rack position"><span class="rack-placement-label">RACK:</span><button class="rack-side-choice" data-rack-side="left" type="button" aria-pressed="true"><span class="layout-picto" aria-hidden="true"><i class="mini-rack"></i><i class="mini-board"></i><i class="mini-panel"></i></span>LEFT</button><button class="rack-side-choice" data-rack-side="right" type="button" aria-pressed="false"><span class="layout-picto" aria-hidden="true"><i class="mini-board"></i><i class="mini-rack"></i><i class="mini-panel"></i></span>RIGHT</button></div>
+        <p class="classic-note">The classic board uses familiar letter and word bonuses with a golden centre star.</p>
+        <div class="power-settings" aria-label="Wild power square counts">
+          <div class="power-setting legend-item p5l"><span class="legend-swatch">×5</span><span class="setting-name">×5 POWER letter</span><div class="stepper" data-count="2" aria-label="x5 POWER letter count"><button type="button" data-step="-1" aria-label="Decrease x5 POWER letter">−</button><output>2</output><button type="button" data-step="1" aria-label="Increase x5 POWER letter">+</button></div></div>
+          <div class="power-setting legend-item p10l"><span class="legend-swatch">×10</span><span class="setting-name">×10 POWER letter</span><div class="stepper" data-count="2" aria-label="x10 POWER letter count"><button type="button" data-step="-1" aria-label="Decrease x10 POWER letter">−</button><output>2</output><button type="button" data-step="1" aria-label="Increase x10 POWER letter">+</button></div></div>
+          <div class="power-setting legend-item p4w"><span class="legend-swatch">×4</span><span class="setting-name">×4 WORD</span><div class="stepper" data-count="1" aria-label="x4 WORD count"><button type="button" data-step="-1" aria-label="Decrease x4 WORD">−</button><output>1</output><button type="button" data-step="1" aria-label="Increase x4 WORD">+</button></div></div>
+          <div class="power-setting legend-item p5w"><span class="legend-swatch">×5</span><span class="setting-name">×5 POWER WORD</span><div class="stepper" data-count="2" aria-label="x5 POWER WORD count"><button type="button" data-step="-1" aria-label="Decrease x5 POWER WORD">−</button><output>2</output><button type="button" data-step="1" aria-label="Increase x5 POWER WORD">+</button></div></div>
+          <div class="power-setting legend-item p10w"><span class="legend-swatch">×10</span><span class="setting-name">×10 POWER WORD</span><div class="stepper" data-count="2" aria-label="x10 POWER WORD count"><button type="button" data-step="-1" aria-label="Decrease x10 POWER WORD">−</button><output>2</output><button type="button" data-step="1" aria-label="Increase x10 POWER WORD">+</button></div></div>
+        </div>
+        <div class="board-footer"><span>Total power squares: <strong id="power-total">9</strong></span><button class="surprise-button" id="surprise" type="button">✦ Surprise me</button></div>
+      </section>
+      <div class="setup-side">
+        <section class="setup-card setup-players" aria-label="Players"><h2>PLAYERS</h2><p class="setup-intro">A friendly four-player showdown.</p><div class="setup-player-list"><span class="player-plate" style="--plate:var(--teal)">SHANE</span><span class="player-plate" style="--plate:var(--violet)">DAWN</span><span class="player-plate" style="--plate:var(--orange)">PIP</span><span class="player-plate" style="--plate:var(--pink)">GRAN</span></div></section>
+        <section class="setup-card penalties-card" aria-labelledby="penalties-title"><h2 id="penalties-title">PENALTIES</h2><p class="setup-intro">Choose what each action costs.</p>
+          <div class="penalty-row"><h3>HINTS</h3><div class="penalty-controls"><button class="penalty-choice" type="button" data-penalty="free" aria-pressed="true">Free</button><button class="penalty-choice" type="button" data-penalty="cost" aria-pressed="false">Costs</button><span class="cost-control inactive"><input type="number" min="1" max="10" value="3" aria-label="Hints cost in points" disabled> pts</span></div></div>
+          <div class="penalty-row"><h3>SHUFFLE</h3><div class="penalty-controls"><button class="penalty-choice" type="button" data-penalty="free" aria-pressed="false">Free</button><button class="penalty-choice" type="button" data-penalty="cost" aria-pressed="true">Costs</button><span class="cost-control"><input type="number" min="1" max="10" value="7" aria-label="Shuffle cost in points"> pts</span></div></div>
+          <div class="penalty-row"><h3>SWAP</h3><div class="penalty-controls"><button class="penalty-choice" type="button" data-penalty="free" aria-pressed="false">Free</button><button class="penalty-choice" type="button" data-penalty="cost" aria-pressed="true">Costs</button><span class="cost-control"><input type="number" min="1" max="10" value="4" aria-label="Swap cost in points"> pts</span></div></div>
+        </section>
+      </div>
+    </div>
+  </main>
+  <script>
+    const params = new URLSearchParams(location.search);
+    document.body.dataset.variant = ['a', 'b', 'c', 'setup'].includes(params.get('v')) ? params.get('v') : 'a';
+    document.body.dataset.side = params.get('side') === 'left' || (document.body.dataset.variant === 'setup' && params.get('side') !== 'right') ? 'left' : 'right';
+    document.querySelectorAll('[data-rack-side]').forEach(button => {
+      button.setAttribute('aria-pressed', button.dataset.rackSide === document.body.dataset.side);
+      button.addEventListener('click', () => {
+        document.body.dataset.side = button.dataset.rackSide;
+        document.querySelectorAll('[data-rack-side]').forEach(choice => choice.setAttribute('aria-pressed', choice === button));
+      });
+    });
+    const steppers = [...document.querySelectorAll('.stepper')];
+    function updatePowerTotal() {
+      document.getElementById('power-total').textContent = steppers.reduce((sum, stepper) => sum + Number(stepper.dataset.count), 0);
+    }
+    document.querySelectorAll('[data-step]').forEach(button => button.addEventListener('click', () => {
+      const stepper = button.closest('.stepper');
+      stepper.dataset.count = Math.max(0, Math.min(4, Number(stepper.dataset.count) + Number(button.dataset.step)));
+      stepper.querySelector('output').textContent = stepper.dataset.count;
+      updatePowerTotal();
+    }));
+    document.getElementById('surprise').addEventListener('click', () => {
+      steppers.forEach(stepper => { stepper.dataset.count = Math.floor(Math.random() * 5); stepper.querySelector('output').textContent = stepper.dataset.count; });
+      updatePowerTotal();
+    });
+    document.querySelectorAll('[data-mode]').forEach(button => button.addEventListener('click', () => {
+      document.body.dataset.boardMode = button.dataset.mode;
+      document.querySelectorAll('[data-mode]').forEach(mode => mode.setAttribute('aria-pressed', mode === button));
+    }));
+    document.querySelectorAll('.penalty-choice').forEach(button => button.addEventListener('click', () => {
+      const row = button.closest('.penalty-row');
+      row.querySelectorAll('.penalty-choice').forEach(choice => choice.setAttribute('aria-pressed', choice === button));
+      row.querySelector('.cost-control').classList.toggle('inactive', button.dataset.penalty === 'free');
+      row.querySelector('.cost-control input').disabled = button.dataset.penalty === 'free';
+    }));
+    document.querySelectorAll('.cost-control input').forEach(input => input.addEventListener('change', () => {
+      input.value = Math.max(1, Math.min(10, Number(input.value) || 1));
+    }));
+  </script>
+</body>
+</html>
