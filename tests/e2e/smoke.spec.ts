@@ -11,7 +11,7 @@ let home = ''
 test.beforeAll(() => {
   test.skip(!existsSync(join(packaged, 'Word Rumble.exe')), 'run `pnpm package` first')
   home = mkdtempSync(join(tmpdir(), 'word-rumble-e2e-'))
-  cpSync(packaged, home, { recursive: true, filter: (src) => !/[\/]data([\/]|$)/.test(src.slice(packaged.length)) })
+  cpSync(packaged, home, { recursive: true, filter: (src) => !/[\\/]data([\\/]|$)/.test(src.slice(packaged.length)) })
 })
 
 test.afterAll(() => {
@@ -28,8 +28,8 @@ const launch = async (): Promise<{ app: ElectronApplication; page: Page }> => {
 test('play, hidden racks, save, relaunch, defeat, notebook', async () => {
   let { app, page } = await launch()
 
-  // First launch from a new folder offers a desktop shortcut: decline it.
-  await page.getByRole('button', { name: /No thanks|Not now/ }).click()
+  // A new folder may offer a desktop shortcut (depends on this machine's shortcut): decline it if shown.
+  await page.getByRole('button', { name: /No thanks|Not now/ }).click({ timeout: 8_000 }).catch(() => {})
 
   // Title -> Setup with the default names -> Start.
   await page.getByRole('button', { name: 'New Game' }).dispatchEvent('click')
@@ -47,7 +47,7 @@ test('play, hidden racks, save, relaunch, defeat, notebook', async () => {
   expect(await page.locator('.wr-tile__letter').count()).toBe(0)
   await page.getByRole('button', { name: "Let's go!" }).dispatchEvent('click')
   await expect(page.locator('[data-rack-slot]').first()).toBeVisible()
-  expect(await page.locator('.wr-tile__letter').count()).toBeGreaterThanOrEqual(7)
+  expect(await page.locator('.wr-rack:last-child .wr-tile:not(.wr-tile--back)').count()).toBe(7)
   await page.waitForTimeout(1500)
   await page.screenshot({ path: 'test-results/play-screen.png' })
 

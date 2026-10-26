@@ -208,8 +208,9 @@ button:focus-visible, [role='button']:focus-visible { outline: 3px solid var(--g
   grid-template-columns: repeat(var(--rack-slots, 7), minmax(0, 1fr));
   align-items: start;
 }
-.wr-rack__slot { min-width: 0; height: 70%; display: grid; place-items: start center; }
-.wr-rack__slot .wr-tile { --tile-size: calc(var(--rack-width) * .108); }
+.wr-rack__slot { min-width: 0; height: 70%; display: grid; place-items: start center; container-type: inline-size; }
+/* Sized from the slot (not --rack-width): the play screen sets --rack-width as a percentage, which collapses to ~0 inside a shrink-wrapped tile. */
+.wr-rack__slot .wr-tile { --tile-size: 88cqw; }
 .wr-rack__flip { position: relative; transform-style: preserve-3d; animation: wr-rack-flip 520ms var(--ease-pop) both; }
 .wr-rack__slot:focus-visible { border-radius: 6px; outline: 3px solid var(--gold); outline-offset: -3px; }
 
