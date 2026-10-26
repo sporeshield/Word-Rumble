@@ -383,6 +383,246 @@
       "A": {},
       "B": {
         "preset": "Level 8/Presets/Factory Presets/Damped Horn.vital"
+      },
+      "C": {
+        "notes": [
+          {
+            "t": 0,
+            "len": 0.2,
+            "pitch": 60,
+            "vel": 105
+          },
+          {
+            "t": 0.22,
+            "len": 0.2,
+            "pitch": 64,
+            "vel": 105
+          },
+          {
+            "t": 0.44,
+            "len": 0.2,
+            "pitch": 67,
+            "vel": 105
+          },
+          {
+            "t": 0.7,
+            "len": 1.5,
+            "pitch": 48,
+            "vel": 118
+          },
+          {
+            "t": 0.7,
+            "len": 1.5,
+            "pitch": 60,
+            "vel": 118
+          },
+          {
+            "t": 0.7,
+            "len": 1.5,
+            "pitch": 64,
+            "vel": 118
+          },
+          {
+            "t": 0.7,
+            "len": 1.5,
+            "pitch": 67,
+            "vel": 118
+          },
+          {
+            "t": 0.7,
+            "len": 1.5,
+            "pitch": 72,
+            "vel": 118
+          },
+          {
+            "t": 0.7,
+            "len": 1.5,
+            "pitch": 76,
+            "vel": 118
+          }
+        ],
+        "length": 2.6,
+        "preset": "In The Mix/Presets/Strings Section.vital"
+      },
+      "D": {
+        "notes": [
+          {
+            "t": 0,
+            "len": 0.2,
+            "pitch": 60,
+            "vel": 105
+          },
+          {
+            "t": 0.22,
+            "len": 0.2,
+            "pitch": 64,
+            "vel": 105
+          },
+          {
+            "t": 0.44,
+            "len": 0.2,
+            "pitch": 67,
+            "vel": 105
+          },
+          {
+            "t": 0.7,
+            "len": 1.5,
+            "pitch": 48,
+            "vel": 118
+          },
+          {
+            "t": 0.7,
+            "len": 1.5,
+            "pitch": 60,
+            "vel": 118
+          },
+          {
+            "t": 0.7,
+            "len": 1.5,
+            "pitch": 64,
+            "vel": 118
+          },
+          {
+            "t": 0.7,
+            "len": 1.5,
+            "pitch": 67,
+            "vel": 118
+          },
+          {
+            "t": 0.7,
+            "len": 1.5,
+            "pitch": 72,
+            "vel": 118
+          },
+          {
+            "t": 0.7,
+            "len": 1.5,
+            "pitch": 76,
+            "vel": 118
+          }
+        ],
+        "length": 2.6,
+        "preset": "Billain/Presets/Factory Presets/Cinema Bells.vital"
+      },
+      "E": {
+        "notes": [
+          {
+            "t": 0,
+            "len": 0.2,
+            "pitch": 60,
+            "vel": 105
+          },
+          {
+            "t": 0.22,
+            "len": 0.2,
+            "pitch": 64,
+            "vel": 105
+          },
+          {
+            "t": 0.44,
+            "len": 0.2,
+            "pitch": 67,
+            "vel": 105
+          },
+          {
+            "t": 0.7,
+            "len": 1.5,
+            "pitch": 48,
+            "vel": 118
+          },
+          {
+            "t": 0.7,
+            "len": 1.5,
+            "pitch": 60,
+            "vel": 118
+          },
+          {
+            "t": 0.7,
+            "len": 1.5,
+            "pitch": 64,
+            "vel": 118
+          },
+          {
+            "t": 0.7,
+            "len": 1.5,
+            "pitch": 67,
+            "vel": 118
+          },
+          {
+            "t": 0.7,
+            "len": 1.5,
+            "pitch": 72,
+            "vel": 118
+          },
+          {
+            "t": 0.7,
+            "len": 1.5,
+            "pitch": 76,
+            "vel": 118
+          }
+        ],
+        "length": 2.6,
+        "preset": "Level 8/Presets/Factory Presets/Crescendo Bells.vital"
+      },
+      "F": {
+        "notes": [
+          {
+            "t": 0,
+            "len": 0.2,
+            "pitch": 60,
+            "vel": 105
+          },
+          {
+            "t": 0.22,
+            "len": 0.2,
+            "pitch": 64,
+            "vel": 105
+          },
+          {
+            "t": 0.44,
+            "len": 0.2,
+            "pitch": 67,
+            "vel": 105
+          },
+          {
+            "t": 0.7,
+            "len": 1.5,
+            "pitch": 48,
+            "vel": 118
+          },
+          {
+            "t": 0.7,
+            "len": 1.5,
+            "pitch": 60,
+            "vel": 118
+          },
+          {
+            "t": 0.7,
+            "len": 1.5,
+            "pitch": 64,
+            "vel": 118
+          },
+          {
+            "t": 0.7,
+            "len": 1.5,
+            "pitch": 67,
+            "vel": 118
+          },
+          {
+            "t": 0.7,
+            "len": 1.5,
+            "pitch": 72,
+            "vel": 118
+          },
+          {
+            "t": 0.7,
+            "len": 1.5,
+            "pitch": 76,
+            "vel": 118
+          }
+        ],
+        "length": 2.6,
+        "preset": "inktome/Presets/Piano from the yard sale.vital"
       }
     }
   },
