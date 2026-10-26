@@ -1,6 +1,6 @@
 import { useMemo, type PointerEvent, type ReactNode } from 'react'
 import { BOARD_SIZE, PREMIUM_LAYOUT, type Board as GameBoard, type Placement } from '../engine'
-import boardFrame from '@art/board-frame.webp'
+import boardFrame from '@art/board-frame-thin.webp'
 import { Square } from './Square'
 import { Tile } from './Tile'
 

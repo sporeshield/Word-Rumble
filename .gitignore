@@ -9,3 +9,5 @@ dev-data/
 
 # Portable game build — keep scores and custom sounds out of git
 Word Rumble/
+test-results/
+playwright-report/

@@ -7,10 +7,12 @@ export interface SettingsProps {
   onVolume(value: number): void
   onMuted(muted: boolean): void
   onResetScores(): void
+  /** Present only in the packaged game (dev has no exe to point at). */
+  onShortcut?(): void
   onClose(): void
 }
 
-export function Settings({ volume, muted, onVolume, onMuted, onResetScores, onClose }: SettingsProps) {
+export function Settings({ volume, muted, onVolume, onMuted, onResetScores, onShortcut, onClose }: SettingsProps) {
   const click = (action: () => void, toggle = false) => {
     sfx.play('ui-click')
     if (toggle) sfx.play('ui-toggle')
@@ -49,6 +51,9 @@ export function Settings({ volume, muted, onVolume, onMuted, onResetScores, onCl
         >
           <span>Mute sound</span><span className="wr-settings__switch" aria-hidden="true"><span /></span>
         </button>
+        {onShortcut && (
+          <button className="btn btn--aqua" type="button" onMouseEnter={() => sfx.play('ui-hover')} onClick={() => click(onShortcut)}>Desktop shortcut</button>
+        )}
         <div className="wr-settings__footer">
           <button className="btn btn--pink" type="button" onMouseEnter={() => sfx.play('ui-hover')} onClick={() => click(onResetScores)}>Reset scores</button>
           <button className="btn btn--aqua" type="button" onMouseEnter={() => sfx.play('ui-hover')} onClick={() => click(onClose)}>Close</button>

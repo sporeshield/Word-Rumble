@@ -1,0 +1,20 @@
+appId: local.wordrumble.game
+productName: Word Rumble
+executableName: Word Rumble
+directories:
+  output: .cache/pack
+  buildResources: build
+files:
+  - out/**
+  - package.json
+asar: true
+# The word list and sounds ship as plain files next to the app (process.resourcesPath).
+extraResources:
+  - from: resources/words
+    to: words
+  - from: resources/sounds
+    to: sounds
+win:
+  target: dir
+  icon: build/icon.ico
+  signAndEditExecutable: false

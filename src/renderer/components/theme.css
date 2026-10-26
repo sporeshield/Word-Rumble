@@ -116,7 +116,7 @@ button:focus-visible, [role='button']:focus-visible { outline: 3px solid var(--g
 
 .wr-board {
   --board-size: min(82vh, 90vw, 800px);
-  --tile-size: calc(var(--board-size) * .696 / 15);
+  --tile-size: calc(var(--board-size) * .92 / 15);
   position: relative;
   width: var(--board-size);
   aspect-ratio: 1;
@@ -126,7 +126,7 @@ button:focus-visible, [role='button']:focus-visible { outline: 3px solid var(--g
   filter: drop-shadow(0 12px 2px rgb(32 16 45 / 32%));
   animation: wr-pop-in 420ms var(--ease-pop) both;
 }
-.wr-board__grid, .wr-board__overlay { position: absolute; inset: 15.2%; }
+.wr-board__grid, .wr-board__overlay { position: absolute; inset: 4%; }
 .wr-board__grid { display: grid; grid-template-columns: repeat(15, minmax(0, 1fr)); grid-template-rows: repeat(15, minmax(0, 1fr)); border: 2px solid var(--ink); background: var(--mint); }
 .wr-board__overlay { pointer-events: none; }
 .wr-square {

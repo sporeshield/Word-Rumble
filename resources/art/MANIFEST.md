@@ -12,6 +12,7 @@ Labels and tile letters are rendered later with fonts; no image contains text.
 | `tile-face.webp` | 512 x 512 | Blank cream tile face. |
 | `tile-back.webp` | 512 x 512 | Patterned tile back. |
 | `board-frame.webp` | 1024 x 1024 | Magenta board frame with open centre. |
+| `board-frame-thin.webp` | 1024 x 1024 | Thin magenta board frame; transparent centre opening is 942 x 942 (91.99% of width and height). |
 | `halftone-1.webp` | 512 x 512 | Warm repeating comic backdrop. |
 | `halftone-2.webp` | 512 x 512 | Cool repeating comic backdrop. |
 | `halftone-3.webp` | 512 x 512 | Violet repeating comic backdrop. |

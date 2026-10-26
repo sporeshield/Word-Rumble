@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { createGame, type GameState } from './engine/game'
+import type { ShortcutStatus } from '../shared/api'
 import { sfx } from './audio/sfx'
 import { Deal } from './screens/Deal'
 import { Game } from './screens/Game'
@@ -46,6 +47,9 @@ export function App() {
   const [highScores, setHighScores] = useState<boolean[] | null>(null)
   const [notebookBack, setNotebookBack] = useState<Screen>('title')
   const recorded = useRef<GameState | null>(null)
+  /** Desktop-shortcut offer: shown once on launch when missing, or when it points at another folder. */
+  const [shortcut, setShortcut] = useState<ShortcutStatus | null>(null)
+  const [offerShortcut, setOfferShortcut] = useState(false)
 
   useEffect(() => {
     void (async () => {
@@ -54,6 +58,9 @@ export function App() {
       if (typeof settings.muted === 'boolean') { sfx.setMuted(settings.muted); setMuted(settings.muted) }
       if (settings.setup) setSetup(loadSetup(settings.setup))
       setSaved(parseSaved(savedJson))
+      const status = await window.wordRumble.shortcut.status()
+      setShortcut(status)
+      if (status.available && ((!status.exists && !status.declined) || status.needsRepair)) setOfferShortcut(true)
     })()
     void sfx.init()
   }, [])
@@ -127,6 +134,20 @@ export function App() {
     const json = JSON.stringify(payload)
     void window.wordRumble.savedGame.save(json).then(() => setSaved(parseSaved(json)))
     setScreen('title')
+  }
+
+  const makeShortcut = () => {
+    sfx.play('ui-click')
+    setOfferShortcut(false)
+    void window.wordRumble.shortcut.create().then((ok) => {
+      flash(ok ? 'Desktop shortcut ready!' : "Couldn't make the shortcut.")
+      void window.wordRumble.shortcut.status().then(setShortcut)
+    })
+  }
+  const declineShortcut = () => {
+    sfx.play('ui-click')
+    setOfferShortcut(false)
+    if (!shortcut?.needsRepair) void window.wordRumble.shortcut.decline()
   }
 
   const changeVolume = (v: number) => { setVolume(v); sfx.setVolume(v); void window.wordRumble.settings.set('volume', v) }
@@ -227,8 +248,20 @@ export function App() {
           onVolume={changeVolume}
           onMuted={changeMuted}
           onResetScores={() => setConfirmReset(true)}
+          onShortcut={shortcut?.available ? () => { setShowSettings(false); setOfferShortcut(true) } : undefined}
           onClose={() => setShowSettings(false)}
         />
+      )}
+      {offerShortcut && (
+        <div className="wr-app-confirm" role="alertdialog" aria-label="Desktop shortcut">
+          <div className="wr-app-confirm__box">
+            <p>{shortcut?.needsRepair ? 'The desktop shortcut points to another copy of the game. Point it here?' : 'Put a Word Rumble shortcut on the desktop?'}</p>
+            <div className="wr-app-confirm__row">
+              <button className="btn btn--aqua" onClick={declineShortcut}>{shortcut?.needsRepair ? 'Not now' : 'No thanks'}</button>
+              <button className="btn btn--pink" onClick={makeShortcut}>{shortcut?.needsRepair ? 'Fix it' : 'Create shortcut'}</button>
+            </div>
+          </div>
+        </div>
       )}
       {confirmReset && (
         <div className="wr-app-confirm" role="alertdialog" aria-label="Reset scores">
