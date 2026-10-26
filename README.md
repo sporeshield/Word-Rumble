@@ -36,7 +36,7 @@ The repo holds the source code only. The built game (`Word Rumble/` with `Word R
 2. Get the code: `git clone https://github.com/sporeshield/Word-Rumble.git`, then open a terminal in the new `Word-Rumble` folder.
 3. Run `pnpm install`, then `pnpm package`.
 
-This creates a `Word Rumble/` folder with `Word Rumble.exe` inside. Keep the exe together with the rest of that folder (it holds the word list, fonts, sounds and your scores); the whole folder is portable, so you can move it to a USB drive or another PC. The exe is not code-signed, so Windows SmartScreen may warn on first run: click **More info**, then **Run anyway**.
+This creates a `Word Rumble/` folder with `Word Rumble.exe` inside. Keep the exe together with the rest of that folder (it holds the word list, fonts, sounds and your scores); the whole folder is portable, so you can move it to a USB drive or another PC. The exe is not code-signed. An exe you build yourself runs without a warning, but if you download a built copy from someone else, Windows SmartScreen may show "Windows protected your PC" on first run, because downloaded files are marked as coming from the internet and an unsigned file has no reputation yet. Click **More info**, then **Run anyway**.
 
 Scores are saved in `Word Rumble/data/`. A freshly built folder starts with none, so back that folder up if you want to keep them.
 
