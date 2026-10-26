@@ -1,13 +1,35 @@
 [
   {
-    "name": "spike-boom",
-    "preset": "Afro/Presets/Kick Drum 1.vital",
-    "length": 1.5,
-    "notes": [{ "t": 0, "len": 0.25, "pitch": 36, "vel": 120 }],
+    "name": "burst-boom-1",
+    "preset": "inktome/Presets/Big Stomp.vital",
+    "length": 1.2,
+    "notes": [{ "t": 0, "len": 0.3, "pitch": 36, "vel": 120 }],
     "variants": {
       "A": {},
       "B": { "preset": "Glorkglunk/Presets/THUNK.vital" },
-      "C": { "tweaks": { "settings.volume": 3000 } }
+      "C": { "preset": "Glorkglunk/Presets/Thumpus.vital" }
+    }
+  },
+  {
+    "name": "burst-boom-2",
+    "preset": "Yuli Yolo/Presets/Factory Presets/Destruction.vital",
+    "length": 1.4,
+    "notes": [{ "t": 0, "len": 0.3, "pitch": 33, "vel": 120 }],
+    "variants": {
+      "A": {},
+      "B": { "preset": "Afro/Presets/Kick Drum 1.vital" },
+      "C": { "preset": "Glorkglunk/Presets/THUNK.vital", "notes": [{ "t": 0, "len": 0.3, "pitch": 31, "vel": 120 }] }
+    }
+  },
+  {
+    "name": "burst-boom-3",
+    "preset": "Glorkglunk/Presets/Thumpus.vital",
+    "length": 1.5,
+    "notes": [{ "t": 0, "len": 0.35, "pitch": 28, "vel": 127 }],
+    "variants": {
+      "A": {},
+      "B": { "preset": "inktome/Presets/Big Stomp.vital", "notes": [{ "t": 0, "len": 0.35, "pitch": 29, "vel": 127 }] },
+      "C": { "preset": "Afro/Presets/Kick Drum 1.vital", "notes": [{ "t": 0, "len": 0.35, "pitch": 30, "vel": 127 }] }
     }
   }
 ]

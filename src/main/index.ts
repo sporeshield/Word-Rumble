@@ -26,7 +26,8 @@ function createWindow(): void {
   })
 
   if (process.env['ELECTRON_RENDERER_URL']) {
-    void win.loadURL(process.env['ELECTRON_RENDERER_URL'])
+    // WR_PAGE=soundboard.html opens a dev page (gallery, soundboard) instead of the game.
+    void win.loadURL(new URL(process.env['WR_PAGE'] ?? '', process.env['ELECTRON_RENDERER_URL'] + '/').href)
   } else {
     void win.loadFile(join(__dirname, '../renderer/index.html'))
   }

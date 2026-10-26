@@ -39,19 +39,19 @@ Selected Kenney clips:
 - `pause.ogg` — interface-sounds: `Audio/minimize_001.ogg`
 - `resume.ogg` — interface-sounds: `Audio/maximize_001.ogg`
 - `dice-roll.ogg` — casino-audio: `Audio/dice-throw-1.ogg`
-- `hint-ghost.ogg` — digital-audio: `Audio/powerUp1.ogg`
+- `hint-ghost.ogg` — interface-sounds: `Audio/question_001.ogg`
 - `page-flip.ogg` — casino-audio: `Audio/card-fan-1.ogg`
 - `pencil-scribble.ogg` — interface-sounds: `Audio/scratch_001.ogg`
 - `wheel-spin.ogg` — sci-fi-sounds: `Audio/engineCircular_000.ogg`
 - `wheel-land.ogg` — impact-sounds: `Audio/impactWood_medium_000.ogg`
-- `burst-zap-1.ogg` — digital-audio: `Audio/zap1.ogg`
-- `burst-zap-2.ogg` — digital-audio: `Audio/zap2.ogg`
-- `burst-zap-3.ogg` — digital-audio: `Audio/zapTwoTone.ogg`
+- `burst-zap-1.ogg` — sci-fi-sounds: `Audio/laserSmall_000.ogg`
+- `burst-zap-2.ogg` — sci-fi-sounds: `Audio/laserSmall_001.ogg`
+- `burst-zap-3.ogg` — sci-fi-sounds: `Audio/laserRetro_000.ogg`
 - `burst-pow-1.ogg` — impact-sounds: `Audio/impactPunch_heavy_000.ogg`
 - `burst-pow-2.ogg` — impact-sounds: `Audio/impactPunch_heavy_001.ogg`
 - `burst-pow-3.ogg` — impact-sounds: `Audio/impactPunch_heavy_002.ogg`
-- `burst-whoosh-1.ogg` — digital-audio: `Audio/phaserUp1.ogg`
-- `burst-whoosh-2.ogg` — digital-audio: `Audio/phaserUp2.ogg`
+- `burst-whoosh-1.ogg` — sci-fi-sounds: `Audio/thrusterFire_000.ogg`
+- `burst-whoosh-2.ogg` — sci-fi-sounds: `Audio/thrusterFire_001.ogg`
 - `burst-crash-1.ogg` — sci-fi-sounds: `Audio/explosionCrunch_000.ogg`
 - `burst-crash-2.ogg` — sci-fi-sounds: `Audio/explosionCrunch_001.ogg`
 - `count-1.ogg` — voiceover-pack: `Female/1.ogg`
@@ -84,7 +84,7 @@ Selected Kenney clips:
 - `power-preview.ogg` — impact-sounds: `Audio/impactBell_heavy_001.ogg`
 - `drop-out.ogg` — music-jingles: `Audio/Sax jingles/jingles_SAX05.ogg`
 - `gift-given.ogg` — music-jingles: `Audio/Pizzicato jingles/jingles_PIZZI03.ogg`
-- `quit-nosave.ogg` — digital-audio: `Audio/phaserDown1.ogg`
+- `quit-nosave.ogg` — sci-fi-sounds: `Audio/thrusterFire_002.ogg`
 - `player-joins.ogg` — interface-sounds: `Audio/bong_001.ogg`
 - `rank-reveal.ogg` — impact-sounds: `Audio/impactPlate_light_000.ogg`
 
