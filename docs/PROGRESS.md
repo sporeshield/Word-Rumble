@@ -99,9 +99,20 @@ After each phase: `/clear`, then `/next-phase`.
   - Actions: `concede {recipient?: number|null}` (3–4 players: signed score moves to recipient, dropper ends on 0 and `givenAway` = amount, rack back in bag, skipped from then on, game ends with one active left or if the scoreless count already reaches the smaller limit; two players unchanged, conceder marked out); `play` gains `recipient` (Gift; auto with 2 players, required with 3+) and `votes[]` (Convince; one per other active player, majority zero wipes, tie keeps; old `vote` still works for 2 players).
   - `normaliseGame()` (exported) fills old-save defaults and a ranking for old results; called from `parseSaved` in App.tsx. Tests: `engine/multiplayer.test.ts`.
   - UI is still two-player only (Game.tsx sends plain `concede`/`vote`; `record.ts`, DB, GameOver use `winner`/`conceder`) — Phases 21–23 move them to `ranking`, `givenAway`, `giftTo`.
-- [ ] **Phase 21 — 2–4 players: DB migration, records, Notebook data** (R2-8a) — test migration on a COPY of the real DB
+- [x] **Phase 21 — 2–4 players: DB migration, records, Notebook data** ✅ 2026-10-26 (R2-8a): 137 tests (+1 opt-in), typecheck pass.
+  - `db.ts` migration **3** (2 was Phase 16's shuffle/swap): `game_players.rank`, `given_away`, `gift_to` (recipient's name); backfill winner → 1, others 2, a game with no winner (draw, solo) → all 1. `recordGame` takes `rank`/`givenAway`/`giftTo` and works out a rank from `winner` if a caller gives none. `MIGRATIONS` is exported for tests.
+  - Head to Head = every pair at the same Friends table (any size), `aWins` when `rank_a < rank_b`, draws on equal rank. `recentGames` now returns `players: RecentGamePlayer[]` (in `shared/api.ts`) ordered by place then seat — no more `name:score:winner|…` string. Notebook uses `recentPlayers`/`recentHeadline` (`notebook-format.ts`); filter/mode label "Two-player" → "Friends".
+  - `record.ts`: `placeNumbers(ranking)` gives competition places (1, 1, 3); records `rank`, `givenAway`, `giftTo` from the `dropped` turn; `conceded` is set for every dropper; droppers never get a high-score stamp.
+  - Real DB check: `src/main/realdb.test.ts` (skipped unless `WR_REAL_DB=<path>`) copies the file to temp, migrates the copy, compares `user_version`, row counts, old head-to-head tallies; original checked byte-identical. Run on `Word Rumble/data/word-rumble.sqlite`: v1 → 3, passed — but that DB has **0 games** so far (saved_game 1, settings 2), so the backfill is covered by the synthetic v2 test in `main.test.ts`. Re-run it in Phase 26 once real games exist.
+  - Left for Phase 23: Notebook Recent Games still shows players as plain "name score" (now in place order) — add places/"dropped out — gave N to X" there and on Game over.
 - [ ] **Phase 22 — 2–4 players: Setup, opening flow, handoff, Players row** (R2-8b)
 - [ ] **Phase 23 — 2–4 players: dialogs, Game over, Notebook, e2e** (R2-8c)
 - [ ] **Phase 24 — Engine: Wild power squares (0–4 of each type)** (R2-9) — Codex review
 - [ ] **Phase 25 — Wild power squares UI, annoying power sounds, KABLAM bursts** (R2-9, R2-10)
 - [ ] **Phase 26 — Round 2 ship** — Codex final review, package, e2e, manual checks
+
+## Round 3 — sound studio (planned 2026-10-26; details in `docs/SOUND-PLAN.md`, not PLAN.md)
+- [ ] **Phase 27 — Studio spike + pipeline** (REAPER command-line render, Vital state from `.vital` JSON, low-RAM render config)
+- [ ] **Phase 28 — Loudness + listening pass** (soundboard dev page, match volumes, swap bad Kenney picks)
+- [ ] **Phase 29 — Vital replacements for the 23 own-synth sounds**
+- [ ] **Phase 30 — New sounds + wrap-up** (KABLAM bursts, optional title music, size check, package)

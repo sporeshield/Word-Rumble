@@ -15,6 +15,24 @@ export interface GamePlayerRecord {
   madeUpCount?: number
   conceded?: boolean
   winner?: boolean
+  /** Place, 1 = best; players who tie share it (1, 1, 3). Absent = worked out from `winner`. */
+  rank?: number
+  /** Points handed to another player when dropping out. */
+  givenAway?: number
+  /** Name of the player who received them. */
+  giftTo?: string | null
+}
+
+/** One player of a Recent Games row (players come ordered by place, then seat). */
+export interface RecentGamePlayer {
+  name: string
+  isComputer: boolean
+  score: number
+  rank: number
+  winner: boolean
+  conceded: boolean
+  givenAway: number
+  giftTo: string | null
 }
 
 export interface PlayRecord {

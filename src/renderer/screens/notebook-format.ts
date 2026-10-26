@@ -1,8 +1,4 @@
-export interface RecentPlayer {
-  name: string
-  score: number
-  winner: boolean
-}
+import type { RecentGamePlayer } from '../../shared/api'
 
 export function formatNotebookDate(value: unknown): string {
   if (typeof value !== 'string' || !value.trim()) return 'Date unknown'
@@ -11,19 +7,26 @@ export function formatNotebookDate(value: unknown): string {
   return new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).format(date)
 }
 
-/** Names can contain colons, so take the score and winner fields from the right. */
-export function parseRecentPlayers(value: unknown): RecentPlayer[] {
-  if (typeof value !== 'string' || !value) return []
-  return value.split('|').flatMap((entry) => {
-    const winnerAt = entry.lastIndexOf(':')
-    const scoreAt = entry.lastIndexOf(':', winnerAt - 1)
-    if (winnerAt < 0 || scoreAt < 0) return []
-    const name = entry.slice(0, scoreAt)
-    const score = Number(entry.slice(scoreAt + 1, winnerAt))
-    const winner = entry.slice(winnerAt + 1)
-    if (!name || !Number.isFinite(score) || (winner !== '0' && winner !== '1')) return []
-    return [{ name, score, winner: winner === '1' }]
+/** The `players` list of a Recent Games row (already ordered by place); anything malformed is dropped. */
+export function recentPlayers(value: unknown): RecentGamePlayer[] {
+  if (!Array.isArray(value)) return []
+  return value.flatMap((p: Partial<RecentGamePlayer> | null) => {
+    if (!p || typeof p.name !== 'string' || !p.name || !Number.isFinite(p.score) || !Number.isFinite(p.rank)) return []
+    return [{
+      name: p.name, isComputer: !!p.isComputer, score: Number(p.score), rank: Number(p.rank), winner: !!p.winner,
+      conceded: !!p.conceded, givenAway: Number(p.givenAway) || 0, giftTo: typeof p.giftTo === 'string' ? p.giftTo : null
+    }]
   })
+}
+
+/** "Shane won", "Shane & Dawn tied", "It's a draw!" (everyone level) or "Shane's run" (solo). */
+export function recentHeadline(players: RecentGamePlayer[]): string {
+  if (!players.length) return 'Game over'
+  if (players.length === 1) return `${players[0].name}'s run`
+  const first = players.filter((p) => p.rank === 1)
+  if (first.length === 1) return `${first[0].name} won`
+  if (first.length === players.length) return "It's a draw!"
+  return `${first.map((p) => p.name).join(' & ')} tied`
 }
 
 const penalties: Record<string, string> = {

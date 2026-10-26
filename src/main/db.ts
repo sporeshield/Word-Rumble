@@ -1,16 +1,17 @@
 import { existsSync, readFileSync, renameSync, writeFileSync, mkdirSync } from 'node:fs'
 import { dirname } from 'node:path'
 import type { Database, SqlJsStatic } from 'sql.js'
-import type { GameMode, ScoreFilter, GamePlayerRecord, PlayRecord, GameRecord } from '../shared/api'
+import type { GameMode, ScoreFilter, GamePlayerRecord, PlayRecord, GameRecord, RecentGamePlayer } from '../shared/api'
 
 /** Electron-free so it can be unit-tested; `index.ts` supplies the file path. */
 
-export type { GameMode, ScoreFilter, GamePlayerRecord, PlayRecord, GameRecord }
+export type { GameMode, ScoreFilter, GamePlayerRecord, PlayRecord, GameRecord, RecentGamePlayer }
 
 type Row = Record<string, unknown>
 type Param = string | number | null
 
-const MIGRATIONS: string[] = [
+/** Exported for the migration tests. */
+export const MIGRATIONS: string[] = [
   `CREATE TABLE players (id INTEGER PRIMARY KEY, name TEXT NOT NULL UNIQUE, is_computer INTEGER NOT NULL DEFAULT 0);
    CREATE TABLE games (
      id INTEGER PRIMARY KEY, mode TEXT NOT NULL, difficulty TEXT, timer INTEGER, options TEXT,
@@ -27,7 +28,14 @@ const MIGRATIONS: string[] = [
    CREATE TABLE saved_game (id INTEGER PRIMARY KEY CHECK (id = 1), json TEXT NOT NULL, saved_at TEXT NOT NULL);
    CREATE TABLE settings (key TEXT PRIMARY KEY, value TEXT NOT NULL);`,
   `ALTER TABLE game_players ADD COLUMN shuffle_points_lost INTEGER NOT NULL DEFAULT 0;
-   ALTER TABLE game_players ADD COLUMN swap_points_lost INTEGER NOT NULL DEFAULT 0;`
+   ALTER TABLE game_players ADD COLUMN swap_points_lost INTEGER NOT NULL DEFAULT 0;`,
+  // 2–4 players: places instead of a winner flag. Old games: the winner is 1st, the rest 2nd; no winner = a draw, all 1st.
+  `ALTER TABLE game_players ADD COLUMN rank INTEGER;
+   ALTER TABLE game_players ADD COLUMN given_away INTEGER NOT NULL DEFAULT 0;
+   ALTER TABLE game_players ADD COLUMN gift_to TEXT;
+   UPDATE game_players SET rank = CASE WHEN winner = 1 THEN 1 ELSE 2 END;
+   UPDATE game_players SET rank = 1
+     WHERE game_id IN (SELECT game_id FROM game_players GROUP BY game_id HAVING SUM(winner) = 0);`
 ]
 
 export class GameDb {
@@ -153,13 +161,17 @@ export class GameDb {
       )
       const gameId = Number(this.scalar('SELECT last_insert_rowid()'))
       const ids = g.players.map((p) => this.playerId(p.name, !!p.isComputer))
+      const hasWinner = g.players.some((p) => p.winner)
       g.players.forEach((p, seat) => {
+        // Same rule as the migration when a caller only knows the winner.
+        const rank = p.rank ?? (p.winner || !hasWinner ? 1 : 2)
         this.run(
           `INSERT INTO game_players (game_id, player_id, seat, final_score, pre_adjust_score, rumbles, hints_used,
-             hint_points_lost, made_up_count, conceded, winner, shuffle_points_lost, swap_points_lost) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+             hint_points_lost, made_up_count, conceded, winner, shuffle_points_lost, swap_points_lost,
+             rank, given_away, gift_to) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
           [gameId, ids[seat], seat, p.finalScore, p.preAdjustScore, p.rumbles ?? 0, p.hintsUsed ?? 0,
            p.hintPointsLost ?? 0, p.madeUpCount ?? 0, p.conceded ? 1 : 0, p.winner ? 1 : 0,
-           p.shufflePointsLost ?? 0, p.swapPointsLost ?? 0]
+           p.shufflePointsLost ?? 0, p.swapPointsLost ?? 0, rank, p.givenAway ?? 0, p.giftTo ?? null]
         )
       })
       for (const pl of g.plays ?? []) {
@@ -188,14 +200,14 @@ export class GameDb {
     )
   }
 
-  /** Per-pair tally for two-player games (names ordered alphabetically). */
+  /** Per-pair tally for Friends games of any size: every two players at the same table (names ordered alphabetically). */
   headToHead(): Row[] {
     return this.rows(
       `SELECT a.name AS a, b.name AS b,
          COUNT(*) AS games,
-         SUM(CASE WHEN gpa.winner = 1 THEN 1 ELSE 0 END) AS aWins,
-         SUM(CASE WHEN gpb.winner = 1 THEN 1 ELSE 0 END) AS bWins,
-         SUM(CASE WHEN gpa.winner = 0 AND gpb.winner = 0 THEN 1 ELSE 0 END) AS draws,
+         SUM(CASE WHEN gpa.rank < gpb.rank THEN 1 ELSE 0 END) AS aWins,
+         SUM(CASE WHEN gpb.rank < gpa.rank THEN 1 ELSE 0 END) AS bWins,
+         SUM(CASE WHEN gpa.rank = gpb.rank THEN 1 ELSE 0 END) AS draws,
          SUM(gpa.conceded) AS aConceded, SUM(gpb.conceded) AS bConceded,
          AVG(gpa.final_score) AS aAvg, AVG(gpb.final_score) AS bAvg
        FROM games g
@@ -215,14 +227,31 @@ export class GameDb {
     ).map((r) => ({ ...r, words: JSON.parse(String(r.words)) }))
   }
 
+  /** Latest games, each with `players: RecentGamePlayer[]` ordered by place (then seat). */
   recentGames(limit = 20): Row[] {
-    return this.rows(
-      `SELECT g.id, g.mode, g.difficulty, g.ended_reason AS endedReason, g.played_at AS playedAt,
-         GROUP_CONCAT(p.name || ':' || gp.final_score || ':' || gp.winner, '|') AS players
-       FROM games g JOIN game_players gp ON gp.game_id = g.id JOIN players p ON p.id = gp.player_id
-       GROUP BY g.id ORDER BY g.played_at DESC, g.id DESC LIMIT ?`,
+    const games = this.rows(
+      `SELECT g.id, g.mode, g.difficulty, g.ended_reason AS endedReason, g.played_at AS playedAt
+       FROM games g ORDER BY g.played_at DESC, g.id DESC LIMIT ?`,
       [limit]
     )
+    if (!games.length) return []
+    const byGame = new Map<number, RecentGamePlayer[]>(games.map((g) => [Number(g.id), []]))
+    const players = this.rows(
+      `SELECT gp.game_id AS gameId, p.name, p.is_computer AS isComputer, gp.final_score AS score, gp.rank,
+         gp.winner, gp.conceded, gp.given_away AS givenAway, gp.gift_to AS giftTo
+       FROM game_players gp JOIN players p ON p.id = gp.player_id
+       WHERE gp.game_id IN (${games.map(() => '?').join(',')})
+       ORDER BY gp.game_id, gp.rank, gp.seat`,
+      games.map((g) => Number(g.id))
+    )
+    for (const r of players) {
+      byGame.get(Number(r.gameId))?.push({
+        name: String(r.name), isComputer: !!r.isComputer, score: Number(r.score), rank: Number(r.rank),
+        winner: !!r.winner, conceded: !!r.conceded, givenAway: Number(r.givenAway),
+        giftTo: r.giftTo == null ? null : String(r.giftTo)
+      })
+    }
+    return games.map((g) => ({ ...g, players: byGame.get(Number(g.id)) ?? [] }))
   }
 
   hallOfShame(): { madeUpWords: Row[]; penalties: Row[]; perPlayer: Row[] } {

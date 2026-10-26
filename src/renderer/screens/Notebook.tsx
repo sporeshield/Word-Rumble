@@ -6,7 +6,7 @@ import star from '@art/notebook-doodles/star.webp'
 import stickTrophy from '@art/notebook-doodles/stick-trophy.webp'
 import type { Row, ScoreFilter } from '../../shared/api'
 import { sfx } from '../audio/sfx'
-import { formatNotebookDate, parseRecentPlayers, penaltyLabel, tallyGroups } from './notebook-format'
+import { formatNotebookDate, penaltyLabel, recentHeadline, recentPlayers, tallyGroups } from './notebook-format'
 import './screens.css'
 import './notebook.css'
 
@@ -21,7 +21,7 @@ const tabs: { id: Tab; label: string }[] = [
   { id: 'shame', label: 'Hall of Shame' }
 ]
 const filters: { id: ScoreFilter; label: string }[] = [
-  { id: 'all', label: 'All' }, { id: 'two', label: 'Two-player' },
+  { id: 'all', label: 'All' }, { id: 'two', label: 'Friends' },
   { id: 'solo', label: 'Solo' }, { id: 'computer', label: 'vs Computer' }
 ]
 const num = (value: unknown): number => Number(value) || 0
@@ -34,7 +34,7 @@ const words = (value: unknown): string[] => {
   return []
 }
 const modeLabel = (mode: unknown, difficulty?: unknown): string => {
-  const label = mode === 'solo' ? 'Solo' : mode === 'computer' ? 'vs Computer' : 'Two-player'
+  const label = mode === 'solo' ? 'Solo' : mode === 'computer' ? 'vs Computer' : 'Friends'
   return difficulty ? `${label} · ${String(difficulty)}` : label
 }
 const reasonLabel = (reason: unknown): string => ({ out: 'Out of tiles', scoreless: 'Nobody could move', conceded: 'Conceded', finished: 'Run finished' })[String(reason) as 'out' | 'scoreless' | 'conceded' | 'finished'] ?? 'Game over'
@@ -121,10 +121,9 @@ export function Notebook({ onClose }: NotebookProps) {
     {num(row.rumble) ? <span className="wr-notebook__rumble"><img src={star} alt="" /> RUMBLE!</span> : null}<b className="wr-notebook__points">{num(row.score)}</b>
   </li>)}</ol> : empty
   else if (tab === 'recent') content = rows.length ? <ol className="wr-notebook__list">{rows.map((row, index) => {
-    const players = parseRecentPlayers(row.players)
-    const winner = players.find((player) => player.winner)
+    const players = recentPlayers(row.players)
     return <li key={String(row.id ?? index)} className="wr-notebook__row wr-notebook__row--recent"><span className="wr-notebook__row-main">
-      <strong>{players.length === 1 ? `${players[0].name}'s run` : winner ? `${winner.name} won` : "It's a draw!"}</strong>
+      <strong>{recentHeadline(players)}</strong>
       <small>{modeLabel(row.mode, row.difficulty)} · {reasonLabel(row.endedReason)} · {formatNotebookDate(row.playedAt)}</small>
       <span className="wr-notebook__recent-players">{players.map((player, playerIndex) => <span key={playerIndex}>{player.name} <b>{player.score}</b></span>)}</span>
     </span></li>

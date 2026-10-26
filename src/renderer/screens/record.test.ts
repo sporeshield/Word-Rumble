@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { createGame, reduce, type GameState, type Tile } from '../engine'
-import { buildGameRecord, newHighScores } from './record'
+import { buildGameRecord, newHighScores, placeNumbers } from './record'
 import { DEFAULT_SETUP } from './types'
 
 let id = 9000
@@ -36,6 +36,25 @@ describe('buildGameRecord', () => {
     expect(rec.plays![0].score).toBeGreaterThan(0)
   })
 
+  it('records places, drop-out gifts and recipients for three players', () => {
+    const g0 = createGame({ mode: 'two', names: ['Shane', 'Dawn', 'Pip'], timerSeconds: null, hints: 'off', madeUp: 'no' })
+    const g: GameState = { ...g0, current: 0, players: g0.players.map((p, i) => ({ ...p, score: [30, 10, 5][i] })) }
+    const a = reduce(g, { type: 'concede', recipient: 1 }) // Shane gives 30 to Dawn
+    if (!a.ok) throw new Error(a.error)
+    const b = reduce({ ...a.state, current: 2 }, { type: 'concede', recipient: null }) // Pip drops, gives nothing
+    if (!b.ok) throw new Error(b.error)
+    const rec = buildGameRecord(b.state, DEFAULT_SETUP)
+    expect(rec.players.map((p) => [p.name, p.rank, p.finalScore, p.givenAway, p.giftTo, p.conceded, p.winner])).toEqual([
+      ['Shane', 3, 0, 30, 'Dawn', true, false],
+      ['Dawn', 1, 40, 0, null, false, true],
+      ['Pip', 2, 5, 0, null, true, false]
+    ])
+  })
+
+  it('numbers shared places 1, 1, 3', () => {
+    expect(placeNumbers([[2, 0], [1], [3]], 4)).toEqual([1, 3, 1, 4])
+  })
+
   it('refuses a game still in play', () => {
     expect(() => buildGameRecord(twoPlayerGame(), DEFAULT_SETUP)).toThrow()
   })
@@ -53,7 +72,8 @@ describe('buildGameRecord', () => {
 describe('newHighScores', () => {
   const finished = (scores: number[], conceder: number | null = null): GameState => {
     const g = played()
-    return { ...g, result: { ...g.result!, finalScores: scores, conceder } }
+    const players = g.players.map((p, i) => ({ ...p, conceded: conceder === i }))
+    return { ...g, players, result: { ...g.result!, finalScores: scores, conceder } }
   }
 
   it('stamps any positive score while the table has room', () => {

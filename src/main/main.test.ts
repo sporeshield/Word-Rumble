@@ -1,9 +1,9 @@
-import { mkdtempSync, mkdirSync, rmSync, writeFileSync, readdirSync } from 'node:fs'
+import { mkdtempSync, mkdirSync, rmSync, writeFileSync, readdirSync, readFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import initSqlJs, { type SqlJsStatic } from 'sql.js'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { GameDb } from './db'
+import { GameDb, MIGRATIONS } from './db'
 import { listSounds, readSound } from './sounds'
 import { WordService } from './words'
 
@@ -78,6 +78,62 @@ describe('GameDb', () => {
 
     db.resetScores()
     expect(db.topScores('all')).toEqual([])
+  })
+
+  it('migrates a version-2 database: ranks from winner, draws share 1st', () => {
+    const old = new SQL.Database()
+    old.exec(MIGRATIONS[0])
+    old.exec(MIGRATIONS[1])
+    old.exec(`PRAGMA user_version = 2;
+      INSERT INTO players (id, name) VALUES (1, 'Shane'), (2, 'Dawn');
+      INSERT INTO games (id, mode, ended_reason, played_at) VALUES (1, 'two', 'out', 'a'), (2, 'two', 'out', 'b'), (3, 'solo', 'finished', 'c');
+      INSERT INTO game_players (game_id, player_id, seat, final_score, pre_adjust_score, winner) VALUES
+        (1, 1, 0, 300, 300, 1), (1, 2, 1, 200, 200, 0),
+        (2, 1, 0, 250, 250, 0), (2, 2, 1, 250, 250, 0),
+        (3, 1, 0, 400, 400, 0);`)
+    const file = join(tmp, 'v2', 'wr.sqlite')
+    mkdirSync(join(tmp, 'v2'))
+    writeFileSync(file, old.export())
+    old.close()
+
+    const db = GameDb.open(SQL, file)
+    db.close()
+    const check = new SQL.Database(readFileSync(file))
+    expect(check.exec('PRAGMA user_version')[0].values[0][0]).toBe(MIGRATIONS.length)
+    expect(check.exec('SELECT game_id, rank, given_away, gift_to FROM game_players ORDER BY id')[0].values).toEqual([
+      [1, 1, 0, null], [1, 2, 0, null], [2, 1, 0, null], [2, 1, 0, null], [3, 1, 0, null]
+    ])
+    check.close()
+    expect(GameDb.open(SQL, file).headToHead()[0]).toMatchObject({ a: 'Dawn', b: 'Shane', games: 2, aWins: 0, bWins: 1, draws: 1 })
+  })
+
+  it('tallies every pair of a 3-player game by place and lists recent players by place', () => {
+    const db = GameDb.open(SQL, null)
+    db.recordGame({
+      mode: 'two', endedReason: 'conceded', playedAt: '2030-01-01T00:00:00Z',
+      players: [
+        { name: 'Shane', finalScore: 0, preAdjustScore: 0, rank: 3, conceded: true, givenAway: 30, giftTo: 'Dawn' },
+        { name: 'Dawn|Ann', finalScore: 90, preAdjustScore: 90, rank: 1, winner: true },
+        { name: 'Pip', finalScore: 90, preAdjustScore: 90, rank: 1 }
+      ]
+    })
+    const h2h = db.headToHead()
+    expect(h2h.map((r) => [r.a, r.b, r.aWins, r.bWins, r.draws])).toEqual([
+      ['Dawn|Ann', 'Pip', 0, 0, 1], ['Dawn|Ann', 'Shane', 1, 0, 0], ['Pip', 'Shane', 1, 0, 0]
+    ])
+    const [recent] = db.recentGames()
+    expect(recent.players).toEqual([
+      { name: 'Dawn|Ann', isComputer: false, score: 90, rank: 1, winner: true, conceded: false, givenAway: 0, giftTo: null },
+      { name: 'Pip', isComputer: false, score: 90, rank: 1, winner: false, conceded: false, givenAway: 0, giftTo: null },
+      { name: 'Shane', isComputer: false, score: 0, rank: 3, winner: false, conceded: true, givenAway: 30, giftTo: 'Dawn' }
+    ])
+  })
+
+  it('works out a rank when a record only has winner flags', () => {
+    const db = GameDb.open(SQL, null)
+    db.recordGame(game(300, 250))
+    db.recordGame(game(260, 260))
+    expect(db.recentGames().map((g) => (g.players as { rank: number }[]).map((p) => p.rank))).toEqual([[1, 1], [1, 2]])
   })
 
   it('keeps computer players out of the high scores', () => {
